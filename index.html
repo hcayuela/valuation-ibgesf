@@ -1,0 +1,4075 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Valuation IBGESF</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap">
+
+<!-- Leitura client-side de PDF e Excel/CSV -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+/* ─── TOKENS ─── */
+:root {
+  --navy:       #0f415d;
+  --navy-dk:    #0a2e42;
+  --navy-lt:    #1a5070;
+  --green:      #24543c;
+  --amber:      #e3b505;
+  --amber-lt:   #f5cc2a;
+  --offwhite:   #fdf8f1;
+  --steel:      #b7c9d3;
+
+  --bg:         #fdf8f1;
+  --surface:    #ffffff;
+  --surface-2:  #f4ede2;
+  --border:     #dde5ea;
+  --text:       #1a2e3a;
+  --muted:      #5a7080;
+  --faint:      #8aa0ae;
+
+  --shadow-sm:  0 1px 4px rgba(15,65,93,.07);
+  --shadow-md:  0 4px 18px rgba(15,65,93,.11);
+  --r:          8px;
+  --r-lg:       12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:       #071520;
+    --surface:  #0d2435;
+    --surface-2:#0a1c2c;
+    --border:   #1a3548;
+    --text:     #e0ecf4;
+    --muted:    #7fafc4;
+    --faint:    #4a7a96;
+    --steel:    #2a4a60;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:       #071520;
+  --surface:  #0d2435;
+  --surface-2:#0a1c2c;
+  --border:   #1a3548;
+  --text:     #e0ecf4;
+  --muted:    #7fafc4;
+  --faint:    #4a7a96;
+  --steel:    #2a4a60;
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+
+body {
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:15px;
+  line-height:1.6;
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* ─── HEADER ─── */
+.hd {
+  background:var(--navy);
+  padding:14px 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky;
+  top:env(safe-area-inset-top,0px);
+  z-index:100;
+  gap:12px;
+}
+.logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
+.logo-mark {
+  width:34px; height:34px;
+  background:var(--amber);
+  border-radius:4px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Playfair Display',Georgia,serif;
+  font-weight:700; font-size:16px; color:var(--navy);
+  flex-shrink:0;
+}
+.logo-wrap { display:flex; flex-direction:column; }
+.logo-name  { font-family:'Playfair Display',Georgia,serif; font-weight:600; font-size:13px; color:#fff; letter-spacing:.02em; line-height:1.2; }
+.logo-tag   { font-size:10px; color:var(--steel); letter-spacing:.07em; text-transform:uppercase; }
+.hd-badge {
+  background:rgba(227,181,5,.15);
+  border:1px solid rgba(227,181,5,.3);
+  color:var(--amber);
+  font-size:11px; font-weight:600;
+  letter-spacing:.07em; text-transform:uppercase;
+  padding:4px 10px; border-radius:20px;
+  white-space:nowrap;
+}
+
+/* ─── STEPS ─── */
+.steps-bar {
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;
+}
+.steps {
+  max-width:940px; margin:0 auto;
+  display:flex; align-items:stretch;
+}
+.step {
+  display:flex; align-items:center; gap:9px;
+  padding:13px 0; flex:1;
+  font-size:13px; font-weight:500;
+  color:var(--faint);
+  position:relative;
+}
+.step:not(:last-child)::after {
+  content:'';
+  position:absolute; right:-2px; top:50%;
+  transform:translateY(-50%);
+  width:18px; height:1px;
+  background:var(--border);
+}
+.step-n {
+  width:24px; height:24px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700;
+  border:1.5px solid var(--border);
+  background:var(--surface); color:var(--faint);
+  flex-shrink:0; transition:all .2s;
+}
+.step.active { color:var(--navy); }
+.step.active .step-n { background:var(--navy); border-color:var(--navy); color:#fff; }
+.step.done { color:var(--muted); }
+.step.done .step-n { background:var(--green); border-color:var(--green); color:#fff; }
+@media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) .step.active { color:var(--amber); } .step.active .step-n { background:var(--amber); border-color:var(--amber); color:var(--navy); } }
+:root[data-theme="dark"] .step.active { color:var(--amber); }
+:root[data-theme="dark"] .step.active .step-n { background:var(--amber); border-color:var(--amber); color:var(--navy); }
+
+/* ─── MAIN ─── */
+.main {
+  max-width:940px; margin:0 auto;
+  padding:32px 20px 64px;
+}
+
+/* ─── PHASES ─── */
+.phase { display:none; }
+.phase.on { display:block; }
+@media (prefers-reduced-motion:no-preference) {
+  .phase.on { animation:fadeUp .22s ease; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+}
+
+/* ─── EMAIL GATE ─── */
+.gate {
+  max-width:460px; margin:44px auto 0;
+  text-align:center;
+}
+.eyebrow {
+  font-size:11px; font-weight:600;
+  letter-spacing:.12em; text-transform:uppercase;
+  color:var(--amber); margin-bottom:10px;
+}
+.gate h1 {
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:30px; font-weight:700;
+  line-height:1.2; color:var(--navy);
+  text-wrap:balance; margin-bottom:10px;
+}
+@media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) .gate h1 { color:var(--text); } }
+:root[data-theme="dark"] .gate h1 { color:var(--text); }
+
+.gate-sub {
+  color:var(--muted); font-size:14px;
+  line-height:1.6; margin-bottom:28px;
+}
+.card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:24px 24px 20px;
+  box-shadow:var(--shadow-md);
+  text-align:left;
+}
+.fg { margin-bottom:14px; }
+.fg label {
+  display:block; font-size:11px; font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase;
+  color:var(--muted); margin-bottom:5px;
+}
+.fg input, .fg select, .fg textarea {
+  width:100%; padding:9px 13px;
+  border:1.5px solid var(--border);
+  border-radius:var(--r);
+  background:var(--bg); color:var(--text);
+  font-family:'Inter',system-ui,sans-serif; font-size:15px;
+  outline:none; transition:border-color .15s;
+}
+.fg input:focus, .fg select:focus, .fg textarea:focus {
+  border-color:var(--navy);
+  box-shadow:0 0 0 3px rgba(15,65,93,.09);
+}
+
+/* ─── BUTTONS ─── */
+.btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  padding:11px 22px; border-radius:var(--r);
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:14px; font-weight:600;
+  border:none; cursor:pointer;
+  transition:all .15s; text-decoration:none;
+}
+.btn-full { width:100%; }
+.btn-navy { background:var(--navy); color:#fff; }
+.btn-navy:hover { background:var(--navy-dk); }
+.btn-navy:disabled { opacity:.4; cursor:default; }
+.btn-amber { background:var(--amber); color:var(--navy); font-weight:700; }
+.btn-amber:hover { background:var(--amber-lt); box-shadow:0 4px 14px rgba(227,181,5,.3); }
+.btn-ghost { background:transparent; border:1.5px solid var(--border); color:var(--muted); }
+.btn-ghost:hover { border-color:var(--navy); color:var(--navy); }
+
+.privacy {
+  font-size:11px; color:var(--faint);
+  text-align:center; margin-top:13px;
+}
+
+/* ─── INPUT PHASE ─── */
+.phase-head { margin-bottom:20px; }
+.phase-head h2 {
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:22px; font-weight:700; color:var(--navy);
+  margin-bottom:3px;
+}
+@media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) .phase-head h2 { color:var(--text); } }
+:root[data-theme="dark"] .phase-head h2 { color:var(--text); }
+.phase-head p { color:var(--muted); font-size:13px; }
+
+.two-col {
+  display:grid;
+  grid-template-columns:1fr 290px;
+  gap:20px;
+  align-items:start;
+}
+@media (max-width:720px) {
+  .two-col {
+    grid-template-columns:1fr;
+  }
+  /* Painel: no mobile aparece abaixo do formulário, compacto */
+  .panel {
+    position:static !important;
+    width:100% !important;
+    max-height:none !important;
+    overflow:visible !important;
+  }
+}
+
+.input-col { display:flex; flex-direction:column; gap:12px; }
+
+#ta {
+  width:100%; min-height:270px;
+  padding:15px 16px;
+  border:1.5px solid var(--border); border-radius:var(--r-lg);
+  background:var(--surface); color:var(--text);
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:14px; line-height:1.7;
+  resize:vertical; outline:none;
+  transition:border-color .15s;
+}
+#ta:focus { border-color:var(--navy); box-shadow:0 0 0 3px rgba(15,65,93,.08); }
+#ta::placeholder { color:var(--faint); font-size:13px; line-height:1.6; }
+
+.ta-hint { font-size:12px; color:var(--faint); line-height:1.5; }
+
+.meta-row {
+  display:flex; gap:10px; align-items:flex-end;
+  flex-wrap:wrap;
+}
+.meta-row .fg { flex:1; min-width:160px; margin:0; }
+
+/* Upload zone — bloco central de destaque */
+.upload-block {
+  display:flex; flex-direction:column; align-items:center;
+  gap:10px; width:100%; margin:4px 0 2px;
+}
+.upload-zone {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:6px; padding:28px 20px;
+  border:2px dashed rgba(227,181,5,.55); border-radius:var(--r-lg);
+  background:linear-gradient(135deg,rgba(15,65,93,.06) 0%,rgba(227,181,5,.04) 100%);
+  color:var(--muted);
+  cursor:pointer; transition:all .2s;
+  text-align:center; width:100%; box-sizing:border-box;
+  box-shadow:0 2px 12px rgba(15,65,93,.07);
+}
+.upload-zone:hover {
+  border-color:var(--amber);
+  background:linear-gradient(135deg,rgba(15,65,93,.1) 0%,rgba(227,181,5,.08) 100%);
+  box-shadow:0 4px 20px rgba(227,181,5,.15);
+}
+.upload-zone.drag-over {
+  border-color:var(--amber);
+  background:rgba(227,181,5,.08);
+  box-shadow:0 4px 24px rgba(227,181,5,.22);
+}
+.upload-zone-icon { font-size:34px; line-height:1; margin-bottom:4px; }
+.upload-zone-title { font-size:15px; font-weight:700; color:var(--text); letter-spacing:.01em; }
+.upload-zone-sub { font-size:12px; color:var(--muted); }
+.upload-zone-formats {
+  font-size:10px; color:var(--faint); margin-top:4px; letter-spacing:.04em;
+  background:var(--surface-2); padding:3px 10px; border-radius:20px;
+}
+.sector-row { width:100%; }
+.sector-row .fg { margin:0; }
+.up-badge {
+  font-size:9px; background:var(--green); color:#fff;
+  padding:1px 5px; border-radius:3px;
+  font-weight:700; letter-spacing:.04em;
+}
+#file-list { font-size:11px; color:var(--green); font-weight:500; }
+
+/* ─── PANEL ─── */
+.panel {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  overflow:hidden;
+  box-shadow:var(--shadow-sm);
+  position:sticky;
+  top:calc(env(safe-area-inset-top,0px) + 62px);
+}
+.panel-hd {
+  background:var(--navy);
+  padding:13px 15px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.panel-title {
+  font-size:11px; font-weight:600;
+  letter-spacing:.09em; text-transform:uppercase;
+  color:var(--steel);
+  display:flex; align-items:center; gap:7px;
+}
+.ai-spin {
+  width:12px; height:12px; border-radius:50%;
+  border:2px solid rgba(183,201,211,.3);
+  border-top-color:var(--amber);
+  display:none; flex-shrink:0;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+.ai-spin.on { display:inline-block; animation:spin .7s linear infinite; }
+
+/* ── Scanning gradient during analysis ── */
+@keyframes barScan {
+  0%   { background-position: -100% 0; }
+  100% { background-position: 200% 0; }
+}
+.panel.analyzing .conf-fill {
+  background: linear-gradient(90deg,
+    var(--navy-lt) 0%,
+    var(--amber) 35%,
+    #fff8 50%,
+    var(--amber) 65%,
+    var(--navy-lt) 100%);
+  background-size: 300% 100%;
+  animation: barScan 1.2s linear infinite !important;
+  transition: none !important;
+}
+
+/* ── Value flash when first populated ── */
+@keyframes valIn {
+  0%   { opacity:0; transform: translateX(-6px); }
+  60%  { opacity:1; transform: translateX(1px); }
+  100% { opacity:1; transform: translateX(0); }
+}
+.fval.flash { animation: valIn 0.35s ease forwards; }
+
+/* ── Indicator dot pop when detected ── */
+@keyframes indPop {
+  0%   { transform:scale(1); }
+  50%  { transform:scale(1.7); box-shadow:0 0 0 5px rgba(36,84,60,.25); }
+  100% { transform:scale(1); }
+}
+.ind.done.pop { animation: indPop 0.45s ease; }
+
+.pct-wrap { text-align:right; }
+.pct-num {
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:20px; font-weight:700; color:#fff;
+  font-variant-numeric:tabular-nums; line-height:1;
+}
+.pct-lbl { font-size:10px; color:var(--steel); }
+
+.conf-bar {
+  height:4px; background:var(--navy-lt); overflow:hidden;
+}
+.conf-fill {
+  height:100%;
+  background:linear-gradient(90deg,#1a5070,var(--amber));
+  transition:width .5s ease;
+}
+
+.panel-body { padding:10px 11px; }
+
+.psec { margin-bottom:6px; }
+.psec-lbl {
+  font-size:10px; font-weight:600;
+  letter-spacing:.09em; text-transform:uppercase;
+  color:var(--faint); padding:3px 3px 5px;
+  display:flex; align-items:center; gap:5px;
+}
+.pdot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.pdot.high { background:#e05252; }
+.pdot.med  { background:var(--amber); }
+.pdot.low  { background:var(--green); }
+
+.pfield {
+  display:flex; align-items:center; gap:9px;
+  padding:6px 7px; border-radius:5px;
+  background:var(--bg); margin-bottom:3px;
+}
+.ind {
+  width:8px; height:8px; border-radius:50%;
+  flex-shrink:0; transition:all .2s;
+}
+.ind.empty { border:1.5px solid var(--faint); background:transparent; }
+.ind.done  { background:var(--green); box-shadow:0 0 0 2px rgba(36,84,60,.18); }
+.fname { font-size:12px; color:var(--muted); flex:1; line-height:1.3; }
+.fval  {
+  font-size:11px; font-weight:600; color:var(--text);
+  font-variant-numeric:tabular-nums;
+  text-align:right; max-width:90px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+/* Campos editáveis pelo usuário */
+.fval[contenteditable="true"] {
+  cursor: text;
+  border-bottom: 1px dashed rgba(227,181,5,.5);
+  border-radius: 2px;
+  padding: 1px 3px;
+  min-width: 40px;
+  display: inline-block;
+  outline: none;
+  transition: border-color .2s, background .2s;
+}
+.fval[contenteditable="true"]:focus {
+  border-bottom-color: var(--amber, #E3B505);
+  background: rgba(227,181,5,.08);
+}
+.fval[contenteditable="true"]:empty::before {
+  content: 'digitar...';
+  color: rgba(255,255,255,.3);
+  font-style: italic;
+  font-size: 11px;
+}
+.fval.user-edited {
+  color: var(--amber, #E3B505) !important;
+}
+/* Hint de edição no hover do campo pai */
+.pfield:hover .fval[contenteditable] {
+  border-bottom-color: rgba(227,181,5,.8);
+}
+
+/* Tooltip icon + popup */
+.tip-icon {
+  position:relative;
+  display:inline-flex; align-items:center; justify-content:center;
+  width:15px; height:15px; border-radius:50%;
+  font-size:9px; font-weight:700; font-style:normal;
+  background:var(--border); color:var(--muted);
+  cursor:pointer; transition:background .15s, color .15s;
+  flex-shrink:0; user-select:none; line-height:1;
+  border:none; padding:0;
+}
+.tip-icon:hover,.tip-icon:focus { background:var(--amber); color:#fff; outline:none; }
+.tip-icon::after {
+  content: attr(data-tip);
+  position:absolute;
+  bottom:calc(100% + 6px); left:50%;
+  transform:translateX(-50%);
+  width:220px; max-width:80vw;
+  background:var(--navy);
+  color:#e8ecf4;
+  font-size:11px; font-weight:400; line-height:1.5;
+  padding:8px 10px; border-radius:7px;
+  white-space:normal; text-align:left;
+  pointer-events:none;
+  opacity:0; transition:opacity .15s;
+  z-index:999;
+  box-shadow:0 4px 16px rgba(0,0,0,.3);
+}
+/* Seta */
+.tip-icon::before {
+  content:'';
+  position:absolute;
+  bottom:calc(100% + 1px); left:50%;
+  transform:translateX(-50%);
+  border:5px solid transparent;
+  border-top-color:var(--navy);
+  pointer-events:none;
+  opacity:0; transition:opacity .15s;
+  z-index:999;
+}
+.tip-icon:hover::after,.tip-icon:focus::after,
+.tip-icon.open::after { opacity:1; }
+.tip-icon:hover::before,.tip-icon:focus::before,
+.tip-icon.open::before { opacity:1; }
+/* No mobile o tooltip fica abaixo se não couber acima */
+@media (max-width:600px) {
+  .tip-icon::after {
+    bottom:auto; top:calc(100% + 6px);
+    left:0; transform:none;
+  }
+  .tip-icon::before {
+    bottom:auto; top:calc(100% + 0px);
+    border-top-color:transparent;
+    border-bottom-color:var(--navy);
+  }
+}
+
+/* ─── OVERLAY DE ANÁLISE ─── */
+#analysis-overlay {
+  position:fixed; inset:0; z-index:9000;
+  background:rgba(7,21,32,.82);
+  backdrop-filter:blur(6px);
+  display:flex; align-items:flex-end; justify-content:center;
+  padding:0;
+  animation:aov-bg-in .25s ease;
+}
+@keyframes aov-bg-in { from{opacity:0} to{opacity:1} }
+
+#analysis-modal {
+  background:var(--surface);
+  border-radius:20px 20px 0 0;
+  width:100%; max-width:520px;
+  max-height:92vh;
+  overflow-y:auto;
+  box-shadow:0 -8px 40px rgba(0,0,0,.45);
+  animation:aov-slide-in .35s cubic-bezier(.22,1,.36,1);
+  display:flex; flex-direction:column;
+}
+@keyframes aov-slide-in { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+.aov-header {
+  display:flex; align-items:center; gap:12px;
+  padding:20px 20px 16px;
+  border-bottom:1px solid var(--border);
+  position:sticky; top:0;
+  background:var(--surface);
+  z-index:1;
+}
+.aov-icon-wrap {
+  width:40px; height:40px; border-radius:10px;
+  background:linear-gradient(135deg,var(--navy),var(--navy-lt));
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; font-size:18px;
+}
+.aov-title { font-size:15px; font-weight:600; color:var(--text); }
+.aov-subtitle { font-size:12px; color:var(--muted); margin-top:2px; }
+.aov-pulse-wrap { margin-left:auto; display:flex; gap:4px; align-items:center; }
+.aov-dot {
+  width:7px; height:7px; border-radius:50%;
+  background:var(--amber);
+  animation:aov-pulse 1.2s ease-in-out infinite;
+}
+.aov-dot:nth-child(2) { animation-delay:.2s; }
+.aov-dot:nth-child(3) { animation-delay:.4s; }
+@keyframes aov-pulse { 0%,100%{opacity:.25;transform:scale(.8)} 50%{opacity:1;transform:scale(1)} }
+
+.aov-docs {
+  padding:12px 20px 8px;
+  display:flex; flex-direction:column; gap:4px;
+}
+.aov-doc-item {
+  display:flex; align-items:center; gap:8px;
+  font-size:12px; color:var(--muted);
+  padding:5px 0;
+  border-bottom:1px solid var(--border);
+}
+.aov-doc-item:last-child { border-bottom:none; }
+.aov-doc-icon { font-size:14px; }
+.aov-doc-name { font-weight:500; color:var(--text); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.aov-doc-status { font-size:11px; flex-shrink:0; }
+.aov-doc-status.loading { color:var(--amber); }
+.aov-doc-status.done { color:var(--green); }
+
+.aov-section-lbl {
+  font-size:10px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--faint);
+  padding:14px 20px 6px;
+}
+
+.aov-steps { padding:0 20px 4px; display:flex; flex-direction:column; gap:2px; }
+
+.aov-step {
+  display:flex; align-items:center; gap:10px;
+  padding:8px 10px; border-radius:8px;
+  opacity:0; transform:translateY(6px);
+  transition:opacity .3s ease, transform .3s ease;
+  font-size:13px;
+}
+.aov-step.visible { opacity:1; transform:translateY(0); }
+.aov-step-icon {
+  width:20px; height:20px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px;
+}
+.aov-step.found .aov-step-icon   { background:rgba(36,84,60,.15); color:var(--green); }
+.aov-step.missing .aov-step-icon { background:rgba(90,112,128,.1); color:var(--faint); }
+.aov-step-label { flex:1; color:var(--text); }
+.aov-step.missing .aov-step-label { color:var(--muted); }
+.aov-step-value { font-size:12px; font-weight:600; color:var(--text); text-align:right; }
+.aov-step.found .aov-step-value  { color:var(--navy); }
+.aov-step.missing .aov-step-value { color:var(--faint); font-weight:400; }
+.aov-step.found  { background:rgba(36,84,60,.05); }
+
+.aov-footer {
+  padding:16px 20px 28px;
+  border-top:1px solid var(--border);
+  margin-top:8px;
+  display:flex; flex-direction:column; gap:12px;
+  position:sticky; bottom:0;
+  background:var(--surface);
+}
+.aov-summary-line {
+  font-size:13px; color:var(--muted); text-align:center;
+}
+.aov-summary-line strong { color:var(--text); }
+.aov-cta {
+  width:100%; padding:14px;
+  background:var(--navy); color:#fff;
+  border:none; border-radius:10px;
+  font-size:14px; font-weight:600; cursor:pointer;
+  transition:background .18s;
+}
+.aov-cta:hover { background:var(--navy-lt); }
+
+/* BTB recommended section */
+.psec-btb .psec-lbl { color:rgba(227,181,5,.8); }
+.pfield-ask { background:rgba(227,181,5,.04); border:1px solid rgba(227,181,5,.12); }
+.pfield-ask .fname { color:var(--muted); }
+.pfield-ask .ind.empty { border-color:rgba(227,181,5,.4); }
+/* Indent marker for "ask the user" */
+.pfield-ask::before {
+  content:'?';
+  font-size:9px; font-weight:700;
+  color:rgba(227,181,5,.5);
+  width:10px; text-align:center;
+  flex-shrink:0;
+}
+.pfield-ask .ind { display:none; } /* replaced by ? marker */
+.pfield-ask.filled::before { content:'✓'; color:var(--green); }
+.pfield-ask.filled { background:rgba(36,84,60,.06); border-color:rgba(36,84,60,.18); }
+
+.panel-ft {
+  border-top:1px solid var(--border);
+  padding:10px 11px;
+  font-size:10px; color:var(--faint); text-align:center; line-height:1.4;
+}
+
+/* ─── ERROR ─── */
+.err {
+  color:#d94f4f; font-size:12px; margin-top:5px; display:none;
+}
+.err.on { display:block; }
+
+/* ─── RESULT ─── */
+.btn-back {
+  display:inline-flex; align-items:center; gap:6px;
+  margin-bottom:20px;
+  padding:8px 16px;
+  border:1.5px solid var(--border); border-radius:var(--r);
+  background:var(--surface); color:var(--muted);
+  font-size:13px; font-weight:500; cursor:pointer;
+  transition:all .15s;
+}
+.btn-back:hover { border-color:var(--navy); color:var(--navy); background:var(--surface-2); }
+
+.res-hero {
+  text-align:center;
+  padding:36px 20px 28px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:28px;
+}
+.res-eyebrow {
+  font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--amber); margin-bottom:10px;
+}
+.res-company {
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:18px; font-weight:600;
+  color:var(--muted); margin-bottom:10px;
+  text-wrap:balance;
+}
+.method-tag {
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--surface-2); border:1px solid var(--border);
+  border-radius:20px; padding:4px 13px;
+  font-size:12px; color:var(--muted); margin-bottom:14px;
+}
+.method-dot { width:7px; height:7px; border-radius:50%; background:var(--navy); }
+.method-tag.dcf { background:rgba(36,84,60,.12); border-color:rgba(36,84,60,.3); color:var(--green); }
+.method-tag.dcf .method-dot { background:var(--green); }
+
+.ev-row {
+  display:flex; align-items:baseline; justify-content:center;
+  gap:10px; flex-wrap:wrap; margin-bottom:6px;
+}
+.ev-num {
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:46px; font-weight:700;
+  color:var(--navy); line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+@media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) .ev-num { color:var(--text); } }
+:root[data-theme="dark"] .ev-num { color:var(--text); }
+.ev-dash { font-size:22px; color:var(--faint); font-weight:300; }
+
+.res-conf {
+  font-size:13px; color:var(--muted);
+  margin-top:4px;
+}
+
+/* ─── FREE BOXES ─── */
+.free-boxes {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px; margin-bottom:28px;
+}
+@media (max-width:600px) { .free-boxes { grid-template-columns:1fr; } }
+.rbox {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:15px;
+}
+.rbox-lbl {
+  font-size:10px; font-weight:600;
+  letter-spacing:.08em; text-transform:uppercase;
+  color:var(--faint); margin-bottom:5px;
+}
+.rbox-val {
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:22px; font-weight:700;
+  color:var(--navy);
+  font-variant-numeric:tabular-nums;
+}
+@media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) .rbox-val { color:var(--text); } }
+:root[data-theme="dark"] .rbox-val { color:var(--text); }
+.rbox-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+
+/* ─── LEVERS ─── */
+.levers { margin-bottom:28px; }
+.levers-h {
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:19px; font-weight:700; color:var(--navy); margin-bottom:3px;
+}
+@media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) .levers-h { color:var(--text); } }
+:root[data-theme="dark"] .levers-h { color:var(--text); }
+.levers-sub { font-size:12px; color:var(--muted); margin-bottom:14px; }
+
+.lever {
+  display:flex; gap:14px; align-items:flex-start;
+  padding:13px 0; border-bottom:1px solid var(--border);
+}
+.lever-n {
+  width:26px; height:26px; border-radius:50%;
+  background:var(--navy); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:700; flex-shrink:0;
+}
+.lever-body { flex:1; }
+.lever-name { font-weight:600; font-size:14px; margin-bottom:2px; }
+.lever-desc { font-size:12px; color:var(--muted); line-height:1.5; }
+.lever-impact {
+  background:rgba(36,84,60,.1); color:var(--green);
+  font-size:10px; font-weight:700;
+  padding:3px 8px; border-radius:4px;
+  white-space:nowrap; flex-shrink:0; align-self:flex-start;
+  margin-top:3px;
+}
+
+/* ─── BLURRED PREVIEW ─── */
+.blur-wrap { position:relative; margin-bottom:24px; }
+.blur-content {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r); padding:18px;
+  filter:blur(5px); user-select:none; pointer-events:none;
+  opacity:.55;
+}
+.blur-over {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:7px;
+}
+.lock-badge {
+  background:var(--navy); color:#fff;
+  border-radius:20px; padding:8px 20px;
+  font-size:13px; font-weight:600;
+  display:flex; align-items:center; gap:8px;
+  box-shadow:var(--shadow-md);
+}
+.lock-sub { font-size:12px; color:var(--muted); }
+
+/* ─── UPGRADE ─── */
+.upgrade {
+  background:var(--navy);
+  border-radius:var(--r-lg);
+  padding:30px 28px;
+  color:#fff;
+  position:relative; overflow:hidden;
+  margin-bottom:20px;
+}
+.upgrade::before {
+  content:'';
+  position:absolute; top:-50px; right:-50px;
+  width:220px; height:220px; border-radius:50%;
+  background:rgba(227,181,5,.07);
+  pointer-events:none;
+}
+.up-title {
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:21px; font-weight:700; margin-bottom:6px;
+}
+.up-sub { font-size:13px; color:var(--steel); margin-bottom:20px; line-height:1.5; }
+
+.up-list {
+  list-style:none;
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:8px 18px; margin-bottom:24px;
+}
+@media (max-width:560px) { .up-list { grid-template-columns:1fr; } }
+.up-list li {
+  display:flex; align-items:flex-start; gap:9px;
+  font-size:13px; color:#c8dde9; line-height:1.4;
+}
+.up-list li::before {
+  content:'✓'; color:var(--amber);
+  font-weight:700; flex-shrink:0;
+}
+
+.up-cta-row {
+  display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+}
+.price-row { display:flex; align-items:baseline; gap:3px; }
+.p-curr { font-size:17px; color:var(--amber); font-weight:600; }
+.p-val  {
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:40px; font-weight:700; color:#fff;
+  font-variant-numeric:tabular-nums; line-height:1;
+}
+.p-note { font-size:11px; color:var(--steel); }
+
+.up-sec {
+  margin-top:14px; font-size:11px; color:var(--steel);
+  display:flex; align-items:center; gap:6px;
+}
+
+/* ─── ROLE BUTTONS ─── */
+.role-btn {
+  flex:1; min-width:220px;
+  display:flex; align-items:flex-start; gap:13px;
+  padding:16px 18px;
+  background:rgba(255,255,255,.07);
+  border:1.5px solid rgba(255,255,255,.15);
+  border-radius:var(--r);
+  color:#fff; text-align:left;
+  cursor:pointer; transition:all .18s;
+  font-family:'Inter',system-ui,sans-serif;
+}
+.role-btn:hover {
+  background:rgba(227,181,5,.12);
+  border-color:var(--amber);
+  transform:translateY(-1px);
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+}
+.role-btn.selected {
+  background:rgba(227,181,5,.18);
+  border-color:var(--amber);
+  box-shadow:0 0 0 3px rgba(227,181,5,.2);
+}
+
+/* ─── WPP ─── */
+.wpp-box {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-lg); padding:22px;
+  text-align:center; margin-top:20px;
+}
+.wpp-box p { font-size:14px; color:var(--muted); margin-bottom:14px; }
+.wpp-btn {
+  display:inline-flex; align-items:center; gap:9px;
+  background:#25D366; color:#fff;
+  padding:11px 22px; border-radius:var(--r);
+  font-weight:600; font-size:14px;
+  text-decoration:none; transition:all .15s;
+}
+.wpp-btn:hover { background:#1DB954; box-shadow:0 4px 12px rgba(37,211,102,.28); }
+
+/* ─── MOBILE ─── */
+@media (max-width:560px) {
+  .hd { padding:12px 16px; }
+  .logo-tag { display:none; }
+  .main { padding:16px 14px 60px; }
+  .gate h1 { font-size:25px; }
+  .ev-num { font-size:34px; }
+  .upgrade { padding:22px 18px; }
+  /* Upload zone mais compacto no mobile */
+  .upload-zone { padding:20px 14px; }
+  .upload-zone-icon { font-size:28px; }
+  /* Painel: campos lado a lado no mobile */
+  .pfield { padding:5px 6px; }
+  .fname  { font-size:11px; }
+  .fval   { font-size:11px; max-width:80px; }
+  /* Resultado: botão voltar mais compacto */
+  .btn-back { font-size:12px; padding:7px 12px; }
+  /* Não truncar valores no resultado */
+  .fval { max-width:none; }
+}
+
+/* ── Evidence/Origin badges ── */
+.ev-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 50%;
+  width: 22px; height: 22px;
+  font-size: 11px;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 0;
+  flex-shrink: 0;
+  transition: border-color .2s, color .2s;
+}
+.ev-btn:hover { border-color: var(--amber); color: var(--amber); }
+
+/* Origin state dots on field labels */
+.state-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+.state-dot.validated    { background: #4caf50; }
+.state-dot.needs-review { background: #ff9800; }
+.state-dot.conflicting  { background: #f44336; }
+.state-dot.not-found    { background: #555; }
+.state-dot.read-failure { background: #f44336; }
+
+/* Evidence modal */
+#evidence-modal {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,.65);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+#evidence-modal.hidden { display: none; }
+#evidence-modal-inner {
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 14px;
+  padding: 22px 24px;
+  width: 100%; max-width: 420px;
+  color: var(--text);
+}
+#evidence-modal-title {
+  font-size: 15px; font-weight: 600; margin-bottom: 14px;
+  color: var(--amber);
+}
+</style>
+
+<!-- ══════════════════════════════════ HEADER ══════════════════════════════════ -->
+<header class="hd">
+  <a class="logo" href="#">
+    <div class="logo-mark">I</div>
+    <div class="logo-wrap">
+      <span class="logo-name">IBGESF</span>
+      <span class="logo-tag">Governança · Estratégia · Sucessão</span>
+    </div>
+  </a>
+  <div class="hd-badge">Ferramenta Gratuita</div>
+</header>
+
+<!-- ══════════════════════════════════ STEPS ══════════════════════════════════ -->
+<nav class="steps-bar" aria-label="Etapas">
+  <div class="steps">
+    <div class="step active" id="st1"><div class="step-n">1</div>Identificação</div>
+    <div class="step"        id="st2"><div class="step-n">2</div>Dados da empresa</div>
+    <div class="step"        id="st3"><div class="step-n">3</div>Resultado</div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════ MAIN ══════════════════════════════════ -->
+<main class="main">
+
+<!-- ─── FASE 1: E-MAIL ─── -->
+<section class="phase on" id="ph-email">
+  <div class="gate">
+    <div class="eyebrow">Avaliação de Empresas · Metodologia FCD (Fluxo de Caixa Descontado) + Múltiplos</div>
+    <h1>Quanto vale a sua empresa?</h1>
+    <p class="gate-sub">
+      Calcule o valor da sua empresa com metodologia de fluxo de caixa descontado e múltiplos setoriais calibrados para PMEs brasileiras. Resultado em instantes, relatório completo em até 24h.
+    </p>
+    <div class="card">
+      <div class="fg">
+        <label for="i-name">Seu nome</label>
+        <input type="text" id="i-name" placeholder="Nome completo" autocomplete="name">
+      </div>
+      <div class="fg">
+        <label for="i-email">E-mail profissional</label>
+        <input type="email" id="i-email" placeholder="voce@empresa.com.br" autocomplete="email">
+        <div class="err" id="email-err">Insira um e-mail válido para continuar.</div>
+      </div>
+      <button class="btn btn-navy btn-full" onclick="goInput()">
+        Calcular valor da empresa gratuitamente →
+      </button>
+      <p class="privacy">🔒 Dados confidenciais. Nunca compartilhamos com terceiros.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FASE 2: INPUT ─── -->
+<section class="phase" id="ph-input">
+  <div class="phase-head">
+    <h2>Conte-nos sobre a sua empresa</h2>
+    <p>Escreva livremente ou envie documentos — o painel identifica os dados automaticamente.</p>
+  </div>
+
+  <div class="two-col">
+    <!-- Texto + controles -->
+    <div class="input-col">
+      <textarea id="ta" placeholder="Ex: Minha empresa atua no setor de software. A receita bruta foi de R$ 3,2 milhões em 2023, R$ 3,8 milhões em 2024 e esperamos R$ 4,5 milhões em 2025. O EBITDA é de aproximadamente R$ 900 mil (margem de 23%). Temos R$ 200 mil em dívidas e R$ 350 mil em caixa. São 18 funcionários e 60% da receita é recorrente via contratos de software. A gestão ainda é bem centralizada no fundador..."></textarea>
+
+      <p class="ta-hint">Inclua: receita dos últimos 3 anos · EBITDA (Lucro Operacional Ajustado) · FCO (Fluxo de Caixa Operacional) · dívidas e caixa · crescimento anual · funcionários · % de receita recorrente. <strong>Envie DRE (Demonstração do Resultado), Balanço Patrimonial e DFC (Demonstrativo de Fluxo de Caixa)</strong> para extração automática máxima.</p>
+
+      <div class="upload-block">
+        <label for="fi" class="upload-zone" id="upload-zone">
+          <div class="upload-zone-icon">⬆</div>
+          <div class="upload-zone-title">Carregar documentos financeiros</div>
+          <div class="upload-zone-sub">Clique aqui ou arraste os arquivos</div>
+          <div class="upload-zone-formats">PDF · Excel · Word · RTF · CSV · TXT</div>
+        </label>
+        <input type="file" id="fi" accept=".pdf,.xlsx,.xls,.csv,.rtf,.doc,.docx,.txt,.ods,.odt" multiple style="display:none" onchange="handleFiles(this)">
+        <div id="file-list" style="width:100%"></div>
+        <!-- Badge de setor detectado automaticamente (aparece quando setor é identificado) -->
+        <div id="sector-detected-badge" hidden style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(227,181,5,.12);border:1px solid rgba(227,181,5,.3);border-radius:var(--r);margin-bottom:4px;font-size:13px;color:var(--text);">
+          <span>🏭</span>
+          <span>Setor detectado: <strong id="sector-detected-name"></strong></span>
+          <button onclick="showSectorSelect()" style="margin-left:auto;background:none;border:none;font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline;padding:0;">Alterar</button>
+        </div>
+        <div class="sector-row" id="sector-row-manual">
+          <div class="fg">
+            <label for="sector">Setor da empresa</label>
+            <select id="sector">
+              <option value="">— Selecionar setor —</option>
+              <option value="software">Software e Serviços de TI</option>
+              <option value="saude">Prestadores de Saúde</option>
+              <option value="imoveis">Operações Imobiliárias</option>
+              <option value="financeiro">Inv. Bancários e Financeiros</option>
+              <option value="aeroespacial">Aeroespacial e Defesa</option>
+              <option value="farma">Farmacêuticos</option>
+              <option value="maquinas">Máquinas e Equipamentos</option>
+              <option value="midia">Mídia e Publicação</option>
+              <option value="agro">Agronegócio</option>
+              <option value="construcao">Construção e Materiais</option>
+              <option value="texteis">Têxteis e Vestuário</option>
+              <option value="bebidas">Bebidas e Alimentos</option>
+              <option value="telecom">Telecomunicações</option>
+              <option value="servicos">Serviços Profissionais</option>
+              <option value="logistica">Logística e Frete</option>
+              <option value="varejo">Varejo Diversificado</option>
+              <option value="educacao">Educação</option>
+              <option value="energia">Energia e Utilities</option>
+              <option value="saude2">Saúde e Bem-Estar</option>
+              <option value="ti-hard">Tecnologia / Hardware</option>
+              <option value="consultoria">Consultoria de Negócios</option>
+              <option value="industria">Indústria Geral</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <p style="font-size:11px;color:rgba(255,255,255,.4);margin:6px 0 12px;text-align:center;">✏️ Clique em qualquer campo para corrigir</p>
+      <button class="btn btn-navy btn-full" id="calc-btn" onclick="calculate()" disabled>
+        Calcular valor da empresa →
+      </button>
+      <div class="err" id="calc-err">Selecione o setor antes de calcular.</div>
+    </div>
+
+    <!-- Painel dinâmico -->
+    <aside class="panel">
+      <div class="panel-hd">
+        <div class="panel-title">
+          <span class="ai-spin" id="ai-spin"></span>
+          <span id="panel-title-txt">Dados identificados</span>
+        </div>
+        <div class="pct-wrap">
+          <div class="pct-num" id="pct">0%</div>
+          <div class="pct-lbl">completo</div>
+        </div>
+      </div>
+      <div class="conf-bar">
+        <div class="conf-fill" id="conf-fill" style="width:0%"></div>
+      </div>
+      <div class="panel-body">
+
+        <div class="psec">
+          <div class="psec-lbl"><span class="pdot high"></span>Alta prioridade</div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-fco"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              FCO (Fluxo de Caixa Operacional)
+              <button class="tip-icon" type="button" data-tip="Caixa gerado pelas operações da empresa — extraído do DFC (Demonstrativo de Fluxo de Caixa). Mede a geração real de caixa do negócio, mais confiável que o lucro contábil. Base da metodologia BTB (Compra com Crescimento).">?</button>
+            </div>
+            <div class="fval" id="fv-fco" contenteditable="true" oninput="onFieldInput(this)">—</div>
+            <button class="ev-btn" onclick="showEvidence('fco')" title="Ver origem do dado">🔍</button>
+          </div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-rec"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Receita bruta
+              <button class="tip-icon" type="button" data-tip="Receita total antes de deduções. Informe os últimos 3 anos para calcular o CAGR (Crescimento Anual Acumulado) usado na projeção pelo FCD (Fluxo de Caixa Descontado). Ex: 'receita de R$2,8M em 2022, R$3,4M em 2023, R$4,1M em 2024'.">?</button>
+            </div>
+            <div class="fval" id="fv-rec" contenteditable="true" oninput="onFieldInput(this)">—</div>
+            <button class="ev-btn" onclick="showEvidence('receita')" title="Ver origem do dado">🔍</button>
+          </div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-ebt"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              EBITDA (Lucro Operacional Ajustado)
+              <button class="tip-icon" type="button" data-tip="EBITDA (Lucro Operacional Ajustado): Lucro antes de Juros, Impostos, Depreciação e Amortização — representa a geração de caixa operacional da empresa. É multiplicado pelo índice setorial (múltiplo EV (Valor da Empresa)/EBITDA) para calcular o valor pelos comparáveis de mercado. Quando não disponível, o FCO (Fluxo de Caixa Operacional) é usado como substituto.">?</button>
+            </div>
+            <div class="fval" id="fv-ebt" contenteditable="true" oninput="onFieldInput(this)">—</div>
+            <button class="ev-btn" onclick="showEvidence('ebitda')" title="Ver origem do dado">🔍</button>
+          </div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-set"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Setor
+              <button class="tip-icon" type="button" data-tip="Define o índice de valor (EV (Valor da Empresa)/EBITDA (Lucro Operacional Ajustado) — relação entre valor e lucro operacional) e o risco do setor usados na avaliação. Cada setor tem parâmetros diferentes — software e serviços recorrentes costumam ter índices mais altos que varejo ou indústria. Selecione o setor principal da empresa.">?</button>
+            </div>
+            <div class="fval" id="fv-set">—</div>
+          </div>
+        </div>
+
+        <div class="psec">
+          <div class="psec-lbl"><span class="pdot med"></span>Média prioridade</div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-fcl"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              FCL (Fluxo de Caixa Livre)
+              <button class="tip-icon" type="button" data-tip="FCL (Fluxo de Caixa Livre) = FCO (Fluxo de Caixa Operacional) menos CAPEX (Investimento em Ativos Fixos). Representa o caixa disponível após reinvestimento no negócio. Na metodologia BTB (Compra com Crescimento), o comprador avalia o FCL para calcular o DSCR (Cobertura do Serviço da Dívida). Extraído do DFC (Demonstrativo de Fluxo de Caixa).">?</button>
+            </div>
+            <div class="fval" id="fv-fcl" contenteditable="true" oninput="onFieldInput(this)">—</div>
+            <button class="ev-btn" onclick="showEvidence('fcl')" title="Ver origem do dado">🔍</button>
+          </div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-div"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Dívida total + caixa
+              <button class="tip-icon" type="button" data-tip="Dívida total (empréstimos, financiamentos, debêntures) e caixa disponível. Usados para calcular a dívida líquida (Dívida − Caixa), que ajusta o Enterprise Value para o Equity Value. Extraídos do Balanço Patrimonial.">?</button>
+            </div>
+            <div class="fval" id="fv-div" contenteditable="true" oninput="onFieldInput(this)">—</div>
+            <button class="ev-btn" onclick="showEvidence('divida')" title="Ver origem do dado">🔍</button>
+          </div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-cre"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Crescimento anual
+              <button class="tip-icon" type="button" data-tip="CAGR (Crescimento Anual Acumulado) da receita. Empresas com crescimento acima de 15% ao ano recebem prêmio no índice de valor e na projeção do FCD (Fluxo de Caixa Descontado). Calculado automaticamente a partir de DRE (Demonstração do Resultado) de múltiplos anos.">?</button>
+            </div>
+            <div class="fval" id="fv-cre" contenteditable="true" oninput="onFieldInput(this)">—</div>
+            <button class="ev-btn" onclick="showEvidence('crescimento')" title="Ver origem do dado">🔍</button>
+          </div>
+        </div>
+
+        <div class="psec">
+          <div class="psec-lbl"><span class="pdot low"></span>Complementar</div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-cap"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              CAPEX (Investimento em Ativos Fixos)
+              <button class="tip-icon" type="button" data-tip="CAPEX (Investimento em Ativos Fixos): máquinas, equipamentos, imóveis (Capital Expenditure). Negócios com CAPEX (Investimento em Ativos Fixos) baixo em relação ao caixa operacional são preferidos na metodologia BTB (Compra com Crescimento) — sobra mais caixa para o comprador pagar o financiamento da aquisição.">?</button>
+            </div>
+            <div class="fval" id="fv-cap" contenteditable="true" oninput="onFieldInput(this)">—</div>
+            <button class="ev-btn" onclick="showEvidence('capex')" title="Ver origem do dado">🔍</button>
+          </div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-fun"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Nº de funcionários
+              <button class="tip-icon" type="button" data-tip="Número de colaboradores da empresa. Usado como proxy de complexidade operacional e custo de transição pós-aquisição. Empresas com equipes maiores podem ter maior independência do fundador, mas também custo fixo mais alto.">?</button>
+            </div>
+            <div class="fval" id="fv-fun" contenteditable="true" oninput="onFieldInput(this)">—</div>
+          </div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-rrr"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Receita recorrente
+              <button class="tip-icon" type="button" data-tip="% da receita que se renova automaticamente (assinaturas, contratos de longo prazo, MRR/ARR). Acima de 60% de recorrência aplica prêmio no múltiplo — compradores pagam mais por previsibilidade. Ex: 'contratos anuais representam 65% da receita'.">?</button>
+            </div>
+            <div class="fval" id="fv-rrr" contenteditable="true" oninput="onFieldInput(this)">—</div>
+          </div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-fnd"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Independência operacional
+              <button class="tip-icon" type="button" data-tip="Mede se a empresa opera sem depender do(s) fundador(es). Negócios com gestão autônoma valem mais — o comprador precisa saber que o negócio sobrevive à saída do fundador. Mencione se há equipe de gestão formada, processos documentados ou se tudo ainda passa por você.">?</button>
+            </div>
+            <div class="fval" id="fv-fnd" contenteditable="true" oninput="onFieldInput(this)">—</div>
+          </div>
+        </div>
+
+        <!-- ── SEÇÃO BTB: DADOS RECOMENDADOS ── -->
+        <div class="psec psec-btb">
+          <div class="psec-lbl" style="color:var(--amber);border-color:rgba(227,181,5,.25);">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--amber);display:inline-block;margin-right:6px;flex-shrink:0;"></span>
+            Recomendado — análise completa BTB
+          </div>
+
+          <div class="pfield pfield-ask">
+            <div class="ind empty" id="ind-sde"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              SDE (Ganho do Sócio Operador)
+              <button class="tip-icon" type="button" data-tip="SDE (Ganho do Sócio Operador) = EBITDA (Lucro Operacional Ajustado) + pró-labore/retirada do sócio + despesas pessoais lançadas na empresa + itens não-recorrentes. É a métrica principal do BTB (Compra com Crescimento) para PMEs — mede o que o comprador pode realmente extrair do negócio. Descreva no campo de texto: ex: 'pró-labore de R$15k/mês, mais carro e celular pagos pela empresa'.">?</button>
+            </div>
+            <div class="fval" id="fv-sde" contenteditable="true" oninput="onFieldInput(this)">—</div>
+          </div>
+
+          <div class="pfield pfield-ask">
+            <div class="ind empty" id="ind-conc"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Concentração de clientes
+              <button class="tip-icon" type="button" data-tip="% da receita do maior cliente (ou dos 3 maiores). Acima de 20% em um único cliente aplica desconto de risco no valuation — comprador fica exposto à perda desse cliente. Informe no texto: ex: 'maior cliente representa 35% da receita'.">?</button>
+            </div>
+            <div class="fval" id="fv-conc" contenteditable="true" oninput="onFieldInput(this)">—</div>
+          </div>
+
+          <div class="pfield pfield-ask">
+            <div class="ind empty" id="ind-forn"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Concentração de fornecedores
+              <button class="tip-icon" type="button" data-tip="% das compras ou insumos dependentes do maior fornecedor. Acima de 40% em um único fornecedor representa risco operacional — o comprador pode enfrentar interrupção ou remarcação de preços. Informe no texto: ex: 'principal fornecedor responde por 60% dos insumos', 'fornecedor único de matéria-prima'.">?</button>
+            </div>
+            <div class="fval" id="fv-forn" contenteditable="true" oninput="onFieldInput(this)">—</div>
+          </div>
+
+          <div class="pfield pfield-ask">
+            <div class="ind empty" id="ind-ativ"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Ativos a mercado
+              <button class="tip-icon" type="button" data-tip="Valor de mercado dos ativos fixos (imóveis, equipamentos, veículos, estoque, intangíveis). Diferente do valor contábil — define o piso do valuation (floor) na abordagem de ativos. Informe no texto ou envie laudo/balanço com valor justo: ex: 'imóvel avaliado em R$1,2M, equipamentos R$300k'.">?</button>
+            </div>
+            <div class="fval" id="fv-ativ" contenteditable="true" oninput="onFieldInput(this)">—</div>
+          </div>
+
+          <div class="pfield pfield-ask">
+            <div class="ind empty" id="ind-cont"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Contingências (passivos ocultos)
+              <button class="tip-icon" type="button" data-tip="Passivos fiscais, trabalhistas ou legais não registrados no balanço — reduzem diretamente o EV (Valor da Empresa). Fundamental no due diligence BTB (Compra com Crescimento). Informe no texto: ex: 'ação trabalhista de R$80k estimado', 'parcelamento fiscal PERT de R$200k' ou 'sem contingências conhecidas'.">?</button>
+            </div>
+            <div class="fval" id="fv-cont" contenteditable="true" oninput="onFieldInput(this)">—</div>
+          </div>
+
+          <div class="pfield pfield-ask">
+            <div class="ind empty" id="ind-dscr"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              DSCR (Cobertura do Serviço da Dívida)
+              <button class="tip-icon" type="button" data-tip="DSCR (Cobertura do Serviço da Dívida) = FCL (Fluxo de Caixa Livre) / Serviço da dívida de aquisição estimado. Mede se o negócio consegue pagar o financiamento da sua própria compra. BTB (Compra com Crescimento) exige DSCR (Cobertura do Serviço da Dívida) ≥ 1,25× para viabilidade. Calculado automaticamente quando FCL (Fluxo de Caixa Livre) e dívida total estão disponíveis.">?</button>
+            </div>
+            <div class="fval" id="fv-dscr" contenteditable="true" oninput="onFieldInput(this)">—</div>
+          </div>
+
+          <div class="pfield pfield-ask">
+            <div class="ind empty" id="ind-motv"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Motivo da venda
+              <button class="tip-icon" type="button" data-tip="O motivo declarado pelo vendedor afeta a negociação e o due diligence. Vendas por aposentadoria ou sucessão têm perfil diferente de vendas por dificuldade financeira. Informe no texto: ex: 'sócio quer se aposentar', 'buscamos sócio estratégico', 'expansão exige capital'.">?</button>
+            </div>
+            <div class="fval" id="fv-motv" contenteditable="true" oninput="onFieldInput(this)">—</div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Badge: documentos lidos -->
+      <div id="doc-badge" hidden style="margin:0 11px 8px;display:flex;align-items:center;gap:8px;background:rgba(36,84,60,.12);border:1px solid rgba(36,84,60,.3);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span id="doc-badge-txt">0 documentos recebidos</span>
+      </div>
+
+      <!-- Próximo passo -->
+      <div id="next-step-box" hidden style="margin:0 11px 10px;background:rgba(227,181,5,.08);border:1px solid rgba(227,181,5,.3);border-radius:6px;padding:10px 12px;font-size:12px;line-height:1.55;color:var(--text);">
+        <strong style="display:block;margin-bottom:3px;color:var(--amber);">Próximo passo</strong>
+        <span id="next-step-txt">Descreva brevemente a empresa no campo de texto acima. Depois clique em <strong>Calcular</strong>.</span>
+      </div>
+
+      <!-- Dicas para aumentar precisão -->
+      <div id="dicas-box" style="margin:0 11px 10px;background:rgba(15,65,93,.07);border:1px solid rgba(15,65,93,.18);border-radius:6px;overflow:hidden;">
+        <button onclick="this.parentElement.querySelector('.dicas-body').hidden=!this.parentElement.querySelector('.dicas-body').hidden;this.querySelector('.dica-arrow').textContent=this.parentElement.querySelector('.dicas-body').hidden?'▸':'▾';" style="width:100%;background:none;border:none;padding:8px 12px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--navy);">
+          <span class="dica-arrow">▸</span> 💡 Como aumentar a confiança da avaliação
+        </button>
+        <div class="dicas-body" hidden style="padding:0 12px 10px;font-size:12px;line-height:1.6;color:var(--text);">
+          <p style="margin-bottom:6px;font-weight:600;color:var(--muted);">Envie os 3 documentos para análise completa de aquisição:</p>
+          <ul style="margin:0 0 8px 14px;display:flex;flex-direction:column;gap:3px;">
+            <li><strong>DRE (Demonstração do Resultado)</strong> — Receita, Lucro Operacional</li>
+            <li><strong>Balanço Patrimonial</strong> — Dívidas, Caixa, Ativo Total</li>
+            <li><strong>DFC (Demonstrativo de Fluxo de Caixa)</strong> — caixa operacional, investimentos, caixa livre</li>
+          </ul>
+          <p style="margin-bottom:4px;font-weight:600;color:var(--muted);">Ou descreva no campo de texto:</p>
+          <ul style="margin:0 0 0 14px;display:flex;flex-direction:column;gap:3px;">
+            <li>Receita dos <strong>últimos 3 anos</strong> (ex: R$2,8M → R$3,4M → R$4,1M)</li>
+            <li>Lucro operacional ou margem (ex: "EBITDA de R$900k, margem 22%")</li>
+            <li><strong>Caixa gerado pelas operações</strong> no último ano</li>
+            <li>% da receita que é recorrente (contratos, assinaturas)</li>
+            <li>Se a empresa depende muito do fundador para operar</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="panel-ft">BTB (Compra com Crescimento) · Identificação automática · Documentos lidos no seu navegador · WACC (Taxa Mínima de Atratividade) atualizado via BCB</div>
+    </aside>
+  </div>
+</section>
+
+<!-- ─── FASE 3: RESULTADO ─── -->
+<section class="phase" id="ph-result">
+
+  <!-- Botão voltar -->
+  <button class="btn-back" onclick="resetS(); _docText=''; _lastDocR={}; document.getElementById('file-list').textContent=''; document.getElementById('fi').value=''; document.getElementById('doc-badge').hidden=true; document.getElementById('next-step-box').hidden=true; showPhase('input');">
+    ← Nova análise
+  </button>
+
+  <!-- Hero EV -->
+  <div class="res-hero">
+    <div class="res-eyebrow">Valor da empresa estimado</div>
+    <div class="res-company" id="r-company"></div>
+    <div class="method-tag">
+      <div class="method-dot"></div>
+      <span id="r-method-tag">Múltiplos EBITDA</span>
+    </div>
+    <div class="ev-row">
+      <div class="ev-num" id="r-ev-min"></div>
+      <div class="ev-dash">—</div>
+      <div class="ev-num" id="r-ev-max"></div>
+    </div>
+    <div class="res-conf">Intervalo de confiança · precisão <span id="r-conf">média</span></div>
+  </div>
+
+  <!-- Aviso quando DCF não pôde ser calculado -->
+  <div id="r-nodcf-warn" hidden style="background:rgba(227,181,5,.1);border:1px solid rgba(227,181,5,.35);border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--text);margin-bottom:18px;display:none;"></div>
+
+  <!-- BTB alerts -->
+  <div id="r-btb-alerts" style="display:none;margin-bottom:20px;"></div>
+
+  <!-- 4 caixas: + WACC quando DCF rodou -->
+  <div class="free-boxes" id="r-boxes" style="grid-template-columns:repeat(4,1fr)">
+    <div class="rbox">
+      <div class="rbox-lbl">Múltiplo referencial</div>
+      <div class="rbox-val" id="r-mult">—</div>
+      <div class="rbox-sub" id="r-mult-sub">Setor selecionado</div>
+    </div>
+    <div class="rbox">
+      <div class="rbox-lbl">Método utilizado</div>
+      <div class="rbox-val" id="r-met">—</div>
+      <div class="rbox-sub" id="r-met-sub">Calibrado PME Brasil</div>
+    </div>
+    <div class="rbox">
+      <div class="rbox-lbl">Referência setorial (EV (Valor da Empresa)/EBITDA (Lucro Operacional Ajustado))</div>
+      <div class="rbox-val" id="r-ref">—</div>
+      <div class="rbox-sub">StartupHero Out/2025 · Damodaran</div>
+    </div>
+    <!-- Linha WACC — visível só quando DCF rodou -->
+    <div class="rbox" id="r-wacc-row" hidden>
+      <div class="rbox-lbl">WACC (Taxa Mínima de Atratividade)</div>
+      <div class="rbox-val" id="r-wacc" style="font-size:20px">—</div>
+      <div class="rbox-sub">Beta alavancado: <span id="r-beta">—</span> · Risco Brasil 3,30%<span id="r-regime"></span></div>
+      <span id="wacc-rf-live" style="font-size:10px;color:var(--muted);"></span>
+    </div>
+  </div>
+  <style>
+    @media (max-width:700px) { #r-boxes { grid-template-columns:1fr 1fr !important; } }
+    @media (max-width:440px) { #r-boxes { grid-template-columns:1fr !important; } }
+    #r-nodcf-warn:not([hidden]) { display:block !important; }
+  </style>
+
+  <!-- 5 alavancas (visíveis no free) -->
+  <div class="levers">
+    <div class="levers-h">5 Alavancas para aumentar o valor</div>
+    <p class="levers-sub">Baseado em Walker Deibel — BTB (Compra com Crescimento), 2018</p>
+
+    <div class="lever">
+      <div class="lever-n">1</div>
+      <div class="lever-body">
+        <div class="lever-name">Reduzir dependência do fundador</div>
+        <div class="lever-desc">Processos documentados, equipe de gestão independente, distribuição dos relacionamentos comerciais.</div>
+      </div>
+      <div class="lever-impact">+0,5×–1,5× no múltiplo</div>
+    </div>
+
+    <div class="lever">
+      <div class="lever-n">2</div>
+      <div class="lever-body">
+        <div class="lever-name">Aumentar recorrência de receita</div>
+        <div class="lever-desc">Migrar para receita mensal/anual recorrente (MRR/ARR), contratos de longo prazo, reduzir cancelamentos — compradores pagam prêmio por previsibilidade.</div>
+      </div>
+      <div class="lever-impact">+15–25% no EV (Valor da Empresa)</div>
+    </div>
+
+    <div class="lever">
+      <div class="lever-n">3</div>
+      <div class="lever-body">
+        <div class="lever-name">Expandir margem operacional — EBITDA (Lucro Operacional Ajustado)</div>
+        <div class="lever-desc">Cada ponto percentual de margem amplifica o EV (Valor da Empresa) pelo múltiplo setorial inteiro. Foco em custo de serviço e G&amp;A.</div>
+      </div>
+      <div class="lever-impact">Alto impacto direto</div>
+    </div>
+
+    <div class="lever">
+      <div class="lever-n">4</div>
+      <div class="lever-body">
+        <div class="lever-name">Otimizar capital de giro</div>
+        <div class="lever-desc">Reduzir prazo de recebimento e dias de estoque libera mais caixa livre, elevando o valor presente das projeções de fluxo de caixa.</div>
+      </div>
+      <div class="lever-impact">+8–18% na avaliação</div>
+    </div>
+
+    <div class="lever">
+      <div class="lever-n">5</div>
+      <div class="lever-body">
+        <div class="lever-name">Governança e due diligence readiness</div>
+        <div class="lever-desc">Contabilidade SPED-compatível, contratos formalizados, IP protegido — reduz desconto de risco percebido.</div>
+      </div>
+      <div class="lever-impact">−10–20% no desconto de risco</div>
+    </div>
+  </div>
+
+  <!-- Preview desfocado do DCF detalhado -->
+  <div class="blur-wrap">
+    <div class="blur-content" aria-hidden="true">
+      <div style="font-weight:700;margin-bottom:10px;font-size:14px;">Projeção de caixa descontado — 5 anos</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;font-size:12px;margin-bottom:12px;">
+        <div><div style="color:var(--faint);font-size:10px;margin-bottom:2px;">Ano 1</div><div style="font-weight:600;">R$ 4,8M</div><div style="font-size:10px;color:var(--muted);">FCF</div></div>
+        <div><div style="color:var(--faint);font-size:10px;margin-bottom:2px;">Ano 2</div><div style="font-weight:600;">R$ 5,5M</div><div style="font-size:10px;color:var(--muted);">FCF</div></div>
+        <div><div style="color:var(--faint);font-size:10px;margin-bottom:2px;">Ano 3</div><div style="font-weight:600;">R$ 6,3M</div><div style="font-size:10px;color:var(--muted);">FCF</div></div>
+        <div><div style="color:var(--faint);font-size:10px;margin-bottom:2px;">Ano 4</div><div style="font-weight:600;">R$ 7,2M</div><div style="font-size:10px;color:var(--muted);">FCF</div></div>
+        <div><div style="color:var(--faint);font-size:10px;margin-bottom:2px;">Ano 5</div><div style="font-weight:600;">R$ 8,3M</div><div style="font-size:10px;color:var(--muted);">FCF</div></div>
+      </div>
+      <div style="font-size:12px;">Custo de capital: 18,4% · Crescimento terminal: 4,2% · VPL dos fluxos: R$ 12,8M · Valor residual: R$ 6,4M</div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;">
+        Ponderação: Fluxo Descontado 60% + Múltiplos 40% (Mellen &amp; Evans, 2018) · Desconto PME: 22% aplicado
+      </div>
+    </div>
+    <div class="blur-over">
+      <div class="lock-badge">🔒 Relatório completo</div>
+      <div class="lock-sub">Projeção detalhada · Custo de capital calibrado · Ponderação fluxo/múltiplos · Plano 12 meses</div>
+    </div>
+  </div>
+
+  <!-- UPGRADE CTA -->
+  <div class="upgrade" id="upgrade-box">
+
+    <!-- NOVO FLUXO: CTA primeiro, depois seleção de papel -->
+    <div id="pre-cta-step">
+      <div class="up-title">Relatório Completo de Valuation</div>
+      <div class="up-sub" style="color:rgba(255,255,255,.75);font-size:14px;margin:10px 0 18px;">
+        Avaliação profissional com metodologia M&A, custo de capital Brasil calibrado e análise Buy Then Build completa.
+      </div>
+      <button class="btn btn-amber" onclick="showIbgsfStep()">Quero o relatório completo →</button>
+    </div>
+
+    <div id="ibgesf-step" hidden>
+      <div class="up-title" style="font-size:16px;margin-bottom:12px;">📋 Como obter o relatório completo</div>
+      <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:13.5px;color:rgba(255,255,255,.85);line-height:1.6;">
+        O relatório completo de valuation é disponibilizado exclusivamente para associados do
+        <strong style="color:#fff">IBGESF — Instituto Brasileiro de Governança, Estratégia e Sucessão Familiar</strong>.<br><br>
+        Após solicitar a associação, nossa equipe entrará em contato para enviar o relatório por e-mail em até 24h.
+      </div>
+      <div class="up-sub" style="color:rgba(255,255,255,.75);font-size:13px;margin-bottom:16px;">
+        Antes de continuar — uma pergunta rápida para personalizar o relatório:
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
+        <button class="role-btn" id="btn-vendedor" onclick="selectRole('vendedor')">🏷️ Vendedor</button>
+        <button class="role-btn" id="btn-comprador" onclick="selectRole('comprador')">🔍 Comprador / Investidor</button>
+      </div>
+    </div>
+
+    <div id="upgrade-cta" hidden>
+      <div class="up-title" id="up-title-dyn">Relatório Completo de Valuation</div>
+      <p class="up-sub" id="up-sub-dyn" style="font-size:13.5px;color:rgba(255,255,255,.8);margin:10px 0 14px;line-height:1.6;"></p>
+      <ul id="up-list-dyn" style="list-style:none;padding:0;margin:0 0 18px;font-size:13px;color:rgba(255,255,255,.75);display:flex;flex-direction:column;gap:6px;"></ul>
+      <button class="btn btn-amber" onclick="doUpgrade()">Solicitar associação no IBGESF →</button>
+    </div>
+
+  </div>
+
+  <!-- WhatsApp -->
+  <div class="wpp-box">
+    <p>Prefere conversar com um especialista antes de adquirir o relatório?</p>
+    <a class="wpp-btn" id="wpp-link" href="#" target="_blank" rel="noopener">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.553 4.103 1.517 5.826L.057 23.571a.5.5 0 0 0 .612.612l5.78-1.515A11.946 11.946 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.801 9.801 0 0 1-5.004-1.368l-.358-.213-3.722.975.993-3.63-.234-.373A9.795 9.795 0 0 1 2.182 12C2.182 6.566 6.566 2.182 12 2.182S21.818 6.566 21.818 12 17.434 21.818 12 21.818z"/></svg>
+      Falar com especialista IBGESF
+    </a>
+  </div>
+
+  <div style="text-align:center;margin-top:20px;">
+    <button class="btn btn-ghost" onclick="restart()" style="font-size:13px;padding:8px 18px;">
+      ← Recalcular com outros dados
+    </button>
+  </div>
+
+</section>
+</main>
+
+<script>
+// ─── EVIDENCE STORE ─────────────────────────────────────────────────────────
+// Registro auditável por indicador: origin, raw value, state, evidence snippet
+const EVIDENCE = {};
+
+// ─── BACKEND DE EXTRAÇÃO (Cloudflare Worker) ──────────────────────────────────
+// URL do Worker após deploy. Deixe null para modo 100% client-side (comportamento atual).
+// Após deploy: 'https://ibgesf-valuation-extractor.<seu-subdominio>.workers.dev'
+const WORKER_URL = "https://ibgesf-valuation-extractor.ibgesf.workers.dev"; // Worker Cloudflare
+
+// Chave de acesso ao Worker (definida no wrangler secret / Worker env var IBGESF_API_KEY)
+// Não é a chave da Anthropic — é uma senha simples que o Worker valida.
+// Pode ser deixada no frontend porque a chave do Worker não dá acesso direto à Anthropic.
+const WORKER_API_KEY = "ibgesf2024secure"; // Deve coincidir com IBGESF_API_KEY no Worker
+
+// ─── WORKER v2: envia PDF/DOCX como base64 (Claude lê nativamente) ──────────
+// Para XLSX/CSV exportados como texto, envia como texto estruturado.
+// Retorna objeto de indicadores ou null em caso de falha (fallback silencioso).
+
+async function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      // result = "data:application/pdf;base64,JVBERi..." — remove prefixo
+      const b64 = reader.result.split(',')[1];
+      resolve(b64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// Prioridade de arquivos para extração: DRE > DFC > Balanço > Nota > outros
+// Isso garante que a receita seja extraída de DRE e não de balanço ou nota explicativa
+function _sortPdfsByPriority(files) {
+  const PRIO = [
+    /\bdre\b|\bdemonstra[çc][ão][oa]?\s*(do\s*)?resultado/i,
+    /\bdfc\b|\bfluxo.*(caixa|financ)/i,
+    /\bbalanco\b|\bbalance/i,
+    /\bnota.?exp/i,
+    /\brelat/i,
+  ];
+  return [...files].sort((a, b) => {
+    const pa = PRIO.findIndex(rx => rx.test(a.name));
+    const pb = PRIO.findIndex(rx => rx.test(b.name));
+    const sa = pa === -1 ? 99 : pa;
+    const sb = pb === -1 ? 99 : pb;
+    return sa - sb;
+  });
+}
+
+// Converte um File para base64 e chama o Worker para extração
+async function _callWorkerOneFile(file) {
+  const mimeMap = { pdf: 'application/pdf', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', doc: 'application/msword' };
+  const b64 = await fileToBase64(file);
+  if (!b64 || b64.length < 100) return null;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const tipo = (ext === 'pdf') ? 'pdf' : 'doc';
+  const resp = await fetch(WORKER_URL + '/extract', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Api-Key': WORKER_API_KEY },
+    body: JSON.stringify({ tipo, arquivo_base64: b64, mime_type: mimeMap[ext] || 'application/pdf', nome: file.name }),
+    signal: AbortSignal.timeout(90000),
+  });
+  if (!resp.ok) { console.warn('[Worker PDF]', file.name, resp.status); return null; }
+  const data = await resp.json();
+  if (!data.ok) { console.warn('[Worker PDF]', file.name, 'erro:', data.erro); return null; }
+  console.log('[Worker PDF]', file.name, '→ modo=' + data.modo + ' modelo=' + data.modelo);
+  return data.indicadores || null;
+}
+
+// Consolida indicadores de múltiplas extrações — por campo, usa o valor de maior confiança.
+// Se o mesmo campo aparece em vários PDFs, prevalece o de confiança "alta" > "media" > "baixa"
+function _consolidateIndicadores(lista) {
+  const PESO = { alta: 3, media: 2, baixa: 1, 'nao-encontrado': 0 };
+  const CHAVES = ['receita_bruta','receita_liquida','ebitda','fco','capex','divida_financeira','caixa'];
+  const result = {};
+  for (const k of CHAVES) {
+    let best = null, bestPeso = -1;
+    for (const ind of lista) {
+      if (!ind) continue;
+      const it = ind[k];
+      if (!it || it.valor_normalizado == null) continue;
+      const p = PESO[it.confianca] ?? 0;
+      if (p > bestPeso) { best = it; bestPeso = p; }
+    }
+    result[k] = best || { valor_normalizado: null, confianca: 'nao-encontrado' };
+  }
+  return result;
+}
+
+// Chama o Worker com PDF/DOCX como base64 (leitura nativa pelo Claude).
+// ESTRATÉGIA: envia arquivos UM POR UM, priorizando DRE, e consolida no cliente.
+// Isso evita que o Haiku fique confuso com múltiplos documentos no mesmo prompt.
+// Retorna indicadores consolidados ou null.
+async function callExtractionWorkerPDF(files) {
+  if (!WORKER_URL || !WORKER_API_KEY) return null;
+  if (!files || files.length === 0) return null;
+  try {
+    // Ordena por prioridade: DRE primeiro (receita vem de DRE, não de balanço)
+    const sorted = _sortPdfsByPriority(files);
+    // Limita a 5 arquivos para não sobrecarregar e estourar tempo
+    const toProcess = sorted.slice(0, 5);
+    console.log('[Worker PDF] Processando', toProcess.length, 'arquivo(s) em sequência:', toProcess.map(f=>f.name).join(', '));
+    const resultados = [];
+    for (const f of toProcess) {
+      console.log('[Worker PDF] →', f.name, '...');
+      const ind = await _callWorkerOneFile(f);
+      if (ind) {
+        resultados.push(ind);
+        // Verifica se já temos todos os campos essenciais com alta confiança
+        const temReceita = ind.receita_bruta?.valor_normalizado != null && ind.receita_bruta?.confianca === 'alta';
+        const temFCO     = ind.fco?.valor_normalizado != null;
+        const temEbitda  = ind.ebitda?.valor_normalizado != null;
+        if (temReceita && temFCO && temEbitda) {
+          console.log('[Worker PDF] Todos campos essenciais encontrados em', f.name, '— parando aqui');
+          break;
+        }
+      }
+    }
+    if (resultados.length === 0) return null;
+    return _consolidateIndicadores(resultados);
+  } catch (e) {
+    console.warn('[Worker PDF] Falha — usando extração client-side:', e.message);
+    return null;
+  }
+}
+
+// Chama o Worker com texto estruturado (XLSX→CSV, TXT) quando PDF não está disponível.
+async function callExtractionWorker(textoDoc, nomeArquivo) {
+  if (!WORKER_URL || !WORKER_API_KEY) return null;
+  if (!textoDoc || textoDoc.length < 100) return null;
+  try {
+    const resp = await fetch(WORKER_URL + '/extract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Api-Key': WORKER_API_KEY },
+      body: JSON.stringify({
+        tipo: 'texto',
+        texto: textoDoc.slice(0, 50000),
+        nome: nomeArquivo || 'documento',
+      }),
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    if (!data.ok) return null;
+    return data.indicadores || null;
+  } catch (e) {
+    console.warn('[Worker Texto] Falha — usando extração client-side:', e.message);
+    return null;
+  }
+}
+
+// Mescla resultado do Worker no objeto de extração client-side.
+// Regra (Worker v2 PDF nativo):
+//   - Worker PDF substitui SEMPRE (leitura nativa é mais confiável que pdf.js)
+//   - Worker texto substitui apenas se: client-side não encontrou OU valor suspeito
+// Preserva sempre a rastreabilidade no EVIDENCE.
+function mergeWorkerResult(docR, workerR, _docName, forceOverride) {
+  if (!workerR) return docR;
+  const fieldMap = {
+    receita_bruta:    'receita',
+    receita_liquida:  '_receitaLiquida',
+    ebitda:           'ebitda',
+    fco:              'fco',
+    capex:            'capex',
+    divida_financeira:'divida',
+    caixa:            'caixa',
+  };
+  const merged = { ...docR };
+  for (const [wKey, dKey] of Object.entries(fieldMap)) {
+    const wField = workerR[wKey];
+    if (!wField || wField.valor_normalizado == null) continue;
+    const wVal = wField.valor_normalizado;
+    const clientHasSuspect = dKey === 'receita' && (docR._receitaSuspeita || docR._receitaDescartada);
+    const clientMissing = !docR[dKey];
+    // forceOverride=true: Worker PDF nativo substitui sempre (mais preciso)
+    // forceOverride=false: Worker texto só substitui se client-side falhou
+    if (forceOverride || clientMissing || clientHasSuspect) {
+      merged[dKey] = wVal;
+      // Registra no EVIDENCE com origem 'extracted' + fonte = Worker+IA
+      setEvidence(dKey, {
+        label: wKey.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase()),
+        rawValue: wVal,
+        scaledValue: wVal,
+        origin: 'extracted',
+        state: wField.confianca === 'alta' ? 'validated' : 'needs-review',
+        evidence: wField.linha_evidencia || '',
+        pagina: wField.pagina || null,
+        period: wField.periodo || '',
+        scale: wField.escala || '',
+        source: `🤖 Claude leu PDF nativamente · ${_docName || ''}`,
+        formula: '',
+      });
+      if (dKey === 'receita') {
+        delete merged._receitaSuspeita;
+        delete merged._receitaDescartada;
+      }
+    }
+  }
+  return merged;
+}
+
+function setEvidence(key, opts) {
+  EVIDENCE[key] = {
+    label:      opts.label      || key,
+    rawValue:   opts.rawValue   !== undefined ? opts.rawValue : null,
+    scaledValue:opts.scaledValue!== undefined ? opts.scaledValue : opts.rawValue,
+    origin:     opts.origin     || 'extracted',   // 'extracted'|'calculated'|'manual'
+    state:      opts.state      || 'validated',   // 'validated'|'needs-review'|'conflicting'|'not-found'|'read-failure'
+    evidence:   opts.evidence   || '',
+    period:     opts.period     || '',
+    scale:      opts.scale      || '',
+    formula:    opts.formula    || '',
+    source:     opts.source     || '',            // arquivo + página
+    updatedAt:  new Date().toISOString(),
+  };
+}
+
+function getEvidenceHTML(key) {
+  const ev = EVIDENCE[key];
+  if (!ev) return '<em style="color:var(--muted)">Sem evidência registrada.</em>';
+  const stateColors = {
+    'validated':    '#4caf50',
+    'needs-review': '#ff9800',
+    'conflicting':  '#f44336',
+    'not-found':    '#9e9e9e',
+    'read-failure': '#f44336',
+  };
+  const stateLabels = {
+    'validated':    '✓ Validado',
+    'needs-review': '⚠ Precisa de revisão',
+    'conflicting':  '⚡ Conflitante',
+    'not-found':    '– Não encontrado',
+    'read-failure': '✗ Falha de leitura',
+  };
+  const originLabels = { extracted:'Extraído', calculated:'Calculado', manual:'Informado pelo usuário' };
+  const color = stateColors[ev.state] || '#9e9e9e';
+  const stateLabel = stateLabels[ev.state] || ev.state;
+  const originLabel = originLabels[ev.origin] || ev.origin;
+  const fmt = v => (v != null && !isNaN(v)) ? 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits:0, maximumFractionDigits:0}) : '—';
+  let html = `<div style="font-size:12px;line-height:1.8;color:var(--text)">`;
+
+  // Status badge
+  html += `<div style="margin-bottom:8px"><span style="background:${color}22;color:${color};padding:2px 8px;border-radius:12px;font-weight:600;font-size:11px">${stateLabel}</span> <span style="color:var(--muted);font-size:11px">· ${originLabel}</span></div>`;
+
+  // Valor e escala
+  if (ev.scaledValue != null) html += `<div><strong>Valor:</strong> ${fmt(ev.scaledValue)}</div>`;
+  if (ev.rawValue != null && ev.rawValue !== ev.scaledValue)
+    html += `<div><strong>Valor original (pré-escala):</strong> ${Number(ev.rawValue).toLocaleString('pt-BR')}</div>`;
+  if (ev.scale)      html += `<div><strong>Escala:</strong> ${ev.scale}</div>`;
+
+  // Período e fonte
+  if (ev.period)     html += `<div><strong>Período:</strong> ${ev.period}</div>`;
+  if (ev.source)     html += `<div><strong>Arquivo/aba:</strong> ${ev.source}</div>`;
+
+  // Memória de cálculo
+  if (ev.formula) {
+    html += `<div style="margin-top:8px"><strong>Memória de cálculo:</strong></div>`;
+    html += `<div style="margin-top:2px;padding:6px 8px;background:rgba(255,255,255,.07);border-radius:4px;font-family:monospace;font-size:11px;white-space:pre-wrap">${ev.formula}</div>`;
+  }
+
+  // Trecho de evidência do documento (com número de página se disponível)
+  if (ev.evidence) {
+    const pageLabel = ev.pagina != null ? ` <span style="background:rgba(227,181,5,.18);color:var(--amber);padding:1px 6px;border-radius:10px;font-size:10px;font-weight:600;margin-left:4px;">pág. ${ev.pagina}</span>` : '';
+    html += `<div style="margin-top:8px"><strong>Trecho do documento:</strong>${pageLabel}</div>`;
+    const snippet = ev.evidence.substring(0, 400).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    html += `<div style="margin-top:2px;padding:6px 8px;background:rgba(255,255,255,.05);border-radius:4px;font-family:monospace;font-size:11px;white-space:pre-wrap;max-height:110px;overflow-y:auto;word-break:break-all">${snippet}</div>`;
+  }
+
+  // Data da extração
+  if (ev.updatedAt) {
+    const d = new Date(ev.updatedAt);
+    html += `<div style="margin-top:8px;color:var(--muted);font-size:10px">Extraído em: ${d.toLocaleString('pt-BR')}</div>`;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+// ─── DADOS SETORIAIS ───────────────────────────────────────────────────────
+const SECTORS = {
+  software:    { n:'Software e Serviços de TI',        eb:7.1,  rv:2.34 },
+  saude:       { n:'Prestadores de Saúde',             eb:6.5,  rv:1.54 },
+  imoveis:     { n:'Operações Imobiliárias',           eb:7.5,  rv:1.99 },
+  financeiro:  { n:'Inv. Bancários e Financeiros',     eb:8.4,  rv:4.78 },
+  aeroespacial:{ n:'Aeroespacial e Defesa',            eb:8.2,  rv:0.55 },
+  farma:       { n:'Farmacêuticos',                    eb:7.2,  rv:1.16 },
+  maquinas:    { n:'Máquinas e Equipamentos',          eb:6.9,  rv:1.13 },
+  midia:       { n:'Mídia e Publicação',               eb:10.3, rv:2.67 },
+  agro:        { n:'Agronegócio',                      eb:6.0,  rv:0.63 },
+  construcao:  { n:'Construção e Materiais',           eb:5.9,  rv:0.92 },
+  texteis:     { n:'Têxteis e Vestuário',              eb:5.6,  rv:0.76 },
+  bebidas:     { n:'Bebidas e Alimentos',              eb:5.7,  rv:1.61 },
+  telecom:     { n:'Telecomunicações',                 eb:5.1,  rv:1.05 },
+  servicos:    { n:'Serviços Profissionais',           eb:4.8,  rv:0.74 },
+  logistica:   { n:'Logística e Frete',                eb:4.7,  rv:0.84 },
+  varejo:      { n:'Varejo Diversificado',             eb:3.9,  rv:0.37 },
+  educacao:    { n:'Educação',                         eb:3.6,  rv:0.66 },
+  energia:     { n:'Energia e Utilities',              eb:6.8,  rv:1.20 },
+  saude2:      { n:'Saúde e Bem-Estar',                eb:6.0,  rv:1.40 },
+  'ti-hard':   { n:'Tecnologia / Hardware',            eb:5.8,  rv:0.95 },
+  consultoria: { n:'Consultoria de Negócios',          eb:4.5,  rv:0.70 },
+  industria:   { n:'Indústria Geral',                  eb:5.5,  rv:0.85 },
+};
+
+// ─── DETECÇÃO AUTOMÁTICA DE SETOR ─────────────────────────────────────────
+const SECTOR_KEYWORDS = [
+  { key:'software',    rx:/\b(?:software|saas|erp|crm|tecnologia\s+da\s+informa[çc][ãa]o|ti\b|startup\s+de\s+tech|plataforma\s+digital|aplicativo|app\b|sistema[s]?\s+(?:de\s+gest[ãa]o|web)|desenvolvimento\s+de\s+software)\b/i },
+  { key:'saude',       rx:/\b(?:cl[íi]nica|hospital|sa[úu]de|plano\s+de\s+sa[úu]de|laborat[oó]rio|m[eé]dico|odontol[oó]gico|dent[ai]|psicol[oó]gico)\b/i },
+  { key:'educacao',    rx:/\b(?:educa[çc][ãa]o|escola|curso[s]?|ensino|faculdade|universidade|e[\-]?learning|treinamento|capacita[çc][ãa]o|ibgesf|governan[çc]a\s+corporativa)\b/i },
+  { key:'varejo',      rx:/\b(?:varejo|loja[s]?|e[\-]?commerce|com[eé]rcio\s+(?:varejista|eletr[oô]nico)|venda[s]?\s+ao\s+consumidor)\b/i },
+  { key:'logistica',   rx:/\b(?:log[íi]stica|frete|transporte|distribui[çc][ãa]o|carga[s]?|frota|entrega[s]?|armazena?gem)\b/i },
+  { key:'construcao',  rx:/\b(?:constru[çc][ãa]o|incorporadora|im[oó]veis|im[oó]bil[ií]ria|obra[s]?|engenharia\s+civil|incorpora[çc][ãa]o)\b/i },
+  { key:'imoveis',     rx:/\b(?:aluguel|property|galp[aã]o|shopping|loteamento|propriedades|fundo\s+imobili[aá]rio)\b/i },
+  { key:'agro',        rx:/\b(?:agro|agricultura|fazenda|pec[uú]aria|safra|soja|milho|algod[ãa]o|cana|agroneg[oó]cio|rural)\b/i },
+  { key:'financeiro',  rx:/\b(?:banco|financeira|fintech|cr[eé]dito|seguro|capitaliza[çc][ãa]o|investimento|corretora|pagamento)\b/i },
+  { key:'consultoria', rx:/\b(?:consultoria|advisory|auditoria|contabilidade|assessoria\s+(?:financeira|estrat[eé]gica))\b/i },
+  { key:'industria',   rx:/\b(?:ind[úu]stria|manufatura|f[aá]brica|produ[çc][ãa]o\s+industrial|metalurgia|siderurgia)\b/i },
+  { key:'maquinas',    rx:/\b(?:m[áa]quinas?|equipamentos?|automa[çc][ãa]o\s+industrial|rob[oô]tica\s+industrial)\b/i },
+  { key:'bebidas',     rx:/\b(?:alimentos?|bebidas?|alimentar|restaurante|food\s+service|agroind[úu]stria\s+alimentar)\b/i },
+  { key:'midia',       rx:/\b(?:m[íi]dia|publicidade|ag[eê]ncia\s+(?:de\s+)?marketing|conte[úu]do\s+digital|editorial|publica[çc][ãa]o)\b/i },
+  { key:'energia',     rx:/\b(?:energia|el[eé]trica|solar|e[oó]lica|utilities|saneamento|g[aá]s\s+natural|distribuidora\s+de\s+energia)\b/i },
+  { key:'telecom',     rx:/\b(?:telecom|telecomunica[çc][ãa]o|internet|provedora|fibra\s+[oó]ptica|isp\b)\b/i },
+  { key:'farma',       rx:/\b(?:farmac[eê]utica|rem[eé]dio|medicamento|biotech|biotecnologia|farm[aá]cia)\b/i },
+  { key:'servicos',    rx:/\b(?:servi[çc]os?\s+profissionais|prestadora\s+de\s+servi[çc]os?|terceiriza[çc][ãa]o|outsourcing|BPO)\b/i },
+];
+
+function detectSector(t) {
+  for (const { key, rx } of SECTOR_KEYWORDS) {
+    if (rx.test(t)) return key;
+  }
+  return null;
+}
+
+// ─── ESTADO GLOBAL ────────────────────────────────────────────────────────
+let S = { name:'', email:'',
+  receita:null, ebitda:null, divida:null, caixa:null,
+  crescimento:null, funcionarios:null, recorrencia:null, fundador:null,
+  fco:null, capex:null, fcl:null, giro:null,
+  sde:null, concentracao:null, concentracaoFornecedor:null, ativos:null, contingencias:null, dscr:null, motivoVenda:null,
+  sector:'' };
+
+let _docText = '';       // texto acumulado de todos os documentos
+let _docFileName = '';   // nome do último arquivo processado (para Worker e evidências)
+let _docFiles = [];      // arquivos File originais (para envio base64 ao Worker)
+let _loadingFiles = false; // impede que updatePanel() sobrescreva a barra durante leitura
+let _lastDocR = {};      // último resultado bruto da extração de documentos (para overlay)
+
+// Reseta todos os campos de S (evita contaminação entre análises)
+function resetS() {
+  S.receita = S.ebitda = S.divida = S.caixa = S.crescimento = null;
+  S.funcionarios = S.recorrencia = S.fundador = null;
+  S.fco = S.capex = S.fcl = S.giro = null;
+  S.sde = S.concentracao = S.concentracaoFornecedor = S.ativos = S.contingencias = null;
+  S.dscr = S.motivoVenda = null;
+  S._receitaSuspeitaMensal = undefined;
+  // Mantém S.name, S.email, S.sector (definidos pelo usuário)
+}
+
+// ─── FASES ─────────────────────────────────────────────────────────────────
+function showPhase(p) {
+  ['email','input','result'].forEach(id =>
+    document.getElementById('ph-'+id).classList.remove('on'));
+  document.getElementById('ph-'+p).classList.add('on');
+
+  const map = { email:1, input:2, result:3 };
+  const cur = map[p];
+  for (let i=1;i<=3;i++) {
+    const el = document.getElementById('st'+i);
+    el.classList.remove('active','done');
+    if (i===cur) el.classList.add('active');
+    else if (i<cur) el.classList.add('done');
+  }
+}
+
+function goInput() {
+  const name  = document.getElementById('i-name').value.trim();
+  const email = document.getElementById('i-email').value.trim();
+  const err   = document.getElementById('email-err');
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    err.classList.add('on'); return;
+  }
+  err.classList.remove('on');
+  S.name = name; S.email = email;
+
+  const msg = encodeURIComponent('Olá! Fiz o valuation pelo site do IBGESF e gostaria de conversar.');
+  document.getElementById('wpp-link').href = 'https://wa.me/5511972657082?text='+msg;
+
+  showPhase('input');
+
+  let parseTimer = null;
+  const spin = document.getElementById('ai-spin');
+  const panel = document.querySelector('.panel');
+  const titleTxt = document.getElementById('panel-title-txt');
+
+  function startAnalyzing() {
+    spin.classList.add('on');
+    panel.classList.add('analyzing');
+    titleTxt.textContent = 'Analisando…';
+  }
+  function stopAnalyzing() {
+    spin.classList.remove('on');
+    panel.classList.remove('analyzing');
+    titleTxt.textContent = 'Dados identificados';
+  }
+
+  document.getElementById('ta').addEventListener('input', () => {
+    S.text = document.getElementById('ta').value;
+    startAnalyzing();
+    clearTimeout(parseTimer);
+    parseTimer = setTimeout(() => {
+      parseText().then(() => { updatePanel(); checkReady(); stopAnalyzing(); });
+    }, 380);
+  });
+
+  document.getElementById('sector').addEventListener('change', () => {
+    const sel = document.getElementById('sector');
+    sel._manualSet = !!sel.value;
+    S.sector = sel.value;
+    updatePanel(); checkReady();
+  });
+}
+
+function restart() {
+  S = { name:S.name, email:S.email, receita:null, ebitda:null,
+    divida:null, caixa:null, crescimento:null, funcionarios:null,
+    recorrencia:null, fundador:null,
+    fco:null, capex:null, fcl:null, giro:null,
+    sde:null, concentracao:null, concentracaoFornecedor:null, ativos:null, contingencias:null, dscr:null, motivoVenda:null,
+    sector:'' };
+  document.getElementById('ta').value = '';
+  const selR = document.getElementById('sector');
+  selR.value = ''; selR._manualSet = false;
+  document.getElementById('file-list').textContent = '';
+  document.getElementById('calc-btn').disabled = true;
+  _docText = '';
+  _docFiles = [];
+  document.getElementById('doc-badge').hidden = true;
+  // Resetar badge de setor detectado
+  const sectorBadge = document.getElementById('sector-detected-badge');
+  const sectorRowM = document.getElementById('sector-row-manual');
+  if (sectorBadge) sectorBadge.hidden = true;
+  if (sectorRowM) sectorRowM.style.display = '';
+  document.getElementById('next-step-box').hidden = true;
+  resetPanel();
+  showPhase('input');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ─── EXTRAÇÃO DE DOCUMENTOS ───────────────────────────────────────────────
+async function extractPDF(file) {
+  try {
+    if (typeof pdfjsLib === 'undefined') return '';
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const ab = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+    let txt = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const pg = await pdf.getPage(i);
+      const content = await pg.getTextContent();
+      txt += content.items.map(it => it.str).join(' ') + '\n';
+    }
+    return txt;
+  } catch(e) {
+    console.error('[extractPDF]', e);
+    return { text: '', error: `Falha na leitura do PDF: ${e.message || e}`, file: file.name };
+  }
+}
+
+async function extractXLSX(file) {
+  try {
+    if (typeof XLSX === 'undefined') return '';
+    const ab = await file.arrayBuffer();
+    const wb = XLSX.read(ab, { type: 'array' });
+    let txt = '';
+    wb.SheetNames.forEach(name => {
+      const ws = wb.Sheets[name];
+      txt += XLSX.utils.sheet_to_csv(ws) + '\n';
+    });
+    return txt;
+  } catch(e) {
+    console.error('[extractXLSX]', e);
+    return { text: '', error: `Falha na leitura do Excel: ${e.message || e}`, file: file.name };
+  }
+}
+
+// ─── RTF → texto plano (client-side, sem biblioteca) ─────────────────────
+async function extractRTF(file) {
+  try {
+    const ab = await file.arrayBuffer();
+    // RTF usa Latin-1 (windows-1252)
+    const text = new TextDecoder('windows-1252').decode(ab);
+    let s = text;
+    // Decodificar escapes hex do RTF: \'XX
+    s = s.replace(/\\'([0-9a-fA-F]{2})/g, (_, h) => {
+      try { return String.fromCharCode(parseInt(h, 16)); } catch(e) { return ''; }
+    });
+    // Remover blocos binários embutidos (metroBlob, svb, etc.)
+    s = s.replace(/\{\\\*\\[a-zA-Z]+[^{}]*\}/gs, ' ');
+    // Converter parágrafos e quebras de linha RTF em \n
+    s = s.replace(/\\par\b/g, '\n');
+    s = s.replace(/\\line\b/g, '\n');
+    s = s.replace(/\\tab\b/g, '\t');
+    // Remover control words
+    s = s.replace(/\\[a-zA-Z]+-?\d*\s?/g, ' ');
+    // Remover chaves
+    s = s.replace(/[{}\\]/g, ' ');
+    // Normalizar espaços
+    s = s.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n');
+    return s.trim();
+  } catch(e) {
+    console.error('[extractRTF]', e);
+    return { text: '', error: `Falha na leitura do RTF: ${e.message || e}`, file: file.name };
+  }
+}
+
+// ─── DOCX → texto plano (via JSZip + parse XML) ──────────────────────────
+async function extractDOCX(file) {
+  try {
+    // Carrega JSZip sob demanda
+    if (typeof JSZip === 'undefined') {
+      await new Promise((res, rej) => {
+        const sc = document.createElement('script');
+        sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+        sc.onload = res; sc.onerror = rej;
+        document.head.appendChild(sc);
+      });
+    }
+    const ab = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(ab);
+    // Tenta word/document.xml (docx) ou content.xml (odt)
+    const xmlFile = zip.file('word/document.xml') || zip.file('content.xml');
+    if (!xmlFile) return '';
+    const xml = await xmlFile.async('string');
+    // Extrair texto entre tags XML, preservando espaços entre nós
+    let text = xml
+      .replace(/<w:p[ >]/g, '\n<w:p ')  // cada parágrafo em nova linha
+      .replace(/<[^>]+>/g, ' ')          // remover tags
+      .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#(\d+);/g, (_, n) => String.fromCharCode(n))
+      .replace(/[ \t]+/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    return text;
+  } catch(e) {
+    console.error('[extractDOCX]', e);
+    return { text: '', error: `Falha na leitura do DOCX: ${e.message || e}`, file: file.name };
+  }
+}
+
+// ─── TXT / CSV → texto plano ──────────────────────────────────────────────
+async function extractText(file) {
+  try {
+    const ab = await file.arrayBuffer();
+    // Tenta UTF-8, cai para Latin-1
+    try { return new TextDecoder('utf-8', {fatal:true}).decode(ab); }
+    catch(e) { return new TextDecoder('windows-1252').decode(ab); }
+  } catch(e) { return ''; }
+}
+
+// ─── HANDLEFILES — animação tipo IA ───────────────────────────────────────
+// Drag-and-drop no upload-zone
+(function() {
+  function initDrop() {
+    const zone = document.getElementById('upload-zone');
+    const inp  = document.getElementById('fi');
+    if (!zone || !inp) return;
+    zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', e => { zone.classList.remove('drag-over'); });
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const dt = e.dataTransfer;
+      if (!dt || !dt.files.length) return;
+      // Injeta arquivos no input e dispara handleFiles
+      const fakeInp = { files: dt.files };
+      handleFiles(fakeInp);
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initDrop);
+  else initDrop();
+})();
+
+function handleFiles(inp) {
+  const files = Array.from(inp.files);
+  if (!files.length) return;
+
+  // ── Limpa TODA a extração anterior antes de processar novos arquivos ──
+  resetS();
+  _docText = '';
+  _lastDocR = {};
+  _docFiles = files; // guarda referência para envio base64 ao Worker
+
+  const fl      = document.getElementById('file-list');
+  const spin    = document.getElementById('ai-spin');
+  const panel   = document.querySelector('.panel');
+  const titleTxt= document.getElementById('panel-title-txt');
+  const fill    = document.getElementById('conf-fill');
+  const pctEl   = document.getElementById('pct');
+
+  const AI_MSGS = [
+    'Abrindo documentos…',
+    'Lendo estrutura do DRE…',
+    'Localizando receita bruta…',
+    'Extraindo lucro operacional (EBITDA)…',
+    'Verificando balanço patrimonial…',
+    'Lendo Demonstrativo de Fluxo de Caixa…',
+    'Calculando FCO e fluxo de caixa livre…',
+    'Identificando investimentos fixos (CAPEX)…',
+    'Calculando crescimento anual…',
+    'Identificando dívida e caixa…',
+    'Detectando setor de atuação…',
+    'Analisando recorrência de receita…',
+    'Calculando cobertura da dívida (DSCR)…',
+    'Cruzando informações financeiras…',
+    'Consolidando indicadores de aquisição…',
+    'Aplicando escala e normalização…',
+  ];
+  let msgIdx = 0;
+  let msgTimer = null;
+
+  function startAI() {
+    _loadingFiles = true;
+    spin.classList.add('on');
+    panel.classList.add('analyzing');
+    titleTxt.textContent = AI_MSGS[0];
+    // Barra começa imediatamente em 5% para dar feedback visual
+    fill.style.transition = 'none';
+    fill.style.width = '5%';
+    pctEl.textContent = '5%';
+    void fill.offsetWidth;
+    msgTimer = setInterval(() => {
+      msgIdx = (msgIdx + 1) % AI_MSGS.length;
+      titleTxt.textContent = AI_MSGS[msgIdx];
+    }, 650);
+  }
+
+  function stopAI(finalPct) {
+    clearInterval(msgTimer);
+    _loadingFiles = false;
+    spin.classList.remove('on');
+    panel.classList.remove('analyzing');
+    titleTxt.textContent = 'Dados identificados';
+    fill.style.transition = 'width 1s ease';
+    fill.style.width = finalPct + '%';
+    pctEl.textContent = finalPct + '%';
+  }
+
+  startAI();
+  showAnalysisOverlay(files);
+  fl.textContent = '⏳ Analisando ' + files.length + ' arquivo(s)…';
+
+  let loaded = 0;
+  const docTexts = new Array(files.length).fill('');
+
+  function onFileLoaded(i, txt, fname) {
+    docTexts[i] = txt || '';
+    loaded++;
+    // Progresso de leitura: 5% → 65% durante leitura dos arquivos
+    const readPct = 5 + Math.round((loaded / files.length) * 60);
+    fill.style.transition = 'width 0.6s ease';
+    fill.style.width = readPct + '%';
+    pctEl.textContent = readPct + '%';
+    // Mostra brevemente o nome do arquivo lido
+    const short = fname.length > 24 ? fname.substring(0,22)+'…' : fname;
+    titleTxt.textContent = '✓ ' + short;
+    setTimeout(() => {
+      titleTxt.textContent = AI_MSGS[(msgIdx + 1) % AI_MSGS.length];
+    }, 600);
+    markDocDone(i, fname);
+    // Já atualiza o painel parcialmente (sem alterar a barra — _loadingFiles=true)
+    _docText = docTexts.join('\n');
+    _docFileName = fname;
+    parseText().then(() => { updatePanel(); checkReady(); });
+  }
+
+  Promise.all(files.map((f, i) => {
+    const ext = f.name.split('.').pop().toLowerCase();
+    let p;
+    if (ext === 'pdf')                                    p = extractPDF(f);
+    else if (['xlsx','xls','ods'].includes(ext))          p = extractXLSX(f);
+    else if (ext === 'csv')                               p = extractText(f);
+    else if (ext === 'rtf')                               p = extractRTF(f);
+    else if (['docx','odt'].includes(ext))                p = extractDOCX(f);
+    else if (['txt','text'].includes(ext))                p = extractText(f);
+    else if (ext === 'doc') {
+      // DOC binário legado — tenta extrair texto ASCII/Latin-1 via heurística
+      p = extractText(f).then(t => {
+        // Filtra apenas linhas com conteúdo legível (>3 chars alfanuméricos)
+        return t.split('\n').filter(l => (l.match(/[a-zA-ZÀ-ÿ0-9]{3,}/)||[]).length > 0).join('\n');
+      });
+    }
+    else                                                  p = Promise.resolve('');
+    return p.then(txt => {
+      if (txt && typeof txt === 'object' && txt.error) {
+        // Report read failure in overlay
+        const stEl = document.getElementById('aov-doc-st-' + i);
+        if (stEl) { stEl.textContent = '✗ erro'; stEl.className = 'aov-doc-status error'; }
+        setEvidence('readFailure_' + f.name.replace(/\W/g,'_'), {
+          origin:'read-failure', state:'read-failure', evidence: txt.error
+        });
+        txt = '';
+      }
+      return onFileLoaded(i, txt, f.name);
+    }).catch(()  => onFileLoaded(i, '',  f.name));
+  })).then(() => {
+    _docText = docTexts.join('\n');
+    parseText().then(() => {
+      updatePanel(); checkReady();
+
+      // Calcula percentual final com base nos dados extraídos (pesos BTB)
+      const wKeys = [[S.fco,2],[S.receita,2],[S.ebitda,2],[S.sector,1],[S.divida||S.caixa,1],[S.crescimento,1],[S.fcl,1],[S.capex,1],[S.funcionarios,1],[S.recorrencia,1]];
+      const wTotal = wKeys.reduce((a,b)=>a+b[1],0);
+      const wDone  = wKeys.reduce((a,[v,w])=>a+(v?w:0),0);
+      const finalPct = Math.max(Math.round(wDone/wTotal*100), 10);
+
+      stopAI(finalPct);
+      revealAnalysisSteps();
+
+    fl.textContent = '✓ ' + files.map(f=>f.name).join(', ') + ' — lidos e analisados';
+
+    // Badge de documentos
+    const badge = document.getElementById('doc-badge');
+    badge.hidden = false; badge.style.display = 'flex';
+    document.getElementById('doc-badge-txt').textContent =
+      files.length + ' documento' + (files.length>1?'s':'') +
+      ' lido' + (files.length>1?'s':'') + ' e analisado' + (files.length>1?'s':'');
+
+    // Próximo passo
+    const found = [
+      S.receita     && 'receita bruta',
+      S.ebitda      && 'lucro operacional',
+      S.crescimento && 'crescimento',
+      S.divida      && 'dívida',
+      S.caixa       && 'caixa',
+    ].filter(Boolean);
+    const nsBox = document.getElementById('next-step-box');
+    const nsTxt = document.getElementById('next-step-txt');
+    nsBox.hidden = false; nsBox.style.display = 'block';
+    if (found.length >= 3) {
+      nsTxt.innerHTML = 'Identificamos <strong>' + found.join(', ') +
+        '</strong> nos documentos. Clique em <strong>Calcular valor da empresa</strong>.';
+    } else if (found.length >= 1) {
+      nsTxt.innerHTML = 'Identificamos <strong>' + found.join(', ') +
+        '</strong>. Para precisão máxima, adicione mais documentos ou descreva no campo acima. Depois clique em <strong>Calcular</strong>.';
+    } else {
+      nsTxt.innerHTML = 'Documentos recebidos. Se os PDFs forem digitalizados (imagem), os dados não são extraíveis automaticamente — <strong>descreva receita e lucro operacional no campo acima</strong>.';
+      }
+    }); // fim parseText().then
+  }); // fim Promise.all
+}
+
+// ─── PARSER DE NÚMEROS (formato brasileiro + internacional) ─────────────────
+function parseNum(s) {
+  if (s === null || s === undefined) return null;
+  let t = String(s).trim();
+
+  // ── Formato contábil brasileiro: sufixo C (Crédito = positivo) / D (Débito = negativo) ──
+  // Ex: "8.412.662,66 C" → positivo; "1.441.505,58 D" → negativo
+  // Detecta antes de qualquer outra transformação
+  let cdNeg = false;
+  const cdMatch = t.match(/^(.+?)\s+([CD])\s*$/i);
+  if (cdMatch) {
+    t = cdMatch[1];
+    cdNeg = cdMatch[2].toUpperCase() === 'D'; // D = Débito = negativo
+  }
+
+  const neg = /^\(/.test(t) || /^-/.test(t) || cdNeg;
+  t = t.replace(/[()]/g,'').replace(/^-/,'').trim();
+
+  // Multiplicador por sufixo
+  let m = 1;
+  if (/bilh/i.test(t))                        m = 1e9;
+  else if (/milh/i.test(t))                   m = 1e6;
+  else if (/\bmil\b(?!h)/i.test(t))           m = 1e3;
+  else if (/\bM\b/.test(t))                   m = 1e6;
+  else if (/\bB\b/.test(t))                   m = 1e9;
+  else if (/\bk\b/i.test(t))                  m = 1e3;
+  t = t.replace(/bilh[õo]es?|milh[õo]es?|\bmil\b|\bM\b|\bB\b|\bk\b|reais|R\$|\$/gi,'').trim();
+  if (/,\d{2}$/.test(t)) {
+    t = t.replace(/\./g,'').replace(',','.');
+  } else if (/\.\d{3}(?!\d)/.test(t) && !(/,/.test(t))) {
+    t = t.replace(/\./g,'');
+  } else if (/,\d{3}(?!\d)/.test(t) && !(/\./.test(t))) {
+    t = t.replace(/,/g,'');
+  } else {
+    t = t.replace(/,/g,'.');
+  }
+  const n = parseFloat(t.match(/[\d.]+/)?.[0]);
+  if (isNaN(n) || n <= 0) return null;
+  const result = n * m;
+  return neg ? -result : result;
+}
+
+function firstNum(slice) {
+  // Captura número no formato BR com sufixo contábil opcional: "8.412.662,66 C" ou "(1.441.505,58 D)"
+  const m = slice.match(/(-?\(?\s*[\d]{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?\s*\)?|\(?\s*\d[\d.,]*\s*\)?)\s*(?:mil(?:hões?)?|milh|M|B|bilh)?\s*\b([CD])\b/i)
+         || slice.match(/(-?\(?\s*[\d]{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?\s*\)?|\(?\s*\d[\d.,]*\s*\)?)\s*(?:mil(?:hões?)?|milh|M|B|bilh)?/i);
+  return m ? parseNum(m[0]) : null;
+}
+
+function findNear(text, labelRx, range, allowNeg) {
+  range = range || 500;
+  const m = text.match(labelRx);
+  if (!m) return null;
+  // ONLY search after the label — no backward search (prevents contamination from preceding text)
+  const afterSlice = text.slice(m.index + m[0].length, m.index + m[0].length + range);
+  const vAfter = firstNum(afterSlice);
+  if (vAfter !== null && (allowNeg || vAfter > 0)) return vAfter;
+  return null;
+}
+
+// findBestNum: como findNear, mas coleta TODOS os números no range e retorna o melhor candidato.
+// Usado para receita bruta onde PDFs colunares têm códigos contábeis pequenos antes do valor real.
+// Estratégia: filtra números abaixo do limiar e escolhe o PRIMEIRO dos plausíveis
+// (não o maior — evita capturar totais de balanço; mas ignora pequenos ruídos à esquerda).
+function findBestNum(text, labelRx, range, minRaw) {
+  range = range || 800;
+  minRaw = minRaw || 0;
+  const m = text.match(labelRx);
+  if (!m) return null;
+  const start = m.index + m[0].length;
+  const slice = text.slice(start, start + range);
+  // Coleta TODOS os números no slice, com posição
+  const numRx = /(-?\(?\s*[\d]{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?\s*\)?|\(?\s*\d{4,}(?:[.,]\d{1,2})?\s*\)?)/g;
+  let match;
+  const candidates = [];
+  while ((match = numRx.exec(slice)) !== null) {
+    // Ignora se precedido por % (percentual) ou por letra de código contábil (ex: "3.01.01")
+    const before = slice.slice(Math.max(0, match.index - 3), match.index);
+    if (/%\s*$/.test(before)) continue;
+    const v = parseNum(match[0]);
+    if (v === null || isNaN(v)) continue;
+    if (v > 0) candidates.push({ v, pos: match.index });
+  }
+  // Filtra por limiar mínimo (evita códigos contábeis, alíquotas)
+  const plausible = candidates.filter(c => c.v >= minRaw);
+  if (plausible.length === 0) return null;
+  // Retorna o PRIMEIRO dos plausíveis (na DRE, receita é sempre a primeira linha de valor relevante)
+  return plausible[0].v;
+}
+
+function findAll(text, labelRx, maxRange) {
+  maxRange = maxRange || 600;
+  const results = [];
+  let pos = 0;
+  while (pos < text.length) {
+    const sub = text.slice(pos);
+    const m = sub.match(labelRx);
+    if (!m) break;
+    const startIdx = pos + m.index + m[0].length;
+    const slice = text.slice(startIdx, startIdx + maxRange);
+    const v = firstNum(slice);
+    if (v && v > 0) results.push(v);
+    pos = startIdx + 1;
+  }
+  return results;
+}
+
+// ─── EXTRATOR ESPECIALIZADO PARA DRE / BALANÇO BRASILEIRO ───────────────────
+function extractDocFinancials(doc) {
+  if (!doc || doc.length < 30) return {};
+  const r = {};
+
+  // ── FASE 1: Pré-processamento numérico (antes de mascarar) ──
+  const t0 = doc
+    .replace(/(\d)\s+([.,]\d)/g,  '$1$2')   // "1 .234" → "1.234"
+    .replace(/([.,])\s+(\d{3})/g, '$1$2')   // "1. 234" → "1.234"
+    .replace(/[ \t]{2,}/g, ' ');
+
+  // ── FASE 2: Detectar período do documento ANTES de mascarar datas ──
+  // "PERÍODO DE ENCERRAMENTO: 01/01/2025 A 31/12/2025" → docYear = 2025
+  const pmatch = t0.match(/per[íi]odo\s+de\s+encerramento\s*[:\-]?\s*\d{2}\/\d{2}\/(\d{4})\s*[aA]\s*\d{2}\/\d{2}\/(\d{4})/i)
+              || t0.match(/exerc[íi]cio\s+(?:findo|encerrado|encerra)\s+em\s+\d{2}\/\d{2}\/(\d{4})/i)
+              || t0.match(/(?:competência|referência|data\s+base)\s*[:\-]?\s*\d{2}\/\d{2}\/(\d{4})/i)
+              || t0.match(/\b(20(?:2[0-9]|1[89]))\b/);  // qualquer ano como fallback
+  if (pmatch) r._docYear = parseInt(pmatch[2] || pmatch[1]);
+
+  // ── FASE 3: Mascarar ruídos antes da extração numérica ──
+  // CNPJ "23.912.024/0001-12" → "[CNPJ]" (evita leitura como valor financeiro)
+  const t = t0
+    .replace(/\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/g, '[CNPJ]')
+    // Datas "dd/mm/aaaa" → "[DATA]"
+    .replace(/\b\d{2}\/\d{2}\/\d{4}\b/g, '[DATA]')
+    // Números de processo judicial → "[PROC]"
+    .replace(/\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/g, '[PROC]')
+    // CPF "123.456.789-00" → "[CPF]"
+    .replace(/\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/g, '[CPF]');
+
+  // Detecção de escala: "valores em R$ mil" → ×1.000; "em milhões" → ×1.000.000
+  // Padrões comuns em DREs brasileiras exportadas por ERP (Domínio, Alterdata, Questor, etc.)
+  const inThousands = /(?:valores?\s+(?:em|expressos?|apresentados?)|em|montantes?\s+em|expresso[s]?\s+em)\s*(?:milh[aã]res?(?:\s+de\s+reais?)?|R\$\s*mil(?:hares?)?\b)|R\$\s*(?:mil|1\.000)\b|\(em\s+R\$\s*mil\)|em\s+(?:R\$\s*)?milh[aã]res?\s*de\s*reais?/i.test(t);
+  const inMillions  = /(?:valores?\s+em|expresso[s]?\s+em|em)\s*milh[õo]es?\s*(?:de\s*reais?)?|\(em\s+R\$\s*milh[õo]es?\)/i.test(t);
+
+  function applyScale(v) {
+    if (!v) return v;
+    if (inThousands) return v * 1000;
+    if (inMillions)  return v * 1e6;
+    return v;
+  }
+
+  // ── SEGMENTAÇÃO DO DOCUMENTO ──
+  // Identifica início de cada seção para restringir buscas por campo
+  const DRE_START_RX  = /demonstra[çc][ãa]o\s+do\s+resultado|demonstra[çc][ãa]o\s+de\s+resultado|resultado\s+do\s+exerc[íi]cio|\bDRE\b/i;
+  const DFC_START_RX  = /demonstra[çc][ãa]o\s+(?:do[s]?\s+)?fluxo[s]?\s+de\s+caixa|fluxo\s+de\s+caixa\s*[\-–]|\bDFC\b/i;
+  const BAL_START_RX  = /balan[çc]o\s+patrimonial|balancete|posi[çc][ãa]o\s+(?:financeira|patrimonial)/i;
+  const NOTAS_START_RX = /notas?\s+explicativas?|nota[s]?\s+(?:da[s]?\s+)?demonstra[çc][ãa]o/i;
+
+  // Construir seções isoladas (sem overlap com próxima seção maior)
+  const _secEnds = (candidates) => Math.min(...candidates.filter(i => i >= 0), t.length);
+  const _dreI   = t.search(DRE_START_RX);
+  const _dfcI   = t.search(DFC_START_RX);
+  const _balI   = t.search(BAL_START_RX);
+  const _notasI = t.search(NOTAS_START_RX);
+  const dreSection   = _dreI   >= 0 ? t.slice(_dreI,   _secEnds([_dfcI, _balI, _notasI])) : '';
+  const dfcSection   = _dfcI   >= 0 ? t.slice(_dfcI,   _secEnds([_balI, _notasI]))         : '';
+  const balSection   = _balI   >= 0 ? t.slice(_balI,   _notasI >= 0 ? _notasI : t.length)  : '';
+  // Seção efetiva de busca por campo (usa seção específica ou documento inteiro como fallback)
+  const tDRE = dreSection || t;
+  const tDFC = dfcSection || t;
+  const tBAL = balSection || t;
+
+  function tryAll(rxList, range, txt) {
+    txt = txt || t;
+    range = range || 900;
+    for (const rx of rxList) {
+      const v = findNear(txt, rx, range);
+      if (v && v > 0) {
+        return applyScale(v);
+      }
+    }
+    return null;
+  }
+
+  // tryAllBest: usa findBestNum (ignora ruídos pequenos, pega primeiro plausível)
+  // Usado para receita bruta em PDFs colunares onde código contábil aparece antes do valor.
+  // minRaw: limiar mínimo ANTES de aplicar escala (ex: 200 em tabela R$ mil → R$200k mínimo)
+  function tryAllBest(rxList, range, txt, minRaw) {
+    txt = txt || t;
+    range = range || 900;
+    minRaw = minRaw || 0;
+    for (const rx of rxList) {
+      const v = findBestNum(txt, rx, range, minRaw);
+      if (v && v > 0) {
+        return applyScale(v);
+      }
+    }
+    return null;
+  }
+
+  // Variante que aceita valores negativos (ex: FCO e CAPEX no DFC indireto)
+  function tryAllSigned(rxList, range, txt) {
+    txt = txt || t;
+    range = range || 900;
+    for (const rx of rxList) {
+      const v = findNear(txt, rx, range, true);
+      if (v !== null) return applyScale(v);
+    }
+    return null;
+  }
+
+  // ── RECEITA BRUTA ──
+  // Lógica de analista M&A: a Receita é a primeira linha da DRE, sempre positiva,
+  // sempre o maior valor da demonstração de resultado. Nunca vem de notas explicativas.
+  // Range 800: busca próxima ao label; evita capturar números de outras seções.
+  // Sinônimos cobrindo CPC/IFRS, Simples Nacional, Domínio, Alterdata, Questor,
+  // Totvs Protheus, Conta Azul, Omie, SAP Brasil — em ordem de especificidade decrescente.
+  // minRaw para receita: 200 significa que, numa tabela R$ mil, aceita a partir de R$200k;
+  // em documento sem escala, 200 reais seria baixo — mas o guard pós-escala filtra isso.
+  // Isso elimina códigos contábeis (ex: 100, 3, 01) e alíquotas (ex: 8, 15, 27.5).
+  const _receitaMinRaw = inThousands ? 200 : (inMillions ? 0.2 : 50000);
+  r.receita = tryAllBest([
+    /receita\s+(?:operacional\s+)?bruta\s+de\s+(?:vendas?\s+e\s+servi[çc]os?|vendas?\s+de\s+produtos?|servi[çc]os?\s+prestados?|loca[çc][ãa]o)/i,
+    /receita\s+(?:operacional\s+)?bruta(?:\s+de\s+(?:vendas?|servi[çc]os?|produtos?))?/i,
+    /faturamento\s+bruto/i,
+    /receita\s+bruta\s+(?:total|de\s+vendas?|operacional)/i,
+    /receita\s+bruta\b/i,
+    /receitas?\s+brutas?\s+(?:de\s+vendas?|de\s+servi[çc]os?|operacionais?)/i,
+    /receita\s+total\s+(?:bruta|de\s+vendas?|de\s+servi[çc]os?)/i,
+    /receita\s+total\s+de\s+vendas?\s+e\s+servi[çc]os?/i,
+    /faturamento\s*(?:l[íi]quido|total|anual|m[eé]dio)?/i,
+    /receitas?\s+operacionais?\s+(?:brutas?|totais?)/i,
+    /receitas?\s+(?:de\s+servi[çc]os?|de\s+loca[çc][ãa]o|de\s+alugu[eé]is?)/i,
+    /total\s+(?:das?\s+)?receitas?\s+(?:de\s+servi[çc]os?|brutas?|totais?)/i,
+    /(?:\(\+\)|3\.)\s*receita[s]?\b/i,
+    /gross\s+revenue/i,
+    /receita\s+l[íi]quida(?:\s+de\s+(?:vendas?\s+e\s+servi[çc]os?|servi[çc]os?|vendas?))/i,
+    /receita\s+l[íi]quida/i,
+    // NÃO usar /\breceita\b/ isolado — muito genérico, captura notas explicativas
+  ], 1000, tDRE, _receitaMinRaw);
+
+  // Guard de plausibilidade M&A: receita < R$50k é quase certamente falso positivo
+  // (mínimo razoável para uma empresa em processo de avaliação)
+  // Também descarta valores suspeitos: se tabela está em R$ mil e valor < 500, provavelmente
+  // é código contábil, alíquota ou número de coluna capturado erroneamente
+  // Guard de plausibilidade pós-escala:
+  // Mínimo absoluto: R$50k (empresa mais pequena razoável para avaliação)
+  if (r.receita && r.receita < 50000) {
+    r._receitaDescartada = r.receita;
+    r.receita = null;
+  }
+  // Guard contextual: tabela em R$ mil → valor pré-escala mínimo = 200 → R$200k pós-escala
+  // Se mesmo assim resultar < R$200k, é quase certamente ruído
+  if (r.receita && inThousands && r.receita < 200000) {
+    r._receitaDescartada = r.receita;
+    r.receita = null;
+  }
+  // Suspeita leve: receita < R$500k em tabela R$ mil — registra sem descartar
+  if (r.receita && inThousands && r.receita < 500000) {
+    r._receitaSuspeita = true;
+  }
+
+  // Fallback DRE colunar: PDFs exportam labels e valores separados.
+  // Estratégia M&A: a Receita Bruta é a PRIMEIRA linha positiva da DRE,
+  // e também o MAIOR valor — usa max dos C/D como confirmação, mas filtra
+  // valores < receita provável (ex: itens de balanço > DRE não devem vencer).
+  if (!r.receita) {
+    // Usa seção DRE já identificada (ou primeiros 8000 chars como fallback)
+    const fallbackDre = dreSection || t.slice(0, 8000);
+    const allNums = [];
+    // Prioridade 1: sufixo contábil C (Crédito = receita/positivo)
+    const numRxCD = /\(?(\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{1,2})?|\d{4,}(?:[.,]\d{1,2})?)\)?\s*\b([CD])\b/gi;
+    let nm;
+    while ((nm = numRxCD.exec(fallbackDre)) !== null) {
+      if (nm[2].toUpperCase() === 'D') continue;
+      const v = parseNum(nm[1]);
+      if (v > 0) allNums.push(v);
+    }
+    // Prioridade 2: sem sufixo, ignora números negativos e muito pequenos
+    if (allNums.length === 0) {
+      const numRxPlain = /\(?(\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{1,2})?|\d{4,}(?:[.,]\d{1,2})?)\)?/g;
+      while ((nm = numRxPlain.exec(fallbackDre)) !== null) {
+        const before = fallbackDre.slice(Math.max(0, nm.index - 2), nm.index);
+        if (before.trim().endsWith('(')) continue;
+        const v = parseNum(nm[1]);
+        // Receita mínima plausível: R$50k (evita capturar alíquotas, linhas de deduções, percentuais)
+        if (v >= 50000) allNums.push(v);
+      }
+    }
+    // Usa o PRIMEIRO grande valor da DRE (Receita Bruta é sempre a primeira linha),
+    // NÃO o máximo (que poderia ser total do ativo ou outro item fora da DRE)
+    if (allNums.length > 0) {
+      const firstLarge = allNums[0];
+      const scaled = applyScale(firstLarge);
+      // Receita mínima plausível após escala: R$50k
+      if (scaled >= 50000) r.receita = scaled;
+    }
+  }
+
+  if (r.receita) {
+    const _receitaRaw = inThousands ? r.receita/1000 : (inMillions ? r.receita/1e6 : r.receita);
+    const _receitaScale = inThousands ? 'R$ mil (×1.000)' : (inMillions ? 'R$ milhões (×1.000.000)' : 'R$ (unidade)');
+    setEvidence('receita', { label:'Receita Bruta', rawValue: _receitaRaw, scaledValue: r.receita,
+      origin:'extracted', state: r._receitaSuspeita ? 'needs-review' : 'validated',
+      period: String(r._docYear||''), scale: _receitaScale,
+      evidence: dreSection ? dreSection.substring(0,400) : '' });
+  }
+
+  // ── EBITDA / LAJIDA ──
+  // Lógica M&A: EBITDA = Lucro Operacional + Depreciação + Amortização
+  // NUNCA usar "Lucro Bruto" (= Receita − CMV, muito acima do EBITDA)
+  // NUNCA usar "Lucro Operacional" sem confirmação de D&A adicionados
+  // Sinônimos completos: CPC/IFRS, Simples Nacional, todos os ERPs brasileiros
+  r.ebitda = tryAll([
+    /\bebitda\s+ajustado\b/i,
+    /\bebitda\b/i,
+    /\blajida\s+ajustado\b/i,
+    /\blajida\b/i,
+    /resultado\s+antes\s+(?:dos?\s+)?(?:juros[,\s]+impostos[,\s]+deprecia[çc][ãa]o|efeitos?\s+financeiros?[,\s]+impostos?[,\s]+deprecia[çc][ãa]o)/i,
+    /lucro\s+antes\s+(?:dos?\s+)?(?:juros[,\s]+impostos[,\s]+deprecia[çc][ãa]o|ir[\/,\s]+cs[,\s]+deprecia[çc][ãa]o)/i,
+    /resultado\s+operacional\s+(?:antes\s+(?:do\s+)?(?:resultado\s+financeiro|ir\s+e\s+cs|efeito[s]?\s+financeiros?)|ajustado)/i,
+    /resultado\s+operacional\s+l[íi]quido/i,
+    /\bnoi\b/i,
+    /lucro\s+operacional\s+(?:antes\s+de\s+(?:ir|resultado\s+financ)|ajustado)/i,
+    /resultado\s+antes\s+do\s+resultado\s+financeiro\s+e\s+tributos/i,
+    /resultado\s+antes\s+dos?\s+tributos\s+(?:sobre\s+(?:o\s+)?lucro|e\s+resultado\s+financeiro)/i,
+    // Aceita LAIR/LAJIR como proxy (pré-impostos, pré-financeiro, sem D&A)
+    /\blair\b/i,
+    /\blajir\b/i,
+    // Lucro líquido como ÚLTIMO RECURSO — somente se nenhum acima encontrado
+    /lucro\s+l[íi]quido/i,
+  ], 800, tDRE);
+  // Guard: EBITDA > Receita é impossível
+  if (r.ebitda && r.receita && r.ebitda > r.receita * 0.98) { r._ebitdaSuspeito = true; r.ebitda = null; }
+  // Guard: EBITDA margem fora de -100% a +80% é suspeito
+  if (r.ebitda && r.receita && (r.ebitda / r.receita > 0.80 || r.ebitda / r.receita < -1)) { r._ebitdaSuspeito = true; r.ebitda = null; }
+  if (r.ebitda) {
+    setEvidence('ebitda', { label:'EBITDA', rawValue: r.ebitda, origin:'extracted',
+      state:'validated', period: String(r._docYear||''), scale: r._scale||'',
+      evidence: dreSection ? dreSection.substring(0,200) : '' });
+  }
+
+  // ── DÍVIDA FINANCEIRA ──
+  // Sinônimos completos: CPC/IFRS, Simples Nacional, todos os ERPs brasileiros
+  // Inclui IFRS 16 (arrendamentos) e títulos de dívida (debêntures, CRI, CRA)
+  r.divida = tryAll([
+    /empr[eé]stimos?\s+e\s+financiamentos?\s+(?:totais?|de\s+longo\s+prazo|de\s+curto\s+prazo)?/i,
+    /financiamentos?\s+e\s+empr[eé]stimos?(?:\s+(?:totais?|bancários?))?/i,
+    /empr[eé]stimos?\s*[,\/e]\s*financiamentos?/i,
+    /d[íi]vida\s+(?:bruta|total|financeira\s+(?:total|bruta)|com\s+institui[çc][õo]es?\s+financeiras?)/i,
+    /d[íi]vida[s]?\s+(?:financeiras?|ban[ck]ária[s]?)/i,
+    /passivo\s+financeiro\s+(?:total|bruto|l[íi]quido)/i,
+    /obriga[çc][õo]es?\s+(?:financeiras?|com\s+institui[çc][õo]es?\s+de\s+cr[eé]dito)(?:\s+(?:total|brutas?))?/i,
+    /passivo[s]?\s*(?:oneroso[s]?|financeiro[s]?)/i,
+    /total\s+(?:das?\s+)?obriga[çc][õo]es?\s+financeiras?/i,
+    /deb[eê]ntures?(?:\s+e\s+(?:CRI|CRA|CVM))?/i,
+    /arrendamentos?\s+(?:financeiros?|a\s+pagar)/i,
+    /financial\s+(?:debt|liabilities)/i,
+    /total\s+do\s+passivo\s+(?:circulante\s+financeiro|n[ãa]o\s+circulante\s+financeiro)/i,
+  ], 900, tBAL);
+  if (!r.divida) {
+    const dl = findNear(tBAL, /d[íi]vida\s+l[íi]quida/i, 400);
+    if (dl && dl > 0) r.divida = applyScale(dl);
+  }
+
+  // ── CAIXA ──
+  // Prioridade 1: saldo FINAL de caixa (DFC — mais confiável, pós-período)
+  // Prioridade 2: saldo no Balanço Patrimonial
+  // Sinônimos: CPC/IFRS, Simples Nacional, todos os ERPs brasileiros + IFRS inglês
+  r.caixa = tryAll([
+    // DFC — saldo final (prioridade máxima)
+    /caixa\s+e\s+equivalentes?\s+de\s+caixa\s+(?:no|ao)\s+(?:final|encerramento)\s+(?:do\s+(?:per[íi]odo|exerc[íi]cio|ano)|da\s+competência)/i,
+    /saldo\s+(?:de\s+caixa\s+)?(?:ao\s+final|no\s+final|final)\s+(?:do\s+(?:per[íi]odo|exerc[íi]cio))?/i,
+    /saldo\s+final\s+de\s+caixa/i,
+    /caixa\s+(?:e\s+equivalentes?\s+de\s+caixa\s+)?ao\s+final\s+do\s+per[íi]odo/i,
+    /total\s+de\s+caixa\s+e\s+equivalentes?\s+de\s+caixa/i,
+    // Balanço Patrimonial
+    /caixa\s+e\s+equivalentes?\s+de\s+caixa/i,
+    /caixa\s+e\s+bancos?/i,
+    /disponibilidades?\s+(?:e\s+equivalentes?)?/i,
+    /caixa\s+e\s+investimentos?\s+de\s+curto\s+prazo/i,
+    /saldo\s+em\s+caixa\s+e\s+bancos?/i,
+    /cash\s+and\s+(?:cash\s+equivalents?|equivalents?)/i,
+  ], 900, dfcSection ? tDFC : tBAL);
+  if (!r.caixa) {
+    const cx = findNear(tBAL || t, /\bcaixa\b(?!\s*(?:e\s+resultado|l[íi]quido|gerado|gerada|utilizado|antes|do\s+per))/i, 300);
+    if (cx && cx > 0 && (!r.receita || cx < r.receita * 5)) r.caixa = applyScale(cx);
+  }
+
+  // ── CRESCIMENTO — Série temporal com ano explícito (M&A grade) ──
+  // Abordagem 1 (preferida): detecta cabeçalhos de DRE comparativa ("2023  2024")
+  //   e extrai os N valores da linha Receita Bruta em ordem de coluna.
+  // Abordagem 2 (fallback): pares ano+valor próximos no texto (permite quebra de linha).
+  // Abordagem 3: dois valores consecutivos de receita sem ano.
+  // Abordagem 4: percentual explícito no texto.
+  (function() {
+    const byYear = {};
+
+    const REC_LABEL_RX = [
+      /receita\s+(?:operacional\s+)?bruta\s+de\s+(?:vendas?\s+e\s+servi[çc]os?|vendas?\s+de\s+produtos?|servi[çc]os?\s+prestados?)/i,
+      /receita\s+(?:operacional\s+)?bruta(?:\s+de\s+(?:vendas?|servi[çc]os?|loca[çc][ãa]o))?/i,
+      /faturamento\s+bruto/i,
+      /receita\s+bruta\s+(?:total|de\s+vendas?|operacional)/i,
+      /receita\s+bruta\b/i,
+      /receita\s+total\s+(?:bruta|de\s+vendas?|de\s+servi[çc]os?)/i,
+      /faturamento\s*(?:l[íi]quido|total|anual|m[eé]dio)?/i,
+      /receitas?\s+operacionais?\s+(?:brutas?|totais?)/i,
+    ];
+
+    // ── Abordagem 1: Cabeçalho DRE com anos lado a lado ──
+    // Detecta "2022  2023" ou "2023  2024  2025" como colunas de DRE comparativa
+    const hdrRx = /\b(20(?:1[89]|2[0-9]))\b[\s\t]+(20(?:1[89]|2[0-9]))\b(?:[\s\t]+(20(?:1[89]|2[0-9]))\b)?/g;
+    let hm;
+    while ((hm = hdrRx.exec(t)) !== null) {
+      const hYears = [parseInt(hm[1]), parseInt(hm[2])];
+      if (hm[3]) hYears.push(parseInt(hm[3]));
+      const years = [...new Set(hYears)].sort((a, b) => a - b);
+      // Janela ao redor do cabeçalho: 500 chars antes + 5000 depois
+      const winStart = Math.max(0, hm.index - 500);
+      const win = t.slice(winStart, hm.index + 5000);
+
+      for (const recRx of REC_LABEL_RX) {
+        const rm = win.match(recRx);
+        if (!rm) continue;
+        // Após o rótulo, pegar os próximos N números grandes (N = nº de anos)
+        const afterLabel = win.slice(rm.index + rm[0].length, rm.index + rm[0].length + 1200);
+        const numRx2 = /(\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{1,2})?|\d{5,}(?:[.,]\d{1,2})?)/g;
+        const nums = [];
+        let nm2;
+        while ((nm2 = numRx2.exec(afterLabel)) !== null) {
+          const v = parseNum(nm2[1]);
+          // Ignora valores negativos (entre parênteses no texto anterior)
+          const before2 = afterLabel.slice(Math.max(0, nm2.index - 2), nm2.index);
+          if (before2.trim().endsWith('(')) continue;
+          if (v > 10000) nums.push(v);
+          if (nums.length >= years.length + 1) break;
+        }
+        if (nums.length >= years.length) {
+          years.forEach((yr, i) => {
+            const val = applyScale(nums[i]);
+            if (!byYear[yr] || val > byYear[yr]) byYear[yr] = val;
+          });
+          break; // achou nessa janela — não precisa testar outros labels
+        }
+      }
+    }
+
+    // ── Abordagem 2: pares (ano, valor) no texto — só se Abord. 1 não achou ≥2 anos ──
+    // Restringe à seção DRE para evitar contaminação de balanço/notas
+    if (Object.keys(byYear).length < 2) {
+      // Reduzido para 60 chars (era 120) para evitar capturar valores de linhas não relacionadas
+      const yrValRx = /\b(20(?:1[89]|2[0-9]))\b[\s\S]{0,60}?(\d{1,3}(?:[.,]\d{3}){1,}(?:[.,]\d{1,2})?)/g;
+      const scanText = dreSection || t;
+      let yvm;
+      while ((yvm = yrValRx.exec(scanText)) !== null) {
+        const year = parseInt(yvm[1]);
+        const val  = applyScale(parseNum(yvm[2]));
+        if (val > 50000) { // deve ser plausível como receita (> R$50k)
+          if (!byYear[year] || val > byYear[year]) byYear[year] = val;
+        }
+      }
+    }
+
+    // ── Calcular crescimento com os anos coletados ──
+    const sortedYears = Object.keys(byYear).map(Number).sort();
+    if (sortedYears.length >= 2) {
+      const yFirst = sortedYears[0], yLast = sortedYears[sortedYears.length - 1];
+      const vFirst = byYear[yFirst],  vLast = byYear[yLast];
+      const n = yLast - yFirst;
+      if (n > 0 && vFirst > 0 && vLast > 0) {
+        const cagr = (Math.pow(vLast / vFirst, 1 / n) - 1) * 100;
+        if (cagr > -50 && cagr < 500) {
+          r.crescimento = Math.round(cagr);
+          r._crescimentoSerie = sortedYears.map(y => ({ ano: y, receita: byYear[y] }));
+          r._crescimentoCAGR  = Math.round(cagr * 10) / 10;
+          r._crescimentoAnos  = n;
+        }
+      }
+    }
+
+    // ── Abordagem 3: dois valores consecutivos de receita sem ano ──
+    if (!r.crescimento) {
+      for (const rx of REC_LABEL_RX) {
+        const recVals = findAll(t, rx, 800);
+        const scaled = recVals.map(applyScale).filter(v => v > 10000);
+        const dedup = scaled.length ? [scaled[0]] : [];
+        for (let i = 1; i < scaled.length; i++) {
+          if (Math.abs(scaled[i] / dedup[dedup.length - 1] - 1) > 0.02) dedup.push(scaled[i]);
+        }
+        if (dedup.length >= 2) {
+          const prev = dedup[dedup.length - 2], last = dedup[dedup.length - 1];
+          const ratio = last / prev;
+          if (ratio > 0.5 && ratio < 5) { r.crescimento = Math.round((ratio - 1) * 100); break; }
+        }
+      }
+    }
+
+    // ── Abordagem 4: percentual explícito no texto ──
+    if (!r.crescimento) {
+      const vm = t.match(/varia[çc][ãa]o\s*(?:%|percentual)?\s*[:\-]?\s*([-(]?\d[\d.,]*[)]?)\s*%/i)
+              || t.match(/(?:crescimento|aumento|evolu[çc][ãa]o)\s*(?:de|:)?\s*([\d,\.]+)\s*%/i)
+              || t.match(/([\d,\.]+)\s*%\s*(?:de\s+)?(?:crescimento|aumento|cagr)/i);
+      if (vm) {
+        const v = parseFloat(vm[1].replace(/[()]/g, '').replace(',', '.'));
+        if (v > 0 && v < 500) r.crescimento = Math.round(v);
+      }
+    }
+  })();
+
+  // ── FUNCIONÁRIOS ──
+  // Sinônimos: CPC/IFRS, linguagem informal, headcount, FTE
+  const funcM = t.match(/(\d[\d.]*)\s*(?:funcionários?|colaboradores?|empregados?|trabalhadores?)/i)
+             || t.match(/(?:quadro\s+de\s+pessoal|n[uú]mero\s+de\s+(?:funcionários?|colaboradores?|trabalhadores?))[\s\S]{0,60}(\d[\d.]*)/i)
+             || t.match(/(?:total\s+de\s+(?:pessoal|headcount|recursos?\s+humanos?)|headcount\s+total)[\s\S]{0,30}(\d[\d.]*)/i)
+             || t.match(/(\d[\d.]*)\s*(?:pessoas?|profissionais?)\s+(?:na\s+equipe|no\s+time|contratados?)/i)
+             || t.match(/equipe\s+de\s+(\d[\d.]*)\s+(?:pessoas?|profissionais?|colaboradores?)/i)
+             || t.match(/(\d[\d.]*)\s*(?:FTEs?|full[- ]?time\s+equivalents?)/i);
+  if (funcM) {
+    const rawVal = parseInt((funcM[1]||funcM[2]||'').replace(/[.,]/g,''));
+    if (rawVal >= 1 && rawVal <= 50000) r.funcionarios = rawVal;
+  }
+
+  // ── RECORRÊNCIA ──
+  // Sinônimos: percentual de receita recorrente, MRR%, ARR%, assinaturas, contratos
+  const rrm = t.match(/([\d,\.]+)\s*%\s*(?:de\s+)?(?:receita\s+)?recorrente/i)
+           || t.match(/(?:receita\s+)?recorr[eê]ncia\s*(?:de\s+)?([\d,\.]+)\s*%/i)
+           || t.match(/\bMRR\b[^\d]{0,30}([\d,\.]+)\s*%/i)
+           || t.match(/\bARR\b[^\d]{0,30}([\d,\.]+)\s*%/i)
+           || t.match(/(?:mensalidades?|assinaturas?|contratos?\s+recorrentes?|licen[cç]as?\s+recorrentes?)[\s\S]{0,100}([\d,\.]+)\s*%/i)
+           || t.match(/([\d,\.]+)\s*%\s*(?:da\s+receita\s+)?(?:é\s+)?(?:recorrente|contratual|de\s+assinatura)/i);
+  if (rrm) {
+    const v = parseFloat((rrm[1]||'').replace(',','.'));
+    if (v > 0 && v <= 100) r.recorrencia = v;
+  }
+
+  // ── FCO — Fluxo de Caixa Operacional (DFC) — Lógica M&A ──
+  // Coleta TODOS os valores de FCO no documento (múltiplos anos/DFCs).
+  // Prioriza: (1) valores positivos mais recentes; (2) média normalizada.
+  // Um analista de M&A usa o FCO do ano mais recente ou LTM, nunca o de pior ano.
+  (function() {
+    const fcoRxList = [
+      /total\s+(?:das?\s+)?atividades?\s+operacionais?/i,
+      /caixa\s+(?:gerado|l[íi]quido|usado|utilizado|proveniente[s]?)\s+(?:das?|pelas?)\s+atividades?\s+operacionais?/i,
+      /fluxo\s+de\s+caixa\s+(?:das?|das?\s+)?atividades?\s+operacionais?/i,
+      /resultado\s+(?:l[íi]quido\s+)?das?\s+atividades?\s+operacionais?/i,
+      /caixa\s+l[íi]quido\s+(?:das?|pelas?)\s+opera[çc][õo]es?/i,
+      /caixa\s+proveniente\s+das?\s+opera[çc][õo]es?/i,
+      /net\s+cash\s+(?:from|provided\s+by|used\s+in)\s+operating\s+activities/i,
+      /varia[çc][ãa]o\s+l[íi]quida\s+(?:de\s+caixa\s+)?(?:das?\s+)?atividades?\s+operacionais?/i,
+      /fluxo\s+operacional\s+(?:de\s+caixa\s+)?l[íi]quido/i,
+    ];
+    const fcoVals = [];
+    const fcoText = dfcSection || t;
+    let pos = 0;
+    while (pos < fcoText.length) {
+      let found = false;
+      for (const rx of fcoRxList) {
+        const sub = fcoText.slice(pos);
+        const m = sub.match(rx);
+        if (!m) continue;
+        const absIdx = pos + m.index + m[0].length;
+        const slice = fcoText.slice(absIdx, absIdx + 600);
+        const v = firstNum(slice);
+        if (v !== null) {
+          fcoVals.push({ v: applyScale(v), idx: absIdx });
+          pos = absIdx + 1;
+          found = true;
+          break;
+        } else { pos++; found = true; break; }
+      }
+      if (!found) break;
+    }
+    if (fcoVals.length === 0) {
+      // fallback: tenta com allowNeg
+      r.fco = tryAllSigned([
+        /total\s+(?:das?\s+)?atividades?\s+operacionais?/i,
+        /caixa\s+(?:gerado|l[íi]quido|usado|utilizado|proveniente[s]?)\s+(?:das?|pelas?)\s+atividades?\s+operacionais?/i,
+        /fluxo\s+de\s+caixa\s+(?:das?|das?\s+)?atividades?\s+operacionais?/i,
+        /caixa\s+l[íi]quido\s+(?:das?|pelas?)\s+opera[çc][õo]es?/i,
+        /net\s+cash\s+(?:from|provided\s+by|used\s+in)\s+operating\s+activities/i,
+      ], 900, tDFC);
+    } else {
+      // Positivos = anos saudáveis; pega o último positivo encontrado (mais recente no doc)
+      const positives = fcoVals.filter(x => x.v > 0);
+      if (positives.length > 0) {
+        // Último positivo = mais recente (documentos geralmente ordenados cronologicamente)
+        r.fco = positives[positives.length - 1].v;
+        // Se há múltiplos anos positivos, usa a média (normalização M&A)
+        if (positives.length >= 2) {
+          const avg = positives.reduce((s,x) => s + x.v, 0) / positives.length;
+          // Guarda média separada mas usa o mais recente como FCO principal
+          r._fcoMedia = Math.round(avg);
+        }
+      } else {
+        // Todos negativos: mostra o menos negativo (melhor cenário, sinaliza risco)
+        const best = fcoVals.reduce((a,b) => b.v > a.v ? b : a);
+        r.fco = best.v;
+      }
+    }
+  })();
+
+  // ── CAPEX — Investimentos em Ativo Imobilizado (M&A Grade) ──
+  // Estratégia de analista: localizar seção de atividades de investimento no DFC
+  // e somar todas as aquisições de ativos (cada item aparece como saída de caixa negativa)
+  (function() {
+    // 1. Encontrar a seção de Atividades de Investimento no DFC
+    const invSecRx = /atividades?\s+de\s+investimento|fluxo[s]?\s+de\s+(?:caixa\s+(?:das?|pelas?)\s+)?atividades?\s+de\s+investimento/i;
+
+    // Lista de padrões de linha de CAPEX — cada um é uma saída de caixa (negativa no DFC)
+    const capexLineRxs = [
+      /aquisi[çc][ãa]o\s+(?:de\s+)?(?:imobilizado|ativo[s]?\s+imobilizado[s]?|ativo[s]?\s+fixo[s]?|bens?\s+(?:do\s+)?ativo\s+imobilizado)/i,
+      /\bcapex\b/i,
+      /investimentos?\s+em\s+(?:ativo[s]?\s+)?(?:imobilizado|fixo[s]?|infra[- ]?estrutura)/i,
+      /compra[s]?\s+(?:de\s+)?(?:imobilizado|ativo[s]?\s+imobilizado[s]?|propriedades?|im[oó]veis?|equipamentos?|terrenos?|ve[íi]culos?|m[áa]quinas?)/i,
+      /adi[çc][õo]es?\s+(?:ao|de|do)\s+(?:imobilizado|ativo[s]?\s+imobilizado[s]?|ativo\s+fixo)/i,
+      /aquisi[çc][ãa]o\s+(?:de\s+)?(?:ativo[s]?\s+)?intang[íi]veis?/i,
+      /investimentos?\s+em\s+(?:intang[íi]vel|software[s]?|licen[cç]as?|sistemas?)/i,
+      /pagamentos?\s+(?:pela\s+)?aquisi[çc][ãa]o\s+(?:de\s+)?(?:ativo[s]?\s+)?(?:fixo[s]?|imobilizado[s]?|intang[íi]vel)/i,
+      /propriedades?,?\s+(?:planta\s+e\s+equipamentos?|m[áa]quinas?\s+e\s+equipamentos?|benfeitorias?)/i,
+      /capital\s+expenditures?/i,
+      /purchase\s+of\s+(?:property|equipment|intangible)/i,
+      /\bimobilizado\s*[-–:]\s*(?:aquisi[çc][ãa]o|compra|adi[çc][ão])/i,
+      /ativo[s]?\s+imobilizado[s]?\s*[:\-\(]/i,
+    ];
+
+    // 2. Se encontrou a seção, procurar CAPEX dentro dela (até 3000 chars à frente)
+    let capexTotal = 0;
+    let found = false;
+    const capexSearchText = dfcSection || t;
+    const capexInvIdx = capexSearchText.search(invSecRx);
+    if (capexInvIdx >= 0) {
+      const invSection = capexSearchText.slice(capexInvIdx, capexInvIdx + 3000);
+      // Detect if comparative DFC (has side-by-side year columns like "2023  2024")
+      const isComparativeDFC = /\b20(?:1[89]|2[0-9])\b.{1,50}\b20(?:1[89]|2[0-9])\b/s.test(invSection.slice(0, 500));
+      const afterLen = isComparativeDFC ? 150 : 400;
+      for (const rx of capexLineRxs) {
+        const m = invSection.match(rx);
+        if (!m) continue;
+        // Pegar o número mais próximo após a linha (pode estar negativo no DFC)
+        // Para DFC comparativo, limitar janela para pegar só a primeira coluna (ano mais recente)
+        const after = invSection.slice(m.index + m[0].length, m.index + m[0].length + afterLen);
+        const v = firstNum(after);
+        if (v !== null && Math.abs(v) > 0) {
+          // No DFC atividades de investimento: saída = negativo; armazena como positivo
+          capexTotal += Math.abs(applyScale(v));
+          found = true;
+        }
+      }
+    }
+
+    // 3. Se somou múltiplas linhas, usar total; caso contrário busca individual
+    if (found && capexTotal > 0) {
+      r.capex = Math.round(capexTotal);
+    } else {
+      // Fallback: busca individual na seção DFC
+      const capexRaw = tryAllSigned(capexLineRxs, 900, tDFC);
+      if (capexRaw !== null) r.capex = Math.abs(capexRaw);
+    }
+  })();
+
+  if (r.fco) {
+    setEvidence('fco', { label:'FCO', rawValue: r.fco, origin:'extracted',
+      state:'validated', period: String(r._docYear||''), scale: r._scale||'',
+      formula:'Fluxo líquido das atividades operacionais (DFC)',
+      evidence: dfcSection ? dfcSection.substring(0,200) : '' });
+  }
+  if (r.capex) {
+    setEvidence('capex', { label:'CAPEX', rawValue: r.capex, origin:'extracted',
+      state:'validated', period: String(r._docYear||''), scale: r._scale||'',
+      formula:'Soma de aquisições de ativos na seção "Atividades de Investimento" (DFC)',
+      evidence: dfcSection ? dfcSection.substring(0,200) : '' });
+  }
+
+  // ── FCL — Fluxo de Caixa Livre ──
+  // Tenta extrair diretamente primeiro
+  r.fcl = tryAll([
+    /fluxo\s+de\s+caixa\s+livre/i,
+    /free\s+cash\s+flow/i,
+    /\bfcl\b/i,
+    /\bfcff\b/i,
+    /caixa\s+dispon[íi]vel\s+(?:ap[oó]s|depois\s+de)\s+(?:investimentos?|capex)/i,
+  ]);
+  // Se não encontrou diretamente, calcula FCO - CAPEX
+  // FCO negativo → FCL omitido (sem sentido para valuation)
+  if (!r.fcl && r.fco && r.fco > 0 && r.capex) {
+    r.fcl = r.fco - r.capex;
+  }
+
+  // ── VARIAÇÃO DE CAPITAL DE GIRO ──
+  r.giro = tryAll([
+    /varia[çc][ãa]o\s+(?:no|do|de)\s+capital\s+de\s+giro/i,
+    /capital\s+de\s+giro\s+(?:l[íi]quido|operacional)/i,
+    /\(aumento\)\s*reduc[ãa]o\s+(?:no|do)?\s*capital/i,
+    /mudan[çc]as?\s+no\s+capital\s+de\s+giro/i,
+  ]);
+
+  // ── SDE — Seller's Discretionary Earnings / Ganho total do sócio ──
+  // Lógica M&A: SDE = EBITDA + pró-labore + benefícios pessoais + itens não-recorrentes.
+  // Não extrair de DRE padrão (distribuição de lucros é linha contábil, não SDE real).
+  // Extrair apenas quando há label explícito ou contexto de retirada do sócio operador.
+  // Pro-labore mensal → anualiza se contexto indicar periodicidade mensal
+  const sdeProLaboreM = t.match(/pr[oó]-labore\s+(?:total|anual|dos?\s+s[oó]cios?\s+(?:operadores?|administradores?))[\s\S]{0,120}/i);
+  let sdeProLabore = null;
+  if (sdeProLaboreM) {
+    const ctx = sdeProLaboreM[0];
+    const numM = ctx.match(/(\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{1,2})?|\d{4,}(?:[.,]\d{1,2})?)/);
+    if (numM) {
+      let val = applyScale(parseNum(numM[1]));
+      if (/mensal|por\s+m[eê]s|ao\s+m[eê]s|\/m[eê]s|\bm[eê]s\b/i.test(ctx)) val = val * 12;
+      if (val >= 5000) sdeProLabore = val;
+    }
+  }
+  const sdeRaw = sdeProLabore || tryAll([
+    /\bsde\b/i,
+    /seller[''']s?\s+discretionary\s+(?:earnings?|income)/i,
+    /ganho\s+(?:discricion[aá]rio|total)\s+do\s+(?:s[oó]cio|vendedor|dono)/i,
+    /pr[oó]-labore\s+(?:total|anual|dos?\s+s[oó]cios?\s+(?:operadores?|administradores?))/i,
+    /retirada[s]?\s+(?:anuais?\s+)?(?:do[s]?\s+)?s[oó]cio[s]?\s+(?:operador|administrador|gestor)/i,
+    /remunera[çc][ãa]o\s+(?:total\s+)?(?:dos?\s+s[oó]cios?\s+(?:operadores?|administradores?)|do\s+s[oó]cio\s+gestor)/i,
+    /dividendos?\s+(?:pagos?|distribu[íi]dos?|declarados?)\s+(?:no\s+(?:per[íi]odo|exerc[íi]cio|ano)|\d{4})/i,
+    /distribui[çc][ãa]o\s+de\s+(?:lucros?\s+(?:e\s+dividendos?|declarados?|pagos?)|dividendos?)/i,
+  ]);
+  // Guard M&A: SDE < R$5k é quase certamente falso positivo (nota de rodapé, alíquota, etc.)
+  // SDE > receita × 2 também é impossível — descarta
+  if (sdeRaw && sdeRaw >= 5000 && (!r.receita || sdeRaw <= r.receita * 2)) {
+    r.sde = sdeRaw;
+  }
+
+  // ── ATIVOS A MERCADO ──
+  // Prioridade: valor avaliado/justo > laudo > total do ativo (proxy)
+  r.ativos = tryAll([
+    /(?:valor\s+(?:justo|de\s+mercado|avaliado))\s+(?:dos?\s+)?(?:ativo[s]?\s+(?:imobilizado[s]?|fixo[s]?)|im[oó]veis?|equipamentos?|propriedades?)/i,
+    /laudo\s+de\s+avalia[çc][ãa]o/i,
+    /avalia[çc][ãa]o\s+(?:independente\s+)?(?:dos?\s+)?(?:ativo[s]?|im[oó]veis?|propriedades?)/i,
+    /ativo[s]?\s+(?:total|imobilizado\s+l[íi]quido|fixo\s+l[íi]quido)(?:\s+l[íi]quido)?/i,
+    /total\s+do\s+ativo(?:\s+(?:realizável|imobilizado|l[íi]quido\s+de\s+deprecia[çc][ãa]o))?/i,
+  ], 600, tBAL);
+
+  // ── CONTINGÊNCIAS ──
+  // Sinônimos: CPC 25, passivos contingentes, ações judiciais, parcelamentos
+  const contM = t.match(/contingência[s]?\s+(?:prov[aá]veis?|estimadas?|fiscais?|trabalhistas?|legais?|previdenciárias?)[^\d]{0,60}([\d.,]+)/i)
+              || t.match(/passivo[s]?\s+(?:contingente[s]?|prov[aá]vel|eventual)\s*[:\-]?\s*([\d.,]+)/i)
+              || t.match(/prov[is][aã]o\s+(?:para\s+)?(?:contingência[s]?|a[çc][õo]es?\s+(?:trabalhistas?|fiscais?|legais?|cíveis?))[^\d]{0,60}([\d.,]+)/i)
+              || t.match(/a[çc][ãa]o\s+(?:trabalhista|fiscal|legal|judicial|cível)[^\d]{0,60}([\d.,]+)/i)
+              || t.match(/parcelamento\s+(?:fiscal|pert|refis|simples\s+parcelado)[^\d]{0,60}([\d.,]+)/i)
+              || t.match(/risco\s+(?:fiscal|tributário|trabalhista|legal)\s+(?:prov[aá]vel|estimado|total)[^\d]{0,60}([\d.,]+)/i)
+              || t.match(/d[íi]vida\s+(?:fiscal|tributária|ativa|parcelada)[^\d]{0,60}([\d.,]+)/i);
+  if (contM) {
+    const v = applyScale(parseNum(contM[1]));
+    if (v && v > 0) r.contingencias = v;
+  }
+
+  // ── CONCENTRAÇÃO DE CLIENTES ──
+  const concM = t.match(/(?:maior|principal)\s+cliente[^\d]{0,60}([\d,\.]+)\s*%/i)
+              || t.match(/([\d,\.]+)\s*%\s*(?:da\s+receita)?\s*(?:de\s+)?(?:um|único|maior|principal)\s+cliente/i)
+              || t.match(/concentra[çc][ãa]o\s+(?:de\s+)?clientes?[^\d]{0,60}([\d,\.]+)\s*%/i)
+              || t.match(/top\s*3?\s+clientes?[^\d]{0,60}([\d,\.]+)\s*%/i);
+  if (concM) {
+    const v = parseFloat((concM[1]||'').replace(',','.'));
+    if (v > 0 && v <= 100) r.concentracao = v;
+  }
+
+  // ── CONCENTRAÇÃO DE FORNECEDORES ──
+  const fornM = t.match(/(?:maior|principal)\s+fornecedor[^\d]{0,60}([\d,\.]+)\s*%/i)
+              || t.match(/([\d,\.]+)\s*%\s*(?:das?\s+compras?|dos?\s+insumos?|do\s+custo)?\s*(?:de\s+)?(?:um|único|maior|principal)\s+fornecedor/i)
+              || t.match(/concentra[çc][ãa]o\s+(?:de\s+)?fornecedores?[^\d]{0,60}([\d,\.]+)\s*%/i)
+              || t.match(/top\s*3?\s+fornecedores?[^\d]{0,60}([\d,\.]+)\s*%/i)
+              || t.match(/dependência\s+(?:de\s+)?fornecedor[^\d]{0,60}([\d,\.]+)\s*%/i);
+  if (fornM) {
+    const v = parseFloat((fornM[1]||'').replace(',','.'));
+    if (v > 0 && v <= 100) r.concentracaoFornecedor = v;
+  }
+
+  // ── VALIDAÇÃO PÓS-EXTRAÇÃO (plausibilidade) ──
+  // EBITDA > Receita é impossível → descarta EBITDA extraído
+  if (r.ebitda && r.receita && r.ebitda > r.receita * 0.98) {
+    r._ebitdaSuspeito = true;
+    r.ebitda = null;
+  }
+  // FCO > Receita × 1.5 → suspeito
+  if (r.fco && r.receita && Math.abs(r.fco) > r.receita * 1.5) {
+    r._fcoSuspeito = true;
+    r.fco = null;
+  }
+  // CAPEX > Receita × 2 → suspeito (não é CAPEX, é outra coisa)
+  if (r.capex && r.receita && r.capex > r.receita * 2) {
+    r.capex = null;
+  }
+
+  r.sectorHint = detectSector(t);
+  return r;
+}
+
+function brl(v, compact) {
+  if (v===null||v===undefined||isNaN(v)) return '—';
+  if (compact) {
+    if (v>=1e9) return 'R$'+(v/1e9).toFixed(1).replace('.',',')+'B';
+    if (v>=1e6) return 'R$'+(v/1e6).toFixed(1).replace('.',',')+'M';
+    if (v>=1e3) return 'R$'+(v/1e3).toFixed(0)+'k';
+    return 'R$'+v.toFixed(0);
+  }
+  return 'R$ '+v.toLocaleString('pt-BR',{maximumFractionDigits:0});
+}
+
+function extractTextFinancials(t) {
+  const r = {};
+  // NUM_RX: captura número + sufixo de escala juntos para que parseNum() receba
+  // "100 mil" ou "3,2 milhões" completo → 100.000 ou 3.200.000
+  const NUM_RX = '(-?\\(?[\\d]{1,3}(?:[.,]\\d{3})*(?:[.,]\\d{1,2})?\\s*(?:milh[õo]es?|milh[ãa]res?|bilh[õo]es?|\\bM\\b|\\bB\\b|\\bmil\\b|\\bk\\b)?\\)?|\\d[\\d.,]*\\s*(?:milh[õo]es?|milh[ãa]res?|bilh[õo]es?|\\bM\\b|\\bB\\b|\\bmil\\b|\\bk\\b)?)';
+  const fl = (rx) => { const m = t.match(new RegExp(rx,'i')); return m ? parseNum(m[1]) : null; };
+
+  // ── Extração com contexto para anualização ──
+  // Retorna {v, ctx} para análise de periodicidade
+  const flCtx = (rx) => {
+    const m = t.match(new RegExp(rx,'i'));
+    if (!m) return null;
+    const ctx = t.slice(Math.max(0, m.index - 100), m.index + (m[0]||'').length + 100);
+    return { v: parseNum(m[1]), ctx };
+  };
+
+  // Anualiza se o contexto indicar periodicidade menor que anual
+  const annualize = (obj) => {
+    if (!obj || obj.v == null || isNaN(obj.v)) return obj ? obj.v : null;
+    const ctx = (obj.ctx || '').toLowerCase();
+    // Mensal: "mensal", "por mês", "ao mês", "/mês", "por m.", "mrr"
+    if (/mensal|por\s+m[eê]s|ao\s+m[eê]s|\/m[eê]s|m[eê]s\s*a\s*m[eê]s|\bmrr\b/.test(ctx)) return Math.round(obj.v * 12);
+    // Semanal
+    if (/semanal|por\s+semana|\/semana/.test(ctx)) return Math.round(obj.v * 52);
+    // Trimestral
+    if (/trimestral|por\s+trimestre|\/trimestre/.test(ctx)) return Math.round(obj.v * 4);
+    // Semestral
+    if (/semestral|por\s+semestre|\/semestre/.test(ctx)) return Math.round(obj.v * 2);
+    return obj.v;
+  };
+
+  // Versão que extrai E anualiza
+  const flA = (rx) => annualize(flCtx(rx));
+
+  r.receita     = flA('(?:receita|faturamento)(?:\\s+brut[ao]|\\s+l[íi]quida|\\s+total|\\s+anual)?[^\\d]{0,40}?(' + NUM_RX + ')');
+  r.ebitda      = flA('(?:ebitda|lajida|lucro\\s+operacional)[^\\d]{0,40}?(' + NUM_RX + ')')
+               || flA('(' + NUM_RX + ')\\s*(?:de\\s*)?(?:ebitda|lajida)');
+  r.divida      = fl('(?:d[íi]vida[s]?|empr[eé]stimos?)[^\\d]{0,30}?(' + NUM_RX + ')');
+  r.caixa       = fl('(?:caixa|disponibilidades?|cash)[^\\d]{0,30}?(' + NUM_RX + ')');
+  r.crescimento = (() => {
+    const m = t.match(/(?:crescimento|cresceu|cagr)\s*(?:de|médio|anual)?\s*(?:de|é)?\s*([\d,\.]+)\s*%/i)
+           || t.match(/([\d,\.]+)\s*%\s*(?:ao\s*ano|a\.a\.|por\s*ano|anual|de\s+crescimento)/i);
+    return m ? parseFloat(m[1].replace(',','.')) : null;
+  })();
+  r.funcionarios = (() => {
+    const m = t.match(/([\d\.]+)\s*(?:funcionários?|colaboradores?|empregados?|pessoas?\s+na\s+equipe)/i);
+    return m ? parseInt(m[1].replace(/[.,]/g,'')) : null;
+  })();
+  r.recorrencia = (() => {
+    const m = t.match(/([\d,\.]+)\s*%\s*(?:de\s+)?(?:receita\s+)?(?:recorrente|recorr[eê]ncia|mrr|arr)/i)
+           || t.match(/(?:receita\s+)?(?:recorrente|recorr[eê]ncia)\s*(?:de\s+)?([\d,\.]+)\s*%/i);
+    return m ? parseFloat(m[1].replace(',','.')) : null;
+  })();
+
+  if (!r.ebitda && r.receita) {
+    const mg = t.match(/(?:margem|margin)\s*(?:ebitda|lajida|operacional)?[^%]{0,20}([\d,\.]+)\s*%/i)
+            || t.match(/([\d,\.]+)\s*%\s*(?:de\s+)?(?:margem|ebitda|lajida)/i);
+    if (mg) r.ebitda = r.receita * (parseFloat(mg[1].replace(',','.'))/100);
+  }
+
+  // SDE / Retirada do sócio
+  // Pró-labore no Brasil é SEMPRE mensal por convenção → anualizamos ×12
+  const sdeCtx = flCtx('(?:sde|seller)[^\\d]{0,40}?(' + NUM_RX + ')')
+              || flCtx('retirada[s]?\\s+(?:do\\s+)?s[oó]cio[^\\d]{0,40}?(' + NUM_RX + ')')
+              || flCtx('distribui[çc][ãa]o\\s+de\\s+lucros?[^\\d]{0,40}?(' + NUM_RX + ')');
+  const prolCtx = flCtx('pr[oó]-labore[^\\d]{0,40}?(' + NUM_RX + ')');
+  // pró-labore: assume mensal se contexto não indicar anual explicitamente
+  const prolV = prolCtx ? (
+    /anual|por\s+ano|ao\s+ano|\/ano/i.test(prolCtx.ctx) ? prolCtx.v : prolCtx.v * 12
+  ) : null;
+  r.sde = (sdeCtx ? annualize(sdeCtx) : null) || prolV;
+
+  // Concentração de clientes
+  r.concentracao = (() => {
+    const m = t.match(/(?:maior|principal)\s+cliente[^\d]{0,60}([\d,\.]+)\s*%/i)
+           || t.match(/([\d,\.]+)\s*%[^.]{0,40}(?:um|único|maior|principal)\s+cliente/i)
+           || t.match(/concentra[çc][ãa]o[^\d]{0,60}([\d,\.]+)\s*%[^.]{0,30}clientes?/i);
+    if (m) { const v = parseFloat((m[1]||'').replace(',','.')); return (v > 0 && v <= 100) ? v : null; }
+    return null;
+  })();
+
+  // Concentração de fornecedores
+  r.concentracaoFornecedor = (() => {
+    const m = t.match(/(?:maior|principal)\s+fornecedor[^\d]{0,60}([\d,\.]+)\s*%/i)
+           || t.match(/([\d,\.]+)\s*%[^.]{0,60}(?:um|único|maior|principal)\s+fornecedor/i)
+           || t.match(/concentra[çc][ãa]o[^\d]{0,60}([\d,\.]+)\s*%[^.]{0,30}fornecedores?/i)
+           || t.match(/depend[eê]ncia\s+(?:de\s+)?fornecedor[^\d]{0,60}([\d,\.]+)\s*%/i)
+           || t.match(/fornecedor(?:\s+[úu]nico|(?:\s+(?:principal|exclusivo))?)[^\d]{0,40}([\d,\.]+)\s*%/i);
+    if (m) { const v = parseFloat((m[1]||'').replace(',','.')); return (v > 0 && v <= 100) ? v : null; }
+    return null;
+  })();
+
+  // Ativos a mercado
+  r.ativos = fl('(?:ativo[s]?|imóvel|equipamentos?|m[áa]quinas?)\\s+(?:avaliado[s]?|a\\s+mercado|valor\\s+justo)[^\\d]{0,40}?(' + NUM_RX + ')')
+          || fl('laudo[^\\d]{0,40}?(' + NUM_RX + ')');
+
+  // Contingências
+  r.contingencias = fl('contingência[s]?[^\\d]{0,60}?(' + NUM_RX + ')')
+                 || fl('(?:a[çc][ãa]o|processo)\\s+(?:trabalhista|fiscal|legal)[^\\d]{0,60}?(' + NUM_RX + ')')
+                 || fl('parcelamento\\s+(?:fiscal|pert|refis)[^\\d]{0,60}?(' + NUM_RX + ')');
+
+  // Motivo da venda
+  r.motivoVenda = (() => {
+    if (t.match(/aposentar|aposentadoria|sucessa[o]?|succession/i)) return 'Aposentadoria/Sucessão';
+    if (t.match(/s[oó]cio\s+estrat[eé]gico|investidor|parceria\s+estrat[eé]gica/i)) return 'Sócio estratégico';
+    if (t.match(/capital|expans[ãa]o|crescer|escalar/i)) return 'Expansão/Capital';
+    if (t.match(/dificuldade|crise|problema[s]?\s+financeiro/i)) return 'Dificuldade financeira';
+    if (t.match(/motivo(?:\s+da)?\s+venda|por\s+que\s+vende|quer\s+vender/i)) return 'Mencionado';
+    return null;
+  })();
+
+  r.sectorHint = detectSector(t);
+  const fdH = t.match(/(?:dependência|depende|centraliz|tudo\s+passa|passa\s+por\s+mim)\s*(?:do|no|em)?\s*(?:fundador|sócio|dono|mim)?/i);
+  const fdL = t.match(/(?:gestão|equipe|time)\s+(?:independente|autônoma|sem\s+dependência)|não\s+dep[e]nde\s+(?:do\s+)?fundador/i);
+  r.fundador = fdH ? 'Alta dep.' : fdL ? 'Independente' : null;
+  return r;
+}
+
+async function parseText() {
+  const userText = document.getElementById('ta').value || '';
+  let docR  = extractDocFinancials(_docText || '');
+
+  // ── Worker v2: PDF nativo tem prioridade máxima ──────────────────────────
+  // 1. Se há arquivos PDF/DOCX, envia ao Worker para leitura nativa pelo Claude
+  //    (muito mais preciso que pdf.js, que perde formatação de tabelas)
+  // 2. Para XLSX/CSV já convertidos para texto, usa o Worker texto como antes
+  // 3. Sempre: Worker substitui client-side se encontrar valor com confiança alta
+
+  if (WORKER_URL && WORKER_API_KEY) {
+    // Verifica se há PDFs/DOCX entre os arquivos carregados
+    const pdfFiles = (_docFiles || []).filter(f => {
+      const ext = f.name.split('.').pop().toLowerCase();
+      return ['pdf', 'docx', 'doc'].includes(ext);
+    });
+
+    if (pdfFiles.length > 0) {
+      // Envia PDFs ao Worker um por um (priorizando DRE), consolida no cliente
+      // Worker IA sempre vence o client-side para PDF (mais preciso que pdf.js/regex)
+      const nomes = pdfFiles.map(f => f.name).join(', ');
+      const _workerR = await callExtractionWorkerPDF(pdfFiles);
+      if (_workerR) {
+        console.log('[Worker PDF] Consolidado — receita:', _workerR.receita_bruta?.valor_normalizado, 'conf:', _workerR.receita_bruta?.confianca);
+        docR = mergeWorkerResult(docR, _workerR, nomes, true); // forceOverride: PDF nativo sempre vence
+        console.log('[Worker PDF] docR.receita após merge:', docR.receita);
+      } else {
+        console.warn('[Worker PDF] Retornou null — usando apenas client-side. docR.receita:', docR.receita);
+      }
+    } else {
+      // Sem PDF: usa Worker texto para XLSX/CSV (fallback inteligente)
+      const _workerNeeded = _docText && _docText.length > 200 &&
+        (!docR.receita || docR._receitaSuspeita || docR._receitaDescartada ||
+         !docR.fco || !docR.ebitda);
+      if (_workerNeeded) {
+        const _workerR = await callExtractionWorker(_docText, _docFileName || 'documento');
+        if (_workerR) docR = mergeWorkerResult(docR, _workerR, _docFileName);
+      }
+    }
+  }
+
+  _lastDocR = docR; // expõe para o overlay e debugging
+  const txtR  = extractTextFinancials(userText);
+
+  S.receita     = docR.receita      || txtR.receita      || null;
+  S.ebitda      = docR.ebitda       || txtR.ebitda       || null;
+  S.divida      = docR.divida       || txtR.divida       || null;
+  S.caixa       = docR.caixa        || txtR.caixa        || null;
+  S.crescimento = docR.crescimento  || txtR.crescimento  || null;
+  S.funcionarios= docR.funcionarios || txtR.funcionarios || null;
+  S.recorrencia = docR.recorrencia  || txtR.recorrencia  || null;
+  S.fundador    = txtR.fundador || null;
+  S.fco         = docR.fco   || null;
+  S.capex       = docR.capex || null;
+  // FCL guard: só calcula FCO-CAPEX se ambos vieram da mesma extração (docR)
+  if (docR.fcl) {
+    S.fcl = docR.fcl;
+    setEvidence('fcl', { label:'FCL', rawValue: docR.fcl, origin:'extracted', state:'validated',
+      evidence: docR._fclEvidence || '', period: String(docR._docYear||''), scale: docR._scale||'' });
+  } else if (docR.fco && docR.fco > 0 && docR.capex && docR.capex > 0) {
+    S.fcl = docR.fco - docR.capex;
+    setEvidence('fcl', { label:'FCL', rawValue: null, scaledValue: S.fcl, origin:'calculated',
+      state:'needs-review', formula:'FCO − CAPEX = ' + brl(docR.fco,true) + ' − ' + brl(docR.capex,true),
+      period: String(docR._docYear||''), scale: docR._scale||'' });
+  } else {
+    S.fcl = null;
+    setEvidence('fcl', { label:'FCL', rawValue: null, origin:'not-found', state:'not-found',
+      evidence:'FCO ou CAPEX ausente — FCL não calculado para evitar erro.' });
+  }
+  S.giro        = docR.giro  || null;
+  // BTB: campos recomendados — documento primeiro, depois texto
+  S.sde           = docR.sde          || txtR.sde          || null;
+  S.concentracao           = docR.concentracao           || txtR.concentracao           || null;
+  S.concentracaoFornecedor = docR.concentracaoFornecedor || txtR.concentracaoFornecedor || null;
+  S.ativos        = docR.ativos       || txtR.ativos       || null;
+  S.contingencias = docR.contingencias|| txtR.contingencias|| null;
+  S.motivoVenda   = txtR.motivoVenda  || null;
+  // DSCR = FCL / serviço estimado da dívida (12% a.a. da dívida total é proxy BTB)
+  // DSCR: usa 12% da dívida como proxy do serviço — sinalizar como "precisa de revisão"
+  if (S.fcl && S.divida && S.divida > 0) {
+    const servicoProxy = S.divida * 0.12;
+    S.dscr = Math.round((S.fcl / servicoProxy) * 100) / 100;
+    setEvidence('dscr', { label:'DSCR', origin:'calculated', state:'needs-review',
+      formula:'FCL ÷ (Dívida × 12%) = proxy do serviço da dívida',
+      evidence:'⚠ DSCR calculado com proxy (12% da dívida total). Para precisão, informe juros + amortização do período.' });
+  } else {
+    S.dscr = null;
+  }
+  // ── Guard de plausibilidade: indicadores SEMPRE devem ser anuais ──
+  // Se a receita extraída do texto parece ser mensal (< R$60k/ano = R$5k/mês),
+  // é improvável para uma empresa em processo de venda — registra aviso.
+  // Documentos financeiros (docR) já usam valores anuais por definição.
+  // Para texto livre: se receita < 60k e não há escala explícita, pode ser mensal.
+  if (!docR.receita && S.receita && S.receita < 60_000) {
+    // Texto mencionou "mensal" em geral? Já foi anualizado em flA().
+    // Se chegou aqui ainda < 60k, pode ser unidade errada. Marca aviso.
+    S._receitaSuspeitaMensal = true;
+  }
+  // EBITDA e FCO também precisam ser anuais: se parecem mensais vs receita, corrige
+  if (S.ebitda && S.receita && S.ebitda > S.receita * 1.5) {
+    // EBITDA > Receita é impossível — provavelmente unidades diferentes; descarta EBITDA do texto
+    if (!docR.ebitda) { S.ebitda = null; }
+  }
+
+  // Se temos FCO mas não EBITDA, usa FCO como proxy de EBITDA para o cálculo
+  if (!S.ebitda && S.fco && S.fco > 0) {
+    S.ebitda = S.fco; // FCO é o mais confiável para BTB
+  }
+
+  if (!S.ebitda && S.receita) {
+    const t = userText + '\n' + (_docText||'');
+    const mg = t.match(/(?:margem|margin)\s*(?:ebitda|lajida|operacional)?[^%]{0,20}([\d,\.]+)\s*%/i)
+            || t.match(/([\d,\.]+)\s*%\s*(?:de\s+)?(?:margem|ebitda|lajida)/i);
+    if (mg) S.ebitda = S.receita * (parseFloat(mg[1].replace(',','.'))/100);
+  }
+
+  const sel = document.getElementById('sector');
+  if (!sel._manualSet) {
+    const detected = docR.sectorHint || txtR.sectorHint;
+    if (detected && detected !== sel.value) {
+      sel.value = detected;
+      S.sector = detected;
+      // Mostrar badge de setor detectado e esconder seletor manual
+      const badge = document.getElementById('sector-detected-badge');
+      const sectorRow = document.getElementById('sector-row-manual');
+      const nameEl = document.getElementById('sector-detected-name');
+      if (badge && sectorRow && nameEl && SECTORS[detected]) {
+        nameEl.textContent = SECTORS[detected].n;
+        badge.hidden = false;
+        sectorRow.style.display = 'none';
+      }
+    }
+  }
+}
+
+function showSectorSelect() {
+  // Permite usuário alterar o setor detectado
+  const badge = document.getElementById('sector-detected-badge');
+  const sectorRow = document.getElementById('sector-row-manual');
+  if (badge) badge.hidden = true;
+  if (sectorRow) sectorRow.style.display = '';
+  const sel = document.getElementById('sector');
+  if (sel) { sel._manualSet = true; sel.focus(); }
+}
+
+// ─── PAINEL ────────────────────────────────────────────────────────────────
+// setFAsk — para campos pfield-ask: usa classe "filled" no pai em vez de .ind
+function setFAsk(pfieldEl, valId, label, ok) {
+  const val = document.getElementById(valId);
+  if (!val) return;
+  // Preserva edição manual do usuário
+  if (val.dataset?.userEdited === '1') {
+    pfieldEl.classList.toggle('filled', !!(val.textContent.trim() && val.textContent.trim() !== '—'));
+    return;
+  }
+  const wasEmpty = val.textContent === '—';
+  val.textContent = ok ? (label||'✓') : '—';
+  pfieldEl.classList.toggle('filled', !!ok);
+  if (ok && wasEmpty && label) {
+    val.classList.remove('flash'); void val.offsetWidth; val.classList.add('flash');
+  }
+}
+
+function setF(indId, valId, label, ok) {
+  const ind = document.getElementById(indId);
+  const val = document.getElementById(valId);
+  if (!ind||!val) return;
+  // Preserva edição manual do usuário
+  if (val.dataset?.userEdited === '1') {
+    ind.className = 'ind ' + (val.textContent.trim() && val.textContent.trim() !== '—' ? 'done' : 'empty');
+    return;
+  }
+  const wasEmpty = val.textContent === '—';
+  ind.className = 'ind ' + (ok ? 'done' : 'empty');
+  val.textContent = ok ? (label||'✓') : '—';
+  // Anima ao primeiro preenchimento
+  if (ok && wasEmpty && label) {
+    val.classList.remove('flash'); void val.offsetWidth; val.classList.add('flash');
+    ind.classList.remove('pop');  void ind.offsetWidth;  ind.classList.add('pop');
+  }
+}
+
+function updatePanel() {
+  S.sector = document.getElementById('sector').value;
+
+  const sn = S.sector && SECTORS[S.sector] ? SECTORS[S.sector].n : null;
+  setF('ind-fco','fv-fco', S.fco   ? brl(S.fco,true)   : null, !!S.fco);
+  setF('ind-set','fv-set', sn ? sn.split(' ')[0] : null, !!sn);
+  // Mostra aviso inline se receita suspeita de ser mensal
+  const recLabel = S.receita
+    ? (S._receitaSuspeitaMensal ? '⚠ '+brl(S.receita,true)+'/ano?' : brl(S.receita,true))
+    : null;
+  setF('ind-rec','fv-rec', recLabel, !!S.receita);
+  const recEl = document.getElementById('fv-rec');
+  if (recEl && S._receitaSuspeitaMensal) recEl.style.color = 'var(--amber)';
+  else if (recEl) recEl.style.color = '';
+  setF('ind-ebt','fv-ebt', S.ebitda  ? brl(S.ebitda,true)  : null, !!S.ebitda);
+  setF('ind-fcl','fv-fcl', S.fcl   ? brl(S.fcl,true)   : null, !!S.fcl);
+  setF('ind-div','fv-div',
+    (S.divida||S.caixa) ? [S.divida?'D:'+brl(S.divida,true):null, S.caixa?'C:'+brl(S.caixa,true):null].filter(Boolean).join(' ') : null,
+    !!(S.divida||S.caixa));
+  setF('ind-cre','fv-cre', S.crescimento ? S.crescimento+'%' : null, !!S.crescimento);
+  setF('ind-cap','fv-cap', S.capex  ? brl(S.capex,true)  : null, !!S.capex);
+  setF('ind-fun','fv-fun', S.funcionarios ? S.funcionarios+' func.' : null, !!S.funcionarios);
+  setF('ind-rrr','fv-rrr', S.recorrencia ? S.recorrencia+'%' : null, !!S.recorrencia);
+  setF('ind-fnd','fv-fnd', S.fundador, !!S.fundador);
+
+  // Campos BTB recomendados (pfield-ask)
+  const btbFields = [
+    { id:'sde',  val:S.sde,          label: S.sde  ? brl(S.sde,true)  : null },
+    { id:'conc', val:S.concentracao, label: S.concentracao ? S.concentracao+'% maior cli.' : null },
+    { id:'forn', val:S.concentracaoFornecedor, label: S.concentracaoFornecedor ? S.concentracaoFornecedor+'% maior forn.' : null },
+    { id:'ativ', val:S.ativos,       label: S.ativos ? brl(S.ativos,true) : null },
+    { id:'cont', val:S.contingencias,label: S.contingencias ? brl(S.contingencias,true) : null },
+    { id:'dscr', val:S.dscr,         label: S.dscr  ? S.dscr+'× DSCR'  : null },
+    { id:'motv', val:S.motivoVenda,  label: S.motivoVenda || null },
+  ];
+  btbFields.forEach(({id, val, label}) => {
+    const pf = document.getElementById('fv-'+id)?.closest('.pfield');
+    if (pf) setFAsk(pf, 'fv-'+id, label, !!val);
+  });
+
+  // Atualiza barra APENAS quando não estamos no meio da animação de loading
+  if (!_loadingFiles) {
+    // Pesos por importância BTB: FCO, receita e ebitda têm peso 2, os demais peso 1
+    const weighted = [
+      [S.fco,    2],
+      [S.receita,2],
+      [S.ebitda, 2],
+      [S.sector, 1],
+      [S.divida||S.caixa, 1],
+      [S.crescimento,     1],
+      [S.fcl,    1],
+      [S.capex,  1],
+      [S.funcionarios,    1],
+      [S.recorrencia,     1],
+    ];
+    const total = weighted.reduce((a,b)=>a+b[1],0);
+    const done  = weighted.reduce((a,[v,w])=>a+(v?w:0),0);
+    const pct   = Math.round(done/total*100);
+    document.getElementById('pct').textContent = pct+'%';
+    document.getElementById('conf-fill').style.width = pct+'%';
+  }
+}
+
+function resetPanel() {
+  // Clear user-edited flags
+  document.querySelectorAll('.fval[contenteditable]').forEach(el => {
+    el.dataset.userEdited = '';
+    el.classList.remove('user-edited');
+  });
+  ['fco','rec','ebt','set','fcl','div','cre','cap','fun','rrr','fnd'].forEach(k => {
+    setF('ind-'+k,'fv-'+k,null,false);
+  });
+  ['sde','conc','forn','ativ','cont','dscr','motv'].forEach(k => {
+    const pf = document.getElementById('fv-'+k)?.closest('.pfield');
+    if (pf) setFAsk(pf,'fv-'+k,null,false);
+  });
+  document.getElementById('pct').textContent = '0%';
+  document.getElementById('conf-fill').style.width = '0%';
+}
+
+// ─── CAMPOS EDITÁVEIS ───────────────────────────────────────────────────────
+// Converte texto digitado pelo usuário em número financeiro
+function parseUserInput(raw) {
+  if (!raw || !raw.trim()) return null;
+  raw = raw.trim().replace(/R\$\s*/,'').replace(/\s/g,'');
+  // Remove pontos de milhar e troca vírgula por ponto
+  if (/,\d{2}$/.test(raw)) {
+    raw = raw.replace(/\./g,'').replace(',','.');
+  } else {
+    raw = raw.replace(',','.');
+  }
+  // Sufixos k/M/B
+  let mult = 1;
+  if (/k$/i.test(raw)) { mult = 1e3; raw = raw.replace(/k$/i,''); }
+  else if (/M$/i.test(raw)) { mult = 1e6; raw = raw.replace(/M$/i,''); }
+  else if (/B$/i.test(raw)) { mult = 1e9; raw = raw.replace(/B$/i,''); }
+  const n = parseFloat(raw);
+  return isNaN(n) ? null : n * mult;
+}
+
+// Mapeia ID do campo no painel → chave em S
+const FIELD_TO_S = {
+  'fv-rec':  { key:'receita',     isNum:true  },
+  'fv-ebt':  { key:'ebitda',      isNum:true  },
+  'fv-fco':  { key:'fco',         isNum:true  },
+  'fv-fcl':  { key:'fcl',         isNum:true  },
+  'fv-cap':  { key:'capex',       isNum:true  },
+  'fv-div':  { key:'divida',      isNum:true  },
+  'fv-cre':  { key:'crescimento', isNum:true, suffix:'%' },
+  'fv-fun':  { key:'funcionarios',isNum:true, integer:true },
+  'fv-rrr':  { key:'recorrencia', isNum:true, suffix:'%' },
+  'fv-fnd':  { key:'fundador',    isNum:false },
+  'fv-sde':  { key:'sde',         isNum:true  },
+  'fv-conc': { key:'concentracao',isNum:true, suffix:'%' },
+  'fv-forn': { key:'concentracaoFornecedor', isNum:true, suffix:'%' },
+  'fv-ativ': { key:'ativos',      isNum:true  },
+  'fv-cont': { key:'contingencias',isNum:true },
+  'fv-dscr': { key:'dscr',        isNum:true  },
+  'fv-motv': { key:'motivoVenda', isNum:false },
+};
+
+let _editDebounce = null;
+function onFieldInput(spanEl) {
+  clearTimeout(_editDebounce);
+  _editDebounce = setTimeout(() => {
+    const fieldId = spanEl.id;
+    const meta = FIELD_TO_S[fieldId];
+    if (!meta) return;
+    const raw = spanEl.textContent.trim();
+    // Se vazio → limpa campo
+    if (!raw || raw === '—') { S[meta.key] = null; }
+    else if (meta.isNum) {
+      const v = parseUserInput(raw);
+      if (v !== null) { S[meta.key] = meta.integer ? Math.round(v) : v; }
+    } else {
+      S[meta.key] = raw;
+    }
+    // Recalcula DSCR se FCL ou dívida mudaram
+    if (meta.key === 'fcl' || meta.key === 'divida') {
+      S.dscr = (S.fcl && S.divida && S.divida > 0)
+        ? Math.round((S.fcl / (S.divida * 0.12)) * 100) / 100 : null;
+    }
+    updatePanel();
+    checkReady();
+    // Marca campo como editado pelo usuário
+    spanEl.dataset.userEdited = '1';
+    spanEl.classList.add('user-edited');
+  }, 600);
+}
+
+function checkReady() {
+  const ok = S.sector && (S.ebitda || S.receita);
+  document.getElementById('calc-btn').disabled = !ok;
+}
+
+// ─── TOOLTIP MOBILE (tap to toggle) ─────────────────────────────────────────
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.tip-icon');
+  if (btn) {
+    e.stopPropagation();
+    const wasOpen = btn.classList.contains('open');
+    document.querySelectorAll('.tip-icon.open').forEach(el => el.classList.remove('open'));
+    if (!wasOpen) btn.classList.add('open');
+    return;
+  }
+  document.querySelectorAll('.tip-icon.open').forEach(el => el.classList.remove('open'));
+});
+
+// ─── WACC & DCF ────────────────────────────────────────────────────────────
+/* ── Regime tributário por faturamento (Lei 9.718/98 art.14) ── */
+const _SERV_SECTORS = ['software','saude','financeiro','servicos','consultoria',
+                        'educacao','midia','saude2','farma','aeroespacial'];
+function regimeTributario(receita, sector) {
+  if (!receita || receita <= 0) return { regime:'Lucro Real', t:0.34 };
+  if (receita < 4_800_000)  return { regime:'Simples Nacional', t:0.12 };
+  if (receita < 78_000_000) {
+    const t = _SERV_SECTORS.includes(sector) ? 0.25 : 0.18;
+    return { regime:'Lucro Presumido', t };
+  }
+  return { regime:'Lucro Real', t:0.34 };
+}
+
+/* ── Reinvestimento por setor (taxa de reinvestimento calibrada) ── */
+const REINVEST_BY_SECTOR = {
+  software:0.18, saude:0.28, imoveis:0.15, financeiro:0.20,
+  aeroespacial:0.40, farma:0.35, maquinas:0.45, midia:0.20,
+  agro:0.38, construcao:0.42, texteis:0.35, bebidas:0.38,
+  telecom:0.45, servicos:0.15, logistica:0.40, varejo:0.25,
+  educacao:0.20, energia:0.50, saude2:0.25, 'ti-hard':0.40,
+  consultoria:0.12, industria:0.42,
+};
+
+const WACC_PARAMS = {
+  Rf:  0.0770,
+  ERP: 0.0420,
+  CRP: 0.0330,
+  psi: 0.040,
+  t:   0.34,
+  _rfDate:'set/2026', _rfSource:'NTN-B 2035 fallback',
+  betaMap: {
+    software:1.15, saude:0.85, imoveis:0.80, financeiro:0.90,
+    aeroespacial:1.05, farma:0.80, maquinas:1.00, midia:1.10,
+    agro:0.85, construcao:0.95, texteis:0.90, bebidas:0.75,
+    telecom:0.70, servicos:1.00, logistica:0.95, varejo:0.90,
+    educacao:0.85, energia:0.65, saude2:0.80, 'ti-hard':1.05,
+    consultoria:1.00, industria:0.95
+  }
+};
+
+/* ── Auto-fetch Rf via BCB SGS (Selic real) — atualiza mensalmente ── */
+(async function fetchRfBCB() {
+  try {
+    const [r1, r2] = await Promise.all([
+      fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json'),
+      fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.13522/dados/ultimos/1?formato=json'),
+    ]);
+    const d1 = await r1.json();
+    const d2 = await r2.json();
+    const selic    = parseFloat(d1[0]?.valor);   // % ao ano
+    const ipcaMes  = parseFloat(d2[0]?.valor);   // % ao mês
+    if (!isFinite(selic) || !isFinite(ipcaMes)) return;
+    const ipcaAnual = (Math.pow(1 + ipcaMes/100, 12) - 1) * 100;
+    const selicReal  = ((1 + selic/100) / (1 + ipcaAnual/100) - 1) * 100;
+    const rfNovo = Math.max(0.04, Math.min(0.15, selicReal * 0.93 / 100));
+    WACC_PARAMS.Rf = rfNovo;
+    WACC_PARAMS._rfDate   = new Date().toLocaleDateString('pt-BR',{month:'short',year:'numeric'});
+    WACC_PARAMS._rfSource = 'BCB — Selic real vs IPCA';
+    // Atualiza badge visual se já renderizado
+    const el = document.getElementById('wacc-rf-live');
+    if (el) el.textContent = `Rf ${(rfNovo*100).toFixed(2)}% via BCB`;
+  } catch(e) { /* silently use fallback */ }
+})();
+
+function calcWACC(sector, divida, caixa, ebitda, receita) {
+  const p = WACC_PARAMS;
+  const beta_u = p.betaMap[sector] || 1.0;
+  const netDebt = Math.max(0, (divida||0) - (caixa||0));
+  const ebitdaProxy = ebitda || 1;
+  const D = netDebt;
+  const E = Math.max(ebitdaProxy * 4, 1);
+  const { regime:_reg, t } = regimeTributario(receita, sector);
+  const beta_l = beta_u * (1 + (1 - t) * D / E);
+  const Ke = p.Rf + beta_l * p.ERP + p.CRP + p.psi;
+  const Kd = p.Rf + 0.04;
+  const V = D + E;
+  const wacc = Ke * (E/V) + Kd * (1 - t) * (D/V);
+  return { wacc, Ke, Kd, beta_l };
+}
+
+function calcDCF(ebitda, crescimento, sector, divida, caixa, recorrencia, fclReal, receita) {
+  const g = crescimento ? crescimento/100 : 0.08;
+  const { regime, t } = regimeTributario(receita, sector);
+  const baseReinvest = REINVEST_BY_SECTOR[sector] || 0.35;
+  const reinvest = (recorrencia > 60) ? baseReinvest * 0.75 : baseReinvest;
+  // Se temos FCL real do DFC, usa diretamente (mais preciso que estimativa)
+  const fcf0 = fclReal && fclReal > 0
+    ? fclReal * (1 - t)  // desconto IR dinâmico sobre FCL real
+    : ebitda * (1 - reinvest) * (1 - t);
+  const { wacc, beta_l } = calcWACC(sector, divida, caixa, ebitda, receita);
+  const gTerminal = 0.04;
+
+  let pv = 0;
+  let fcfAnos = [];
+  for (let i = 1; i <= 5; i++) {
+    const fcf_i = fcf0 * Math.pow(1 + g, i);
+    const disc  = fcf_i / Math.pow(1 + wacc, i);
+    pv += disc;
+    fcfAnos.push({ ano: i, fcf: fcf_i, pv: disc });
+  }
+  const fcf5 = fcf0 * Math.pow(1 + g, 5);
+  const tvGordon = (fcf5 * (1 + gTerminal)) / Math.max(wacc - gTerminal, 0.03);
+  const tvMultiplo = fcf5 * 4;
+  const tv = (tvGordon + tvMultiplo) / 2;
+  const pvTV = tv / Math.pow(1 + wacc, 5);
+  const evDCF = pv + pvTV;
+  return { evDCF, wacc, beta_l, fcfAnos, pvTV, pv, gTerminal, regime, t };
+}
+
+/* ── Ajustes BTB no EV (Compra com Crescimento) ── */
+function calcBTBAdjustments(evMid, S) {
+  let delta = 0;
+  const alerts = [];
+
+  // 1. Concentração de clientes > 20% → desconto progressivo (até 15%)
+  if (S.concentracao && S.concentracao > 20) {
+    const pct = Math.min((S.concentracao - 20) * 0.005, 0.15);
+    delta -= evMid * pct;
+    alerts.push({ tipo:'warn',
+      msg:`⚠ Concentração de clientes: ${S.concentracao}% no maior cliente. `
+         +`Desconto de ${(pct*100).toFixed(1)}% aplicado ao EV `
+         +`(Walker Deibel: risco acima de 20% de concentração).` });
+  }
+
+  // 2. Concentração de fornecedores > 40% → desconto progressivo (até 10%)
+  if (S.concentracaoFornecedor && S.concentracaoFornecedor > 40) {
+    const pct = Math.min((S.concentracaoFornecedor - 40) * 0.003, 0.10);
+    delta -= evMid * pct;
+    alerts.push({ tipo:'warn',
+      msg:`⚠ Concentração de fornecedores: ${S.concentracaoFornecedor}% no principal fornecedor. `
+         +`Desconto de ${(pct*100).toFixed(1)}% aplicado ao EV `
+         +`(risco operacional: interrupção de fornecimento ou remarcação de preços).` });
+  } else if (S.concentracaoFornecedor && S.concentracaoFornecedor > 20) {
+    alerts.push({ tipo:'info',
+      msg:`ℹ Concentração moderada de fornecedores: ${S.concentracaoFornecedor}% no principal fornecedor. `
+         +`Recomendamos mapeamento de alternativas antes do fechamento.` });
+  }
+
+  // 3. Contingências → subtraídas diretamente do EV
+  if (S.contingencias > 0) {
+    delta -= S.contingencias;
+    alerts.push({ tipo:'warn',
+      msg:`⚠ Contingências de ${brl(S.contingencias,true)} subtraídas do EV. `
+         +`Recomendamos due diligence fiscal e trabalhista completo antes do fechamento.` });
+  }
+
+  // 4. SDE > EBITDA × 1,15 → alerta informativo (upside BTB)
+  if (S.sde && S.ebitda && S.sde > S.ebitda * 1.15) {
+    alerts.push({ tipo:'info',
+      msg:`ℹ Ganho total do sócio (SDE) supera EBITDA em mais de 15%. `
+         +`Indício de benefícios adicionais no pró-labore ou despesas pessoais. `
+         +`Confirme com notas explicativas.` });
+  }
+
+  // 5. Setor imobiliário → sinalizar Cap Rate
+  if (S.sector === 'imoveis') {
+    alerts.push({ tipo:'method',
+      msg:`📐 Para empresas imobiliárias, recomendamos complementar com Cap Rate `
+         +`(NOI ÷ Valor do ativo). O relatório completo do IBGESF inclui esta análise.` });
+  }
+
+  // 6. Setor financeiro → sinalizar P/BV
+  if (S.sector === 'financeiro') {
+    alerts.push({ tipo:'method',
+      msg:`📐 Bancos e financeiras são avaliados preferencialmente por P/BV `
+         +`(Preço / Valor Patrimonial). Solicite o relatório completo para análise regulatória.` });
+  }
+
+  return { delta, alerts };
+}
+
+// ─── CÁLCULO PRINCIPAL ─────────────────────────────────────────────────────
+function calculate() {
+  const errEl = document.getElementById('calc-err');
+  if (!S.sector) { errEl.classList.add('on'); return; }
+  errEl.classList.remove('on');
+
+  const sec = SECTORS[S.sector];
+  let evMin, evMax, methodLabel, methodSub, multLabel;
+  let dcfResult = null;
+  let whyNoDCF = '';
+
+  let evMultMin, evMultMax;
+  if (S.ebitda) {
+    const recPrem = (S.recorrencia && S.recorrencia > 60) ? 1.08 : 1.0;
+    evMultMin = S.ebitda * sec.eb * 0.77 * recPrem;
+    evMultMax = S.ebitda * sec.eb * 1.02 * recPrem;
+    multLabel = sec.eb.toFixed(1) + '× Lucro op.';
+  } else if (S.receita) {
+    evMultMin = S.receita * sec.rv * 0.78;
+    evMultMax = S.receita * sec.rv * 1.05;
+    multLabel = sec.rv.toFixed(2) + '× Receita';
+  }
+
+  const canDCF = !!S.ebitda;
+  if (canDCF) {
+    dcfResult = calcDCF(S.ebitda, S.crescimento, S.sector,
+                        S.divida, S.caixa, S.recorrencia, S.fcl, S.receita);
+  } else {
+    whyNoDCF = 'A projeção de caixa descontado requer lucro operacional (EBITDA) ou caixa operacional (FCO). Mencione esses valores no texto, ou envie a DRE e o Demonstrativo de Fluxo de Caixa para ativá-la.';
+  }
+
+  if (dcfResult && evMultMin != null) {
+    const dcfMin = dcfResult.evDCF * 0.90;
+    const dcfMax = dcfResult.evDCF * 1.12;
+    evMin = dcfMin * 0.60 + evMultMin * 0.40;
+    evMax = dcfMax * 0.60 + evMultMax * 0.40;
+    methodLabel = 'Caixa Descontado 60% + Múltiplos 40%';
+    methodSub   = 'Ponderação Mellen & Evans (2018) · Custo de capital Brasil calibrado';
+  } else if (evMultMin != null) {
+    evMin = evMultMin;
+    evMax = evMultMax;
+    methodLabel = S.ebitda ? 'Múltiplos de resultado' : 'Múltiplo de receita (estimativa)';
+    methodSub   = S.ebitda
+      ? 'Múltiplo setorial (EV/EBITDA) · desconto PME 20–25% aplicado'
+      : 'Sem lucro operacional informado — precisão reduzida';
+  }
+
+  const pts = [S.receita, S.ebitda, (S.divida||S.caixa), S.crescimento, S.recorrencia].filter(Boolean).length;
+  const conf = (canDCF && pts >= 3) ? 'alta' : pts >= 2 ? 'média' : 'baixa';
+
+  // BTB adjustments
+  const evMid = evMin != null ? (evMin + evMax) / 2 : 0;
+  const btb = calcBTBAdjustments(evMid, S);
+  if (btb.delta !== 0 && evMin != null) {
+    evMin += btb.delta;
+    evMax += btb.delta;
+  }
+
+  document.getElementById('r-company').textContent =
+    (S.name ? S.name + ' · ' : '') + sec.n;
+  const mtag = document.getElementById('r-method-tag').parentElement;
+  mtag.classList.toggle('dcf', canDCF);
+  document.getElementById('r-method-tag').textContent = methodLabel;
+  document.getElementById('r-ev-min').textContent = brl(evMin, true);
+  document.getElementById('r-ev-max').textContent = brl(evMax, true);
+  document.getElementById('r-mult').textContent    = multLabel || '—';
+  document.getElementById('r-mult-sub').textContent= sec.n;
+  document.getElementById('r-met').textContent     = canDCF ? 'Caixa Desc. + Mult.' : (S.ebitda ? 'Múltiplo lucro' : 'Múltiplo receita');
+  document.getElementById('r-met-sub').textContent = methodSub;
+  document.getElementById('r-ref').textContent     = sec.eb.toFixed(1) + '×';
+  document.getElementById('r-conf').textContent    = conf;
+
+  // BTB alerts rendering
+  const btbEl = document.getElementById('r-btb-alerts');
+  if (btbEl) {
+    if (btb.alerts.length > 0) {
+      const colorMap = { warn:'rgba(227,181,5,.12)', info:'rgba(26,80,112,.12)', method:'rgba(36,84,60,.12)' };
+      const borderMap = { warn:'rgba(227,181,5,.35)', info:'rgba(26,80,112,.35)', method:'rgba(36,84,60,.35)' };
+      btbEl.innerHTML = btb.alerts.map(a =>
+        `<div style="background:${colorMap[a.tipo]||colorMap.info};border:1px solid ${borderMap[a.tipo]||borderMap.info};border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--text);margin-bottom:8px;">${a.msg}</div>`
+      ).join('');
+      btbEl.style.display = 'block';
+    } else {
+      btbEl.style.display = 'none';
+    }
+  }
+
+  const waccBox = document.getElementById('r-wacc-row');
+  if (waccBox) {
+    if (dcfResult) {
+      document.getElementById('r-wacc').textContent  = (dcfResult.wacc*100).toFixed(1) + '%';
+      document.getElementById('r-beta').textContent  = dcfResult.beta_l.toFixed(2);
+      const regimeEl = document.getElementById('r-regime');
+      if (regimeEl) regimeEl.textContent = ' · ' + (dcfResult.regime || '');
+      waccBox.hidden = false;
+    } else {
+      waccBox.hidden = true;
+      const warnEl = document.getElementById('r-nodcf-warn');
+      if (warnEl) { warnEl.textContent = '⚠️ ' + whyNoDCF; warnEl.hidden = false; }
+    }
+  }
+
+  showPhase('result');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ─── ROLE SELECTOR ─────────────────────────────────────────────────────────
+const ROLE_CONTENT = {
+  vendedor: {
+    title: 'Relatório Completo — Perspectiva do Vendedor',
+    sub:   '50% do plano maximiza o valor da sua empresa. Os outros 50% te preparam para <strong style="color:#fff">conduzir uma negociação justa, com governança e estrutura</strong> — porque negócios bem fechados protegem o legado e constroem reputação. Entregue por e-mail em até 24h.',
+    items: [
+      'Caixa descontado + Múltiplos ponderados (60/40) com custo de capital Brasil',
+      '<strong>Alavancas priorizadas para elevar o valor antes da venda</strong>',
+      'O que o comprador vai perguntar — e como responder com transparência',
+      'Checklist de prontidão para auditoria (contábil, jurídico, operacional)',
+      '<strong>Como conduzir uma negociação equilibrada que feche negócio</strong>',
+      'Governança e documentação que geram confiança no comprador',
+      'Guia: como funciona uma transação M&A para PMEs brasileiras',
+      'PDF profissional + conversa estratégica com especialistas IBGESF',
+    ]
+  },
+  comprador: {
+    title: 'Relatório Completo — Perspectiva do Comprador',
+    sub:   '50% do plano identifica oportunidades e riscos para maximizar o retorno. Os outros 50% te preparam para <strong style="color:#fff">fazer uma oferta justa e fechar um negócio sustentável para os dois lados</strong> — porque aquisições duradouras começam com boa-fé. Entregue por e-mail em até 24h.',
+    items: [
+      'Caixa descontado + Múltiplos ponderados (60/40) com custo de capital Brasil',
+      '<strong>Alertas e oportunidades de criação de valor pós-aquisição</strong>',
+      'Análise de dependência do fundador e plano de transição',
+      'O que o vendedor valoriza — e como estruturar uma proposta que ele aceite',
+      '<strong>Como conduzir due diligence sem destruir a relação e o negócio</strong>',
+      'Estruturas de deal comuns em PMEs brasileiras (earn-out, SPA, holding)',
+      'Guia: como funciona uma transação M&A para PMEs brasileiras',
+      'PDF profissional + conversa estratégica com especialistas IBGESF',
+    ]
+  }
+};
+
+function showIbgsfStep() {
+  document.getElementById('pre-cta-step').hidden = true;
+  document.getElementById('ibgesf-step').hidden = false;
+}
+
+function showEvidence(key) {
+  const labelMap = {
+    fco:'Fluxo de Caixa Operacional (FCO)', receita:'Receita Bruta',
+    ebitda:'Lucro Operacional (EBITDA)', fcl:'Fluxo de Caixa Livre (FCL)',
+    capex:'Investimento em Ativos (CAPEX)', divida:'Dívida Financeira',
+    caixa:'Caixa e Equivalentes', crescimento:'Crescimento Anual (CAGR)',
+  };
+  document.getElementById('evidence-modal-title').textContent = '🔍 Origem: ' + (labelMap[key] || key);
+  document.getElementById('evidence-modal-body').innerHTML = getEvidenceHTML(key);
+  document.getElementById('evidence-modal').classList.remove('hidden');
+}
+
+function selectRole(role) {
+  document.getElementById('btn-vendedor').classList.toggle('selected', role === 'vendedor');
+  document.getElementById('btn-comprador').classList.toggle('selected', role === 'comprador');
+
+  const c = ROLE_CONTENT[role];
+  document.getElementById('up-title-dyn').textContent = c.title;
+  document.getElementById('up-sub-dyn').innerHTML = c.sub;
+  document.getElementById('up-list-dyn').innerHTML = c.items.map(i => `<li>✓ ${i}</li>`).join('');
+
+  setTimeout(() => {
+    document.getElementById('ibgesf-step').hidden = true;
+    document.getElementById('upgrade-cta').hidden = false;
+  }, 320);
+
+  S.role = role;
+}
+
+// ─── UPGRADE ───────────────────────────────────────────────────────────────
+function doUpgrade() {
+  window.open('https://www.ibgovernancaeestrategia.com.br/', '_blank');
+}
+
+// ─── OVERLAY DE ANÁLISE ────────────────────────────────────────────────────
+// Fila visual para marcar docs "lido" um por um, com delay mínimo entre eles
+let _aovMarkQueue = [];
+let _aovMarkRunning = false;
+const AOV_MARK_DELAY = 420; // ms mínimo entre cada "✓ lido"
+
+function flushMarkQueue() {
+  if (_aovMarkRunning || _aovMarkQueue.length === 0) return;
+  _aovMarkRunning = true;
+  const { i } = _aovMarkQueue.shift();
+  const st = document.getElementById('aov-doc-st-' + i);
+  if (st) { st.textContent = '✓ lido'; st.className = 'aov-doc-status done'; }
+  setTimeout(() => {
+    _aovMarkRunning = false;
+    flushMarkQueue();
+  }, AOV_MARK_DELAY);
+}
+
+function showAnalysisOverlay(files) {
+  const ov = document.getElementById('analysis-overlay');
+  ov.hidden = false;
+  _aovMarkQueue = [];
+  _aovMarkRunning = false;
+
+  // Garante que o pulse está visível
+  const pw = document.getElementById('aov-pulse-wrap');
+  if (pw) pw.style.display = '';
+
+  // Lista de documentos
+  const docsEl = document.getElementById('aov-docs');
+  docsEl.innerHTML = files.map((f, i) =>
+    `<div class="aov-doc-item" id="aov-doc-${i}">
+       <span class="aov-doc-icon">${docIcon(f.name)}</span>
+       <span class="aov-doc-name">${f.name}</span>
+       <span class="aov-doc-status loading" id="aov-doc-st-${i}">lendo…</span>
+     </div>`
+  ).join('');
+
+  document.getElementById('aov-steps').innerHTML = '';
+  document.getElementById('aov-footer').hidden = true;
+  document.getElementById('aov-subtitle').textContent = 'Extraindo dados financeiros…';
+}
+
+function docIcon(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  if (ext === 'pdf')  return '📄';
+  if (['xlsx','xls','ods','csv'].includes(ext)) return '📊';
+  if (['docx','doc','rtf'].includes(ext)) return '📝';
+  return '📁';
+}
+
+function markDocDone(i, fname) {
+  // Enfileira a marcação para garantir animação sequencial, mesmo que arquivos carreguem juntos
+  _aovMarkQueue.push({ i });
+  flushMarkQueue();
+}
+
+function revealAnalysisSteps() {
+  const stepsEl = document.getElementById('aov-steps');
+  stepsEl.innerHTML = '';
+
+  // Garante que o pulse está visível enquanto revelamos os steps
+  const pulseWrap = document.getElementById('aov-pulse-wrap');
+  if (pulseWrap) pulseWrap.style.display = '';
+
+  // Tenta obter docYear dos dados extraídos
+  const docR = _lastDocR || {};
+
+  const STEPS = [
+    { label: 'Receita Bruta',                    val: S.receita,     fmt: v => brl(v, true),        section: 'Alta prioridade' },
+    { label: 'Lucro operacional (EBITDA)',        val: S.ebitda,      fmt: v => brl(v, true) },
+    { label: 'Fluxo de Caixa Operacional (FCO)', val: S.fco,         fmt: v => brl(v, true) },
+    { label: 'Crescimento anual (CAGR)',          val: S.crescimento, fmt: v => v + '% a.a.' },
+    { label: 'Dívida + Caixa',                   val: S.divida || S.caixa,
+      fmt: () => [S.divida ? 'Dívida: '+brl(S.divida,true) : null, S.caixa ? 'Caixa: '+brl(S.caixa,true) : null].filter(Boolean).join(' · '),
+      section: 'Média prioridade' },
+    { label: 'Fluxo de Caixa Livre (FCL)',        val: S.fcl,         fmt: v => brl(v, true) },
+    { label: 'Investimentos em ativos (CAPEX)',   val: S.capex,       fmt: v => brl(v, true) },
+    { label: 'Nº de funcionários',               val: S.funcionarios, fmt: v => v + ' colaboradores', section: 'Complementar' },
+    { label: 'Receita recorrente',               val: S.recorrencia,  fmt: v => v + '%' },
+    { label: 'Concentração de clientes',         val: S.concentracao, fmt: v => v + '% maior cliente', section: 'BTB — Compra com Crescimento' },
+    { label: 'Concentração de fornecedores',     val: S.concentracaoFornecedor, fmt: v => v + '% maior fornecedor' },
+    { label: 'Ganho total do sócio (SDE)',        val: S.sde,          fmt: v => brl(v, true) },
+    { label: 'Período do documento',             val: docR._docYear,  fmt: v => 'Exercício ' + v },
+  ];
+
+  // Insere separadores de seção e items
+  let lastSection = null;
+  const items = [];
+  STEPS.forEach(s => {
+    if (s.section && s.section !== lastSection) {
+      items.push({ type: 'section', label: s.section });
+      lastSection = s.section;
+    } else if (!lastSection) {
+      items.push({ type: 'section', label: 'Alta prioridade' });
+      lastSection = 'Alta prioridade';
+    }
+    items.push({ type: 'step', ...s });
+  });
+
+  items.forEach((item, idx) => {
+    if (item.type === 'section') {
+      const lbl = document.createElement('div');
+      lbl.className = 'aov-section-lbl';
+      lbl.style.opacity = '0';
+      lbl.style.transition = 'opacity .3s ease';
+      lbl.textContent = item.label;
+      stepsEl.appendChild(lbl);
+    } else {
+      const found = item.val != null;
+      const valStr = found ? item.fmt(item.val) : 'não identificado';
+      const el = document.createElement('div');
+      el.className = 'aov-step ' + (found ? 'found' : 'missing');
+      el.innerHTML =
+        `<div class="aov-step-icon">${found ? '✓' : '–'}</div>`+
+        `<div class="aov-step-label">${item.label}</div>`+
+        `<div class="aov-step-value">${valStr}</div>`;
+      stepsEl.appendChild(el);
+    }
+  });
+
+  // Anima cada item com delay crescente
+  const allEls = Array.from(stepsEl.children);
+  allEls.forEach((el, i) => {
+    setTimeout(() => {
+      el.style.opacity = '1';
+      el.style.transform = 'translateY(0)';
+      el.classList.add('visible');
+    }, 120 + i * 90);
+  });
+
+  // Mostra footer após todos os steps
+  const totalDelay = 120 + allEls.length * 90 + 200;
+  setTimeout(() => {
+    const foundCount = STEPS.filter(s => s.val != null).length;
+    const totalCount = STEPS.length;
+    const summEl = document.getElementById('aov-summary-line');
+    if (summEl) summEl.innerHTML =
+      `<strong>${foundCount} de ${totalCount}</strong> campos identificados automaticamente`;
+    document.getElementById('aov-subtitle').textContent = 'Análise concluída ✓';
+    document.getElementById('aov-pulse-wrap').style.display = 'none';
+    document.getElementById('aov-footer').hidden = false;
+  }, totalDelay);
+}
+
+function closeAnalysisOverlay() {
+  const ov = document.getElementById('analysis-overlay');
+  ov.style.opacity = '0';
+  ov.style.transition = 'opacity .2s ease';
+  setTimeout(() => { ov.hidden = true; ov.style.opacity = ''; ov.style.transition = ''; }, 200);
+}
+</script>
+
+<!-- ── OVERLAY DE ANÁLISE ── -->
+<div id="analysis-overlay" hidden>
+  <div id="analysis-modal">
+    <div class="aov-header">
+      <div class="aov-icon-wrap">🔍</div>
+      <div style="flex:1;min-width:0">
+        <div class="aov-title">Analisando documentos</div>
+        <div class="aov-subtitle" id="aov-subtitle">Preparando extração…</div>
+      </div>
+      <div class="aov-pulse-wrap" id="aov-pulse-wrap">
+        <div class="aov-dot"></div><div class="aov-dot"></div><div class="aov-dot"></div>
+      </div>
+    </div>
+    <div class="aov-docs" id="aov-docs"></div>
+    <div id="aov-steps"></div>
+    <div class="aov-footer" id="aov-footer" hidden>
+      <div class="aov-summary-line" id="aov-summary-line"></div>
+      <button class="aov-cta" onclick="closeAnalysisOverlay()">Ver resultado completo →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Evidence modal -->
+<div id="evidence-modal" class="hidden">
+  <div id="evidence-modal-inner">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div id="evidence-modal-title">Origem do dado</div>
+      <button onclick="document.getElementById('evidence-modal').classList.add('hidden')" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0">×</button>
+    </div>
+    <div id="evidence-modal-body"></div>
+  </div>
+</div>
+</body></html>
