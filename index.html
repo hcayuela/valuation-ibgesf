@@ -520,36 +520,46 @@ body {
   }
 }
 
-/* ─── OVERLAY DE ANÁLISE ─── */
+/* ─── PAINEL DE ANÁLISE (canto inferior direito, não bloqueante) ─── */
 #analysis-overlay {
-  position:fixed; inset:0; z-index:9000;
-  background:rgba(7,21,32,.82);
-  backdrop-filter:blur(6px);
-  display:flex; align-items:flex-end; justify-content:center;
-  padding:0;
-  animation:aov-bg-in .25s ease;
+  position:fixed;
+  bottom:20px; right:20px;
+  z-index:9000;
+  width:340px;
+  max-width:calc(100vw - 32px);
+  pointer-events:none; /* não bloqueia cliques fora do painel */
+  animation:aov-slide-in .35s cubic-bezier(.22,1,.36,1);
 }
-@keyframes aov-bg-in { from{opacity:0} to{opacity:1} }
+@keyframes aov-slide-in { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
 
 #analysis-modal {
   background:var(--surface);
-  border-radius:20px 20px 0 0;
-  width:100%; max-width:520px;
-  max-height:92vh;
+  border-radius:14px;
+  width:100%;
+  max-height:60vh;
   overflow-y:auto;
-  box-shadow:0 -8px 40px rgba(0,0,0,.45);
-  animation:aov-slide-in .35s cubic-bezier(.22,1,.36,1);
+  box-shadow:0 8px 40px rgba(0,0,0,.30), 0 0 0 1px var(--border);
   display:flex; flex-direction:column;
+  pointer-events:all; /* o painel em si captura eventos */
+  /* cabeçalho colapsável via JS */
 }
-@keyframes aov-slide-in { from{transform:translateY(100%)} to{transform:translateY(0)} }
+#analysis-overlay.aov-collapsed #analysis-modal > *:not(.aov-header) {
+  display:none !important;
+}
 
 .aov-header {
   display:flex; align-items:center; gap:12px;
-  padding:20px 20px 16px;
+  padding:14px 16px;
   border-bottom:1px solid var(--border);
-  position:sticky; top:0;
   background:var(--surface);
-  z-index:1;
+  border-radius:14px 14px 0 0;
+  cursor:pointer;
+  user-select:none;
+}
+.aov-header:hover { background:var(--surface-2); }
+#analysis-overlay.aov-collapsed .aov-header {
+  border-bottom:none;
+  border-radius:14px;
 }
 .aov-icon-wrap {
   width:40px; height:40px; border-radius:10px;
@@ -979,7 +989,7 @@ body {
       <span class="logo-tag">Governança · Estratégia · Sucessão</span>
     </div>
   </a>
-  <div class="hd-badge">Ferramenta Gratuita</div>
+  <a href="https://www.ibgovernancaeestrategia.com.br/associe-se-ibgesf" target="_blank" rel="noopener" class="hd-badge" style="text-decoration:none;cursor:pointer;">Associe-se ao IBGESF</a>
 </header>
 
 <!-- ══════════════════════════════════ STEPS ══════════════════════════════════ -->
@@ -1009,8 +1019,13 @@ body {
       </div>
       <div class="fg">
         <label for="i-email">E-mail profissional</label>
-        <input type="email" id="i-email" placeholder="voce@empresa.com.br" autocomplete="email">
+        <input type="email" id="i-email" placeholder="voce@empresa.com.br" autocomplete="email" oninput="onEmailInput(this.value)">
         <div class="err" id="email-err">Insira um e-mail válido para continuar.</div>
+        <!-- Badge de status de associado -->
+        <div id="member-badge" hidden style="margin-top:8px;padding:8px 12px;border-radius:8px;font-size:13px;display:flex;align-items:center;gap:8px;transition:all .3s;">
+          <span id="member-badge-icon"></span>
+          <span id="member-badge-text"></span>
+        </div>
       </div>
       <button class="btn btn-navy btn-full" onclick="goInput()">
         Calcular valor da empresa gratuitamente →
@@ -1851,7 +1866,7 @@ function detectSector(t) {
 }
 
 // ─── ESTADO GLOBAL ────────────────────────────────────────────────────────
-let S = { name:'', email:'',
+let S = { name:'', email:'', associado:null,
   receita:null, ebitda:null, divida:null, caixa:null,
   crescimento:null, funcionarios:null, recorrencia:null, fundador:null,
   fco:null, capex:null, fcl:null, giro:null,
@@ -1889,6 +1904,54 @@ function showPhase(p) {
     if (i===cur) el.classList.add('active');
     else if (i<cur) el.classList.add('done');
   }
+}
+
+// ── Verificação de associado ─────────────────────────────────────────────────
+let _memberCheckTimer = null;
+async function checkMembership(email) {
+  try {
+    const r = await fetch(WORKER_URL + '/check-member', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    if (!r.ok) return null;
+    const d = await r.json();
+    return d.membro === true;
+  } catch { return null; }
+}
+
+function onEmailInput(val) {
+  clearTimeout(_memberCheckTimer);
+  const badge = document.getElementById('member-badge');
+  if (!val || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+    badge.hidden = true; return;
+  }
+  // mostra "verificando..."
+  badge.hidden = false;
+  badge.style.background = 'rgba(90,112,128,.12)';
+  badge.style.border = '1px solid rgba(90,112,128,.25)';
+  document.getElementById('member-badge-icon').textContent = '⏳';
+  document.getElementById('member-badge-text').textContent = 'Verificando cadastro…';
+
+  _memberCheckTimer = setTimeout(async () => {
+    const membro = await checkMembership(val.trim().toLowerCase());
+    if (membro === true) {
+      badge.style.background = 'rgba(36,84,60,.15)';
+      badge.style.border = '1px solid rgba(36,84,60,.4)';
+      document.getElementById('member-badge-icon').textContent = '✅';
+      document.getElementById('member-badge-text').innerHTML = '<strong style="color:#24543c">Associado IBGESF</strong> — relatório completo desbloqueado';
+      S.associado = true;
+    } else if (membro === false) {
+      badge.style.background = 'rgba(227,181,5,.10)';
+      badge.style.border = '1px solid rgba(227,181,5,.30)';
+      document.getElementById('member-badge-icon').textContent = '⭐';
+      document.getElementById('member-badge-text').innerHTML = 'Não associado — <a href="https://www.ibgovernancaeestrategia.com.br/associe-se-ibgesf" target="_blank" style="color:var(--amber)">associe-se para o relatório completo</a>';
+      S.associado = false;
+    } else {
+      badge.hidden = true;
+    }
+  }, 600);
 }
 
 function goInput() {
@@ -1940,7 +2003,7 @@ function goInput() {
 }
 
 function restart() {
-  S = { name:S.name, email:S.email, receita:null, ebitda:null,
+  S = { name:S.name, email:S.email, associado:S.associado, receita:null, ebitda:null,
     divida:null, caixa:null, crescimento:null, funcionarios:null,
     recorrencia:null, fundador:null,
     fco:null, capex:null, fcl:null, giro:null,
@@ -3733,9 +3796,11 @@ function calculate() {
     multLabel = sec.rv.toFixed(2) + '× Receita';
   }
 
-  const canDCF = !!S.ebitda;
+  // DCF ativa se tiver EBITDA ou FCO — FCO é igualmente válido como proxy de caixa operacional
+  const baseFluxo = S.ebitda || S.fco || null;
+  const canDCF = !!baseFluxo;
   if (canDCF) {
-    dcfResult = calcDCF(S.ebitda, S.crescimento, S.sector,
+    dcfResult = calcDCF(baseFluxo, S.crescimento, S.sector,
                         S.divida, S.caixa, S.recorrencia, S.fcl, S.receita);
   } else {
     whyNoDCF = 'A projeção de caixa descontado requer lucro operacional (EBITDA) ou caixa operacional (FCO). Mencione esses valores no texto, ou envie a DRE e o Demonstrativo de Fluxo de Caixa para ativá-la.';
@@ -3751,13 +3816,13 @@ function calculate() {
   } else if (evMultMin != null) {
     evMin = evMultMin;
     evMax = evMultMax;
-    methodLabel = S.ebitda ? 'Múltiplos de resultado' : 'Múltiplo de receita (estimativa)';
-    methodSub   = S.ebitda
+    methodLabel = baseFluxo ? 'Múltiplos de resultado' : 'Múltiplo de receita (estimativa)';
+    methodSub   = baseFluxo
       ? 'Múltiplo setorial (EV/EBITDA) · desconto PME 20–25% aplicado'
       : 'Sem lucro operacional informado — precisão reduzida';
   }
 
-  const pts = [S.receita, S.ebitda, (S.divida||S.caixa), S.crescimento, S.recorrencia].filter(Boolean).length;
+  const pts = [S.receita, baseFluxo, (S.divida||S.caixa), S.crescimento, S.recorrencia].filter(Boolean).length;
   const conf = (canDCF && pts >= 3) ? 'alta' : pts >= 2 ? 'média' : 'baixa';
 
   // BTB adjustments
@@ -3768,8 +3833,7 @@ function calculate() {
     evMax += btb.delta;
   }
 
-  document.getElementById('r-company').textContent =
-    (S.name ? S.name + ' · ' : '') + sec.n;
+  document.getElementById('r-company').textContent = sec.n;
   const mtag = document.getElementById('r-method-tag').parentElement;
   mtag.classList.toggle('dcf', canDCF);
   document.getElementById('r-method-tag').textContent = methodLabel;
@@ -3777,7 +3841,7 @@ function calculate() {
   document.getElementById('r-ev-max').textContent = brl(evMax, true);
   document.getElementById('r-mult').textContent    = multLabel || '—';
   document.getElementById('r-mult-sub').textContent= sec.n;
-  document.getElementById('r-met').textContent     = canDCF ? 'Caixa Desc. + Mult.' : (S.ebitda ? 'Múltiplo lucro' : 'Múltiplo receita');
+  document.getElementById('r-met').textContent     = canDCF ? 'Caixa Desc. + Mult.' : (baseFluxo ? 'Múltiplo lucro' : 'Múltiplo receita');
   document.getElementById('r-met-sub').textContent = methodSub;
   document.getElementById('r-ref').textContent     = sec.eb.toFixed(1) + '×';
   document.getElementById('r-conf').textContent    = conf;
@@ -3814,6 +3878,40 @@ function calculate() {
 
   showPhase('result');
   window.scrollTo({top:0,behavior:'smooth'});
+
+  // Adapta CTA de relatório baseado em status de associado
+  _updateUpgradeCTA();
+}
+
+function _updateUpgradeCTA() {
+  const preCta = document.getElementById('pre-cta-step');
+  if (!preCta) return;
+  if (S.associado === true) {
+    // Associado: mostra CTA direto para solicitar relatório por email
+    preCta.innerHTML = `
+      <div class="up-title">✅ Associado IBGESF — Relatório Desbloqueado</div>
+      <div class="up-sub" style="color:rgba(255,255,255,.75);font-size:14px;margin:10px 0 18px;">
+        Como associado, você tem direito ao relatório completo de valuation. Nossa equipe enviará para <strong style="color:#fff">${S.email}</strong> em até 24h.
+      </div>
+      <button class="btn btn-amber" onclick="_solicitarRelatorioAssociado()">Solicitar relatório completo →</button>
+    `;
+  }
+  // Não-associado: mantém fluxo padrão (botão "Quero o relatório completo" que leva à associação)
+}
+
+async function _solicitarRelatorioAssociado() {
+  // Envia email de solicitação via Worker (usa a infra de envio existente)
+  const btn = event.target;
+  btn.disabled = true; btn.textContent = 'Enviando solicitação…';
+  try {
+    await fetch(WORKER_URL + '/request-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Api-Key': WORKER_API_KEY },
+      body: JSON.stringify({ email: S.email, nome: S.name, empresa: S.empresa || '', ev_min: S.evMin, ev_max: S.evMax })
+    });
+  } catch {}
+  btn.textContent = '✅ Solicitação enviada! Verifique seu e-mail em até 24h.';
+  btn.style.background = 'rgba(36,84,60,.8)';
 }
 
 // ─── ROLE SELECTOR ─────────────────────────────────────────────────────────
@@ -4040,10 +4138,10 @@ function closeAnalysisOverlay() {
 }
 </script>
 
-<!-- ── OVERLAY DE ANÁLISE ── -->
+<!-- ── PAINEL DE ANÁLISE ── -->
 <div id="analysis-overlay" hidden>
   <div id="analysis-modal">
-    <div class="aov-header">
+    <div class="aov-header" onclick="document.getElementById('analysis-overlay').classList.toggle('aov-collapsed')" title="Clique para minimizar/expandir">
       <div class="aov-icon-wrap">🔍</div>
       <div style="flex:1;min-width:0">
         <div class="aov-title">Analisando documentos</div>
@@ -4052,6 +4150,7 @@ function closeAnalysisOverlay() {
       <div class="aov-pulse-wrap" id="aov-pulse-wrap">
         <div class="aov-dot"></div><div class="aov-dot"></div><div class="aov-dot"></div>
       </div>
+      <span id="aov-collapse-btn" style="font-size:16px;color:var(--muted);margin-left:4px;line-height:1">⌄</span>
     </div>
     <div class="aov-docs" id="aov-docs"></div>
     <div id="aov-steps"></div>
