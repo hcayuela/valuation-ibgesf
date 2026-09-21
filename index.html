@@ -475,49 +475,44 @@ body {
   border:none; padding:0;
 }
 .tip-icon:hover,.tip-icon:focus { background:var(--amber); color:#fff; outline:none; }
-.tip-icon::after {
-  content: attr(data-tip);
-  position:absolute;
-  bottom:calc(100% + 6px); left:50%;
-  transform:translateX(-50%);
-  width:220px; max-width:80vw;
+/* Pseudo-elementos desativados — tooltip usa #shared-tip (position:fixed) */
+.tip-icon::after { content:none !important; }
+.tip-icon::before { content:none !important; }
+
+/* ─── TOOLTIP COMPARTILHADO ─── */
+/* position:fixed = não clipado por overflow:hidden do panel, nunca sai da tela */
+#shared-tip {
+  position:fixed;
+  z-index:9999;
+  width:240px;
+  max-width:calc(100vw - 20px);
   background:var(--navy);
   color:#e8ecf4;
-  font-size:11px; font-weight:400; line-height:1.5;
-  padding:8px 10px; border-radius:7px;
+  font-size:12px; font-weight:400; line-height:1.55;
+  padding:10px 13px; border-radius:8px;
   white-space:normal; text-align:left;
   pointer-events:none;
   opacity:0; transition:opacity .15s;
-  z-index:999;
-  box-shadow:0 4px 16px rgba(0,0,0,.3);
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  top:-9999px; left:-9999px;
 }
-/* Seta */
-.tip-icon::before {
+#shared-tip.visible { opacity:1; }
+/* Seta — posição X via CSS var --ax (px desde a esquerda do tooltip) */
+#shared-tip::after {
   content:'';
   position:absolute;
-  bottom:calc(100% + 1px); left:50%;
+  left:var(--ax,50%);
   transform:translateX(-50%);
-  border:5px solid transparent;
-  border-top-color:var(--navy);
+  border:6px solid transparent;
   pointer-events:none;
-  opacity:0; transition:opacity .15s;
-  z-index:999;
 }
-.tip-icon:hover::after,.tip-icon:focus::after,
-.tip-icon.open::after { opacity:1; }
-.tip-icon:hover::before,.tip-icon:focus::before,
-.tip-icon.open::before { opacity:1; }
-/* No mobile o tooltip fica abaixo se não couber acima */
-@media (max-width:600px) {
-  .tip-icon::after {
-    bottom:auto; top:calc(100% + 6px);
-    left:0; transform:none;
-  }
-  .tip-icon::before {
-    bottom:auto; top:calc(100% + 0px);
-    border-top-color:transparent;
-    border-bottom-color:var(--navy);
-  }
+#shared-tip.arr-down::after {
+  top:100%;
+  border-top-color:var(--navy);
+}
+#shared-tip.arr-up::after {
+  bottom:100%;
+  border-bottom-color:var(--navy);
 }
 
 /* ─── PAINEL DE ANÁLISE (canto inferior direito, não bloqueante) ─── */
@@ -595,6 +590,8 @@ body {
 .aov-doc-status { font-size:11px; flex-shrink:0; }
 .aov-doc-status.loading { color:var(--amber); }
 .aov-doc-status.done { color:var(--green); }
+.aov-doc-status.future { color:#7a5c00; background:#fff7d6; border:1px solid #e3b505; border-radius:4px; padding:1px 5px; font-size:10px; }
+.aov-doc-name.future-name { color:var(--muted); }
 
 .aov-section-lbl {
   font-size:10px; font-weight:700; letter-spacing:.08em;
@@ -892,15 +889,9 @@ body {
   box-shadow:0 0 0 3px rgba(227,181,5,.2);
 }
 
-/* ─── WPP ─── */
-.wpp-box {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:var(--r-lg); padding:22px;
-  text-align:center; margin-top:20px;
-}
-.wpp-box p { font-size:14px; color:var(--muted); margin-bottom:14px; }
+/* ─── WPP (removido v47) ─── */
 .wpp-btn {
-  display:inline-flex; align-items:center; gap:9px;
+  display:none;
   background:#25D366; color:#fff;
   padding:11px 22px; border-radius:var(--r);
   font-weight:600; font-size:14px;
@@ -1007,10 +998,10 @@ body {
 <!-- ─── FASE 1: E-MAIL ─── -->
 <section class="phase on" id="ph-email">
   <div class="gate">
-    <div class="eyebrow">Avaliação de Empresas · Metodologia FCD (Fluxo de Caixa Descontado) + Múltiplos</div>
+    <div class="eyebrow">Avaliação de Empresas · Metodologia FCL (Fluxo de Caixa Livre) + Múltiplos Setoriais</div>
     <h1>Quanto vale a sua empresa?</h1>
     <p class="gate-sub">
-      Calcule o valor da sua empresa com metodologia de fluxo de caixa descontado e múltiplos setoriais calibrados para PMEs brasileiras. Resultado em instantes, relatório completo em até 24h.
+      Para empresas com faturamento até R$ 300 milhões, a metodologia principal é o <strong>FCL — Fluxo de Caixa Livre</strong> (FCD — Fluxo de Caixa Descontado). As demais informações — EBITDA, crescimento, dívida, múltiplos setoriais — complementam e ajustam a análise. Quando o FCL não estiver disponível, utilizamos múltiplos de mercado como referência, mas <em>recomenda-se fortemente fornecer o DFC para o cálculo preciso pelo FCL</em>.
     </p>
     <div class="card">
       <div class="fg">
@@ -1021,10 +1012,33 @@ body {
         <label for="i-email">E-mail profissional</label>
         <input type="email" id="i-email" placeholder="voce@empresa.com.br" autocomplete="email" oninput="onEmailInput(this.value)">
         <div class="err" id="email-err">Insira um e-mail válido para continuar.</div>
-        <!-- Badge de status de associado -->
-        <div id="member-badge" hidden style="margin-top:8px;padding:8px 12px;border-radius:8px;font-size:13px;display:flex;align-items:center;gap:8px;transition:all .3s;">
-          <span id="member-badge-icon"></span>
-          <span id="member-badge-text"></span>
+        <!-- Badge/card de status de associado -->
+        <div id="member-badge" hidden style="margin-top:10px;transition:all .3s;">
+          <!-- Estado: verificando -->
+          <div id="mb-checking" style="padding:8px 12px;border-radius:8px;font-size:13px;display:flex;align-items:center;gap:8px;background:rgba(90,112,128,.12);border:1px solid rgba(90,112,128,.25);">
+            <span>⏳</span><span style="color:#8a9bb0">Verificando cadastro…</span>
+          </div>
+          <!-- Estado: associado confirmado (card completo) -->
+          <div id="mb-member" hidden style="border-radius:12px;overflow:hidden;border:1.5px solid rgba(36,120,80,.45);background:linear-gradient(135deg,rgba(20,60,40,.22) 0%,rgba(10,40,25,.32) 100%);">
+            <div style="padding:14px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(36,120,80,.2);">
+              <span style="font-size:22px">✅</span>
+              <div>
+                <div style="font-size:15px;font-weight:700;color:#4ade80;letter-spacing:.2px">Associado IBGESF identificado</div>
+                <div style="font-size:12px;color:#86efac;margin-top:1px">Seu relatório completo está desbloqueado</div>
+              </div>
+            </div>
+            <div style="padding:10px 16px 14px;">
+              <div style="font-size:12px;color:#a3d9b8;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Benefícios exclusivos de associado:</div>
+              <div style="display:grid;gap:5px;">
+                <div style="font-size:13px;color:#d1fae5;display:flex;align-items:center;gap:7px;"><span style="color:#4ade80">→</span> Valuation completo com múltiplos setoriais calibrados</div>
+                <div style="font-size:13px;color:#d1fae5;display:flex;align-items:center;gap:7px;"><span style="color:#4ade80">→</span> Plano de 12 meses para maximizar o valor da empresa</div>
+              </div>
+            </div>
+          </div>
+          <!-- Estado: não associado -->
+          <div id="mb-nonmember" hidden style="padding:8px 12px;border-radius:8px;font-size:13px;display:flex;align-items:center;gap:8px;background:rgba(227,181,5,.10);border:1px solid rgba(227,181,5,.30);">
+            <span>⭐</span><span style="color:#fcd34d">Não associado — <a href="https://www.ibgovernancaeestrategia.com.br/associe-se-ibgesf" target="_blank" style="color:var(--amber)">associe-se para o relatório completo</a></span>
+          </div>
         </div>
       </div>
       <button class="btn btn-navy btn-full" onclick="goInput()">
@@ -1121,54 +1135,33 @@ body {
       <div class="panel-body">
 
         <div class="psec">
-          <div class="psec-lbl"><span class="pdot high"></span>Alta prioridade</div>
+          <div class="psec-lbl"><span class="pdot high"></span>Alta prioridade — FCL (metodologia principal)</div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-fcl"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              FCL (Fluxo de Caixa Livre)
+              <button class="tip-icon" type="button" data-tip="FCL (Fluxo de Caixa Livre) = FCO (Fluxo de Caixa Operacional) menos CAPEX (Investimento em Ativos Fixos). É a metodologia principal para empresas com faturamento até R$ 300 milhões — representa o caixa real disponível após reinvestimentos. Quando disponível, o FCL ativa o FCD (Fluxo de Caixa Descontado) e aumenta significativamente a precisão do valuation. Sem FCL, utilizamos múltiplos setoriais como referência. Recomenda-se enviar o DFC para extração automática.">?</button>
+            </div>
+            <div class="fval" id="fv-fcl" contenteditable="true" oninput="onFieldInput(this)">—</div>
+            <button class="ev-btn" onclick="showEvidence('fcl')" title="Ver origem do dado">🔍</button>
+          </div>
           <div class="pfield">
             <div class="ind empty" id="ind-fco"></div>
             <div class="fname" style="display:flex;align-items:center;gap:5px;">
               FCO (Fluxo de Caixa Operacional)
-              <button class="tip-icon" type="button" data-tip="Caixa gerado pelas operações da empresa — extraído do DFC (Demonstrativo de Fluxo de Caixa). Mede a geração real de caixa do negócio, mais confiável que o lucro contábil. Base da metodologia BTB (Compra com Crescimento).">?</button>
+              <button class="tip-icon" type="button" data-tip="Caixa gerado pelas operações da empresa — extraído do DFC (Demonstrativo de Fluxo de Caixa). Mede a geração real de caixa do negócio, mais confiável que o lucro contábil. Componente do FCL: FCL = FCO − CAPEX.">?</button>
             </div>
             <div class="fval" id="fv-fco" contenteditable="true" oninput="onFieldInput(this)">—</div>
             <button class="ev-btn" onclick="showEvidence('fco')" title="Ver origem do dado">🔍</button>
           </div>
           <div class="pfield">
-            <div class="ind empty" id="ind-rec"></div>
+            <div class="ind empty" id="ind-cap"></div>
             <div class="fname" style="display:flex;align-items:center;gap:5px;">
-              Receita bruta
-              <button class="tip-icon" type="button" data-tip="Receita total antes de deduções. Informe os últimos 3 anos para calcular o CAGR (Crescimento Anual Acumulado) usado na projeção pelo FCD (Fluxo de Caixa Descontado). Ex: 'receita de R$2,8M em 2022, R$3,4M em 2023, R$4,1M em 2024'.">?</button>
+              CAPEX (Investimento em Ativos Fixos)
+              <button class="tip-icon" type="button" data-tip="CAPEX (Investimento em Ativos Fixos): máquinas, equipamentos, imóveis (Capital Expenditure). Componente do FCL: FCL = FCO − CAPEX. Negócios com CAPEX baixo em relação ao FCO são preferidos — sobra mais caixa para o comprador pagar o financiamento da aquisição.">?</button>
             </div>
-            <div class="fval" id="fv-rec" contenteditable="true" oninput="onFieldInput(this)">—</div>
-            <button class="ev-btn" onclick="showEvidence('receita')" title="Ver origem do dado">🔍</button>
-          </div>
-          <div class="pfield">
-            <div class="ind empty" id="ind-ebt"></div>
-            <div class="fname" style="display:flex;align-items:center;gap:5px;">
-              EBITDA (Lucro Operacional Ajustado)
-              <button class="tip-icon" type="button" data-tip="EBITDA (Lucro Operacional Ajustado): Lucro antes de Juros, Impostos, Depreciação e Amortização — representa a geração de caixa operacional da empresa. É multiplicado pelo índice setorial (múltiplo EV (Valor da Empresa)/EBITDA) para calcular o valor pelos comparáveis de mercado. Quando não disponível, o FCO (Fluxo de Caixa Operacional) é usado como substituto.">?</button>
-            </div>
-            <div class="fval" id="fv-ebt" contenteditable="true" oninput="onFieldInput(this)">—</div>
-            <button class="ev-btn" onclick="showEvidence('ebitda')" title="Ver origem do dado">🔍</button>
-          </div>
-          <div class="pfield">
-            <div class="ind empty" id="ind-set"></div>
-            <div class="fname" style="display:flex;align-items:center;gap:5px;">
-              Setor
-              <button class="tip-icon" type="button" data-tip="Define o índice de valor (EV (Valor da Empresa)/EBITDA (Lucro Operacional Ajustado) — relação entre valor e lucro operacional) e o risco do setor usados na avaliação. Cada setor tem parâmetros diferentes — software e serviços recorrentes costumam ter índices mais altos que varejo ou indústria. Selecione o setor principal da empresa.">?</button>
-            </div>
-            <div class="fval" id="fv-set">—</div>
-          </div>
-        </div>
-
-        <div class="psec">
-          <div class="psec-lbl"><span class="pdot med"></span>Média prioridade</div>
-          <div class="pfield">
-            <div class="ind empty" id="ind-fcl"></div>
-            <div class="fname" style="display:flex;align-items:center;gap:5px;">
-              FCL (Fluxo de Caixa Livre)
-              <button class="tip-icon" type="button" data-tip="FCL (Fluxo de Caixa Livre) = FCO (Fluxo de Caixa Operacional) menos CAPEX (Investimento em Ativos Fixos). Representa o caixa disponível após reinvestimento no negócio. Na metodologia BTB (Compra com Crescimento), o comprador avalia o FCL para calcular o DSCR (Cobertura do Serviço da Dívida). Extraído do DFC (Demonstrativo de Fluxo de Caixa).">?</button>
-            </div>
-            <div class="fval" id="fv-fcl" contenteditable="true" oninput="onFieldInput(this)">—</div>
-            <button class="ev-btn" onclick="showEvidence('fcl')" title="Ver origem do dado">🔍</button>
+            <div class="fval" id="fv-cap" contenteditable="true" oninput="onFieldInput(this)">—</div>
+            <button class="ev-btn" onclick="showEvidence('capex')" title="Ver origem do dado">🔍</button>
           </div>
           <div class="pfield">
             <div class="ind empty" id="ind-div"></div>
@@ -1179,11 +1172,41 @@ body {
             <div class="fval" id="fv-div" contenteditable="true" oninput="onFieldInput(this)">—</div>
             <button class="ev-btn" onclick="showEvidence('divida')" title="Ver origem do dado">🔍</button>
           </div>
+        </div>
+
+        <div class="psec">
+          <div class="psec-lbl"><span class="pdot med"></span>Média prioridade — complementos</div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-rec"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Receita bruta
+              <button class="tip-icon" type="button" data-tip="Receita total antes de deduções fiscais (impostos sobre vendas). Representa o faturamento bruto da empresa — ponto de partida da DRE. Informe no texto: ex: 'receita bruta de R$4,1M' ou envie a DRE para extração automática.">?</button>
+            </div>
+            <div class="fval" id="fv-rec" contenteditable="true" oninput="onFieldInput(this)">—</div>
+            <button class="ev-btn" onclick="showEvidence('receita')" title="Ver origem do dado">🔍</button>
+          </div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-ebt"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              EBITDA (Lucro Operacional Ajustado)
+              <button class="tip-icon" type="button" data-tip="EBITDA (Lucro Operacional Ajustado): Lucro antes de Juros, Impostos, Depreciação e Amortização — representa a geração de caixa operacional da empresa. É multiplicado pelo índice setorial (múltiplo EV/EBITDA) para calcular o valor pelos comparáveis de mercado. Quando não disponível, o FCO é usado como substituto.">?</button>
+            </div>
+            <div class="fval" id="fv-ebt" contenteditable="true" oninput="onFieldInput(this)">—</div>
+            <button class="ev-btn" onclick="showEvidence('ebitda')" title="Ver origem do dado">🔍</button>
+          </div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-set"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Setor
+              <button class="tip-icon" type="button" data-tip="Define o índice de valor (EV/EBITDA) e o risco do setor usados na avaliação. Cada setor tem parâmetros diferentes — software e serviços recorrentes costumam ter índices mais altos que varejo ou indústria. Selecione o setor principal da empresa.">?</button>
+            </div>
+            <div class="fval" id="fv-set">—</div>
+          </div>
           <div class="pfield">
             <div class="ind empty" id="ind-cre"></div>
             <div class="fname" style="display:flex;align-items:center;gap:5px;">
               Crescimento anual
-              <button class="tip-icon" type="button" data-tip="CAGR (Crescimento Anual Acumulado) da receita. Empresas com crescimento acima de 15% ao ano recebem prêmio no índice de valor e na projeção do FCD (Fluxo de Caixa Descontado). Calculado automaticamente a partir de DRE (Demonstração do Resultado) de múltiplos anos.">?</button>
+              <button class="tip-icon" type="button" data-tip="CAGR (Crescimento Anual Acumulado) da receita. Empresas com crescimento acima de 15% ao ano recebem prêmio no índice de valor e na projeção do FCD (Fluxo de Caixa Descontado). Calculado automaticamente a partir de DRE de múltiplos anos.">?</button>
             </div>
             <div class="fval" id="fv-cre" contenteditable="true" oninput="onFieldInput(this)">—</div>
             <button class="ev-btn" onclick="showEvidence('crescimento')" title="Ver origem do dado">🔍</button>
@@ -1192,15 +1215,6 @@ body {
 
         <div class="psec">
           <div class="psec-lbl"><span class="pdot low"></span>Complementar</div>
-          <div class="pfield">
-            <div class="ind empty" id="ind-cap"></div>
-            <div class="fname" style="display:flex;align-items:center;gap:5px;">
-              CAPEX (Investimento em Ativos Fixos)
-              <button class="tip-icon" type="button" data-tip="CAPEX (Investimento em Ativos Fixos): máquinas, equipamentos, imóveis (Capital Expenditure). Negócios com CAPEX (Investimento em Ativos Fixos) baixo em relação ao caixa operacional são preferidos na metodologia BTB (Compra com Crescimento) — sobra mais caixa para o comprador pagar o financiamento da aquisição.">?</button>
-            </div>
-            <div class="fval" id="fv-cap" contenteditable="true" oninput="onFieldInput(this)">—</div>
-            <button class="ev-btn" onclick="showEvidence('capex')" title="Ver origem do dado">🔍</button>
-          </div>
           <div class="pfield">
             <div class="ind empty" id="ind-fun"></div>
             <div class="fname" style="display:flex;align-items:center;gap:5px;">
@@ -1507,19 +1521,14 @@ body {
       <div class="up-title" id="up-title-dyn">Relatório Completo de Valuation</div>
       <p class="up-sub" id="up-sub-dyn" style="font-size:13.5px;color:rgba(255,255,255,.8);margin:10px 0 14px;line-height:1.6;"></p>
       <ul id="up-list-dyn" style="list-style:none;padding:0;margin:0 0 18px;font-size:13px;color:rgba(255,255,255,.75);display:flex;flex-direction:column;gap:6px;"></ul>
-      <button class="btn btn-amber" onclick="doUpgrade()">Solicitar associação no IBGESF →</button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <button class="btn btn-amber" onclick="doUpgrade()">Solicitar associação no IBGESF →</button>
+        <button class="btn btn-ghost" style="border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.7);font-size:13px;" onclick="jaAssociado()">Já sou associado</button>
+      </div>
     </div>
 
   </div>
 
-  <!-- WhatsApp -->
-  <div class="wpp-box">
-    <p>Prefere conversar com um especialista antes de adquirir o relatório?</p>
-    <a class="wpp-btn" id="wpp-link" href="#" target="_blank" rel="noopener">
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.553 4.103 1.517 5.826L.057 23.571a.5.5 0 0 0 .612.612l5.78-1.515A11.946 11.946 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.801 9.801 0 0 1-5.004-1.368l-.358-.213-3.722.975.993-3.63-.234-.373A9.795 9.795 0 0 1 2.182 12C2.182 6.566 6.566 2.182 12 2.182S21.818 6.566 21.818 12 17.434 21.818 12 21.818z"/></svg>
-      Falar com especialista IBGESF
-    </a>
-  </div>
 
   <div style="text-align:center;margin-top:20px;">
     <button class="btn btn-ghost" onclick="restart()" style="font-size:13px;padding:8px 18px;">
@@ -1564,6 +1573,18 @@ async function fileToBase64(file) {
 
 // Prioridade de arquivos para extração: DRE > DFC > Balanço > Nota > outros
 // Isso garante que a receita seja extraída de DRE e não de balanço ou nota explicativa
+// Nomes de arquivo que claramente NÃO são documentos financeiros de DRE/Balanço/DFC.
+// Esses arquivos podem conter números (preços, quantidades, IDs de cliente) que confundem
+// o extrator e causam falsos positivos na receita.
+const _NON_FINANCIAL_RX = /tabela.?de.?pre[çc]o|lista.?de.?pre[çc]o|proposta|cotac|orcamento|cliente|scardlet|contrato|fatura|nota.?fiscal|nf.?e|boleto|pedido|ordem.?de.?compra|catalog|produto/i;
+
+function _isFinancialDoc(file) {
+  // Aceita se nome sugere documento financeiro explícito, ou se não é claramente não-financeiro
+  const name = file.name;
+  if (_NON_FINANCIAL_RX.test(name)) return false;
+  return true;
+}
+
 function _sortPdfsByPriority(files) {
   const PRIO = [
     /\bdre\b|\bdemonstra[çc][ão][oa]?\s*(do\s*)?resultado/i,
@@ -1572,7 +1593,11 @@ function _sortPdfsByPriority(files) {
     /\bnota.?exp/i,
     /\brelat/i,
   ];
-  return [...files].sort((a, b) => {
+  // Filtra primeiro documentos claramente não-financeiros
+  const financialOnly = files.filter(_isFinancialDoc);
+  // Se filtrar demais (todos não-financeiros), usa lista original como fallback
+  const toSort = financialOnly.length > 0 ? financialOnly : [...files];
+  return toSort.sort((a, b) => {
     const pa = PRIO.findIndex(rx => rx.test(a.name));
     const pb = PRIO.findIndex(rx => rx.test(b.name));
     const sa = pa === -1 ? 99 : pa;
@@ -1602,7 +1627,8 @@ async function _callWorkerOneFile(file) {
 }
 
 // Consolida indicadores de múltiplas extrações — por campo, usa o valor de maior confiança.
-// Se o mesmo campo aparece em vários PDFs, prevalece o de confiança "alta" > "media" > "baixa"
+// Receita: em empate de confiança, prevalece o MAIOR valor (receita bruta > líquida > subtotal).
+// Após consolidar, guard de plausibilidade: receita < R$500k descartada (ruído de balanço/tabela).
 function _consolidateIndicadores(lista) {
   const PESO = { alta: 3, media: 2, baixa: 1, 'nao-encontrado': 0 };
   const CHAVES = ['receita_bruta','receita_liquida','ebitda','fco','capex','divida_financeira','caixa'];
@@ -1614,9 +1640,19 @@ function _consolidateIndicadores(lista) {
       const it = ind[k];
       if (!it || it.valor_normalizado == null) continue;
       const p = PESO[it.confianca] ?? 0;
-      if (p > bestPeso) { best = it; bestPeso = p; }
+      // Receita: em empate de confiança prefere o maior valor (1ª linha DRE = receita bruta)
+      const isReceita = k === 'receita_bruta' || k === 'receita_liquida';
+      const betterValue = isReceita && p === bestPeso && it.valor_normalizado > (best?.valor_normalizado || 0);
+      if (p > bestPeso || betterValue) { best = it; bestPeso = p; }
     }
     result[k] = best || { valor_normalizado: null, confianca: 'nao-encontrado' };
+  }
+  // Guard pós-consolidação: receita < R$500k é implausível para empresa em valuation
+  for (const k of ['receita_bruta','receita_liquida']) {
+    if (result[k]?.valor_normalizado != null && result[k].valor_normalizado < 500000) {
+      console.warn('[Consolidate] ' + k + ' < R$500k descartada:', result[k].valor_normalizado, 'conf:', result[k].confianca);
+      result[k] = { valor_normalizado: null, confianca: 'nao-encontrado' };
+    }
   }
   return result;
 }
@@ -1708,6 +1744,14 @@ function mergeWorkerResult(docR, workerR, _docName, forceOverride) {
     const clientMissing = !docR[dKey];
     // forceOverride=true: Worker PDF nativo substitui sempre (mais preciso)
     // forceOverride=false: Worker texto só substitui se client-side falhou
+    // Guard absoluto de receita: PME mínima para avaliação tem pelo menos R$500k de receita.
+    // Qualquer valor abaixo disso vindo do Worker é ruído — preço unitário, ativo de balanço,
+    // código contábil ou item de tabela de preços. Bloqueia INDEPENDENTE da confiança declarada,
+    // porque o Worker pode declarar "alta" ao extrair "Receitas a receber: 100.000" de um balanço.
+    if (dKey === 'receita' && wVal < 500000) {
+      console.warn('[Worker merge] Receita < R$500k bloqueada (independente de confiança):', wVal, 'conf:', wField.confianca);
+      continue;
+    }
     if (forceOverride || clientMissing || clientHasSuspect) {
       merged[dKey] = wVal;
       // Registra no EVIDENCE com origem 'extracted' + fonte = Worker+IA
@@ -1855,7 +1899,7 @@ const SECTOR_KEYWORDS = [
   { key:'energia',     rx:/\b(?:energia|el[eé]trica|solar|e[oó]lica|utilities|saneamento|g[aá]s\s+natural|distribuidora\s+de\s+energia)\b/i },
   { key:'telecom',     rx:/\b(?:telecom|telecomunica[çc][ãa]o|internet|provedora|fibra\s+[oó]ptica|isp\b)\b/i },
   { key:'farma',       rx:/\b(?:farmac[eê]utica|rem[eé]dio|medicamento|biotech|biotecnologia|farm[aá]cia)\b/i },
-  { key:'servicos',    rx:/\b(?:servi[çc]os?\s+profissionais|prestadora\s+de\s+servi[çc]os?|terceiriza[çc][ãa]o|outsourcing|BPO)\b/i },
+  { key:'servicos',    rx:/\b(?:servi[çc]os?\s+profissionais|prestadora\s+de\s+servi[çc]os?|terceiriza[çc][ãa]o|outsourcing|BPO|setor\s+de\s+servi[çc]os?|empresa\s+de\s+servi[çc]os?|servi[çc]os?\s+especializados?|[úu]nica\s+atividade\s+de\s+servi[çc]o)\b/i },
 ];
 
 function detectSector(t) {
@@ -1908,45 +1952,63 @@ function showPhase(p) {
 
 // ── Verificação de associado ─────────────────────────────────────────────────
 let _memberCheckTimer = null;
+// Emails de associados/administradores confirmados — fallback quando o Worker não responde
+// ou quando o cadastro ainda não foi migrado para o Worker.
+const _MEMBROS_CONFIRMADOS = [
+  'hcayuela@gmail.com',
+  'hcayuela@techne.com.br',
+  'hugo.cayuela@ibgovernancaeestrategia.com.br',
+  'silvana.vallim@ibgovernancaeestrategia.com.br',
+  'hugo.cayuela@techne.com.br',
+];
+
 async function checkMembership(email) {
+  const e = (email || '').trim().toLowerCase();
+  // Verifica lista local primeiro (admins e associados confirmados)
+  if (_MEMBROS_CONFIRMADOS.includes(e)) return true;
+  // Tenta o Worker remoto
   try {
     const r = await fetch(WORKER_URL + '/check-member', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email: e }),
+      signal: AbortSignal.timeout(8000),
     });
-    if (!r.ok) return null;
+    if (!r.ok) return false; // Worker respondeu mas email não encontrado
     const d = await r.json();
     return d.membro === true;
-  } catch { return null; }
+  } catch {
+    // Falha de conexão — não é "não associado", é erro técnico
+    // Retorna false para mostrar mensagem adequada (não null que ocultaria o badge)
+    return false;
+  }
 }
 
 function onEmailInput(val) {
   clearTimeout(_memberCheckTimer);
-  const badge = document.getElementById('member-badge');
+  const badge      = document.getElementById('member-badge');
+  const checking   = document.getElementById('mb-checking');
+  const mbMember   = document.getElementById('mb-member');
+  const mbNonMember= document.getElementById('mb-nonmember');
+  function showState(state) {
+    checking.hidden    = state !== 'checking';
+    mbMember.hidden    = state !== 'member';
+    mbNonMember.hidden = state !== 'nonmember';
+  }
   if (!val || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
-    badge.hidden = true; return;
+    badge.hidden = true; showState('none'); return;
   }
   // mostra "verificando..."
   badge.hidden = false;
-  badge.style.background = 'rgba(90,112,128,.12)';
-  badge.style.border = '1px solid rgba(90,112,128,.25)';
-  document.getElementById('member-badge-icon').textContent = '⏳';
-  document.getElementById('member-badge-text').textContent = 'Verificando cadastro…';
+  showState('checking');
 
   _memberCheckTimer = setTimeout(async () => {
     const membro = await checkMembership(val.trim().toLowerCase());
     if (membro === true) {
-      badge.style.background = 'rgba(36,84,60,.15)';
-      badge.style.border = '1px solid rgba(36,84,60,.4)';
-      document.getElementById('member-badge-icon').textContent = '✅';
-      document.getElementById('member-badge-text').innerHTML = '<strong style="color:#24543c">Associado IBGESF</strong> — relatório completo desbloqueado';
+      showState('member');
       S.associado = true;
     } else if (membro === false) {
-      badge.style.background = 'rgba(227,181,5,.10)';
-      badge.style.border = '1px solid rgba(227,181,5,.30)';
-      document.getElementById('member-badge-icon').textContent = '⭐';
-      document.getElementById('member-badge-text').innerHTML = 'Não associado — <a href="https://www.ibgovernancaeestrategia.com.br/associe-se-ibgesf" target="_blank" style="color:var(--amber)">associe-se para o relatório completo</a>';
+      showState('nonmember');
       S.associado = false;
     } else {
       badge.hidden = true;
@@ -1964,8 +2026,7 @@ function goInput() {
   err.classList.remove('on');
   S.name = name; S.email = email;
 
-  const msg = encodeURIComponent('Olá! Fiz o valuation pelo site do IBGESF e gostaria de conversar.');
-  document.getElementById('wpp-link').href = 'https://wa.me/5511972657082?text='+msg;
+  // wpp-link removido v47
 
   showPhase('input');
 
@@ -2250,7 +2311,8 @@ function handleFiles(inp) {
     }, 600);
     markDocDone(i, fname);
     // Já atualiza o painel parcialmente (sem alterar a barra — _loadingFiles=true)
-    _docText = docTexts.join('\n');
+    // Exclui texto de documentos não-financeiros para não contaminar a extração de receita
+    _docText = docTexts.filter((_, idx) => _isFinancialDoc(files[idx])).join('\n');
     _docFileName = fname;
     parseText().then(() => { updatePanel(); checkReady(); });
   }
@@ -2285,7 +2347,7 @@ function handleFiles(inp) {
       return onFileLoaded(i, txt, f.name);
     }).catch(()  => onFileLoaded(i, '',  f.name));
   })).then(() => {
-    _docText = docTexts.join('\n');
+    _docText = docTexts.filter((_, idx) => _isFinancialDoc(files[idx])).join('\n');
     parseText().then(() => {
       updatePanel(); checkReady();
 
@@ -2374,9 +2436,13 @@ function parseNum(s) {
 }
 
 function firstNum(slice) {
-  // Captura número no formato BR com sufixo contábil opcional: "8.412.662,66 C" ou "(1.441.505,58 D)"
-  const m = slice.match(/(-?\(?\s*[\d]{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?\s*\)?|\(?\s*\d[\d.,]*\s*\)?)\s*(?:mil(?:hões?)?|milh|M|B|bilh)?\s*\b([CD])\b/i)
-         || slice.match(/(-?\(?\s*[\d]{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?\s*\)?|\(?\s*\d[\d.,]*\s*\)?)\s*(?:mil(?:hões?)?|milh|M|B|bilh)?/i);
+  // Formato contábil brasileiro: "8.412.662,66 C" ou "(1.441.505,58 D)" — sufixo C/D é PARTE do número
+  // A regex captura o número completo incluindo sufixo para parseNum interpretar corretamente
+  // Ordem: tenta com sufixo C/D primeiro (formato ERP: Domínio, Alterdata, Questor, Totvs)
+  const mCD = slice.match(/(-?\(?\s*[\d]{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?\s*\)?)\s+([CD])(?=[\s\n\r,;|]|$)/i);
+  if (mCD) return parseNum(mCD[1] + ' ' + mCD[2]); // passa "8.412.662,66 C" para parseNum
+  // Sem sufixo: número padrão com parênteses (negativo) ou sinal de menos
+  const m = slice.match(/(-?\(?\s*[\d]{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?\s*\)?|\(?\s*\d[\d.,]*\s*\)?)\s*(?:mil(?:hões?)?|milh|M|B|bilh)?/i);
   return m ? parseNum(m[0]) : null;
 }
 
@@ -2402,23 +2468,38 @@ function findBestNum(text, labelRx, range, minRaw) {
   if (!m) return null;
   const start = m.index + m[0].length;
   const slice = text.slice(start, start + range);
-  // Coleta TODOS os números no slice, com posição
-  const numRx = /(-?\(?\s*[\d]{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?\s*\)?|\(?\s*\d{4,}(?:[.,]\d{1,2})?\s*\)?)/g;
+  // Coleta TODOS os números no slice — inclui sufixo contábil C/D (ex: "8.412.662,66 C")
+  // O sufixo C = Crédito (positivo), D = Débito (negativo)
+  const numRx = /(-?\(?\s*[\d]{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?\s*\)?|\(?\s*\d{4,}(?:[.,]\d{1,2})?\s*\)?)\s*\b([CD])\b/gi;
+  const numRxPlain = /(-?\(?\s*[\d]{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?\s*\)?|\(?\s*\d{4,}(?:[.,]\d{1,2})?\s*\)?)/g;
   let match;
   const candidates = [];
+  // Primeiro tenta com sufixo C/D (formato contábil brasileiro)
   while ((match = numRx.exec(slice)) !== null) {
-    // Ignora se precedido por % (percentual) ou por letra de código contábil (ex: "3.01.01")
+    const suffix = match[2].toUpperCase();
+    if (suffix === 'D') continue; // Débito = negativo/despesa, ignora para receita
     const before = slice.slice(Math.max(0, match.index - 3), match.index);
     if (/%\s*$/.test(before)) continue;
-    const v = parseNum(match[0]);
-    if (v === null || isNaN(v)) continue;
-    if (v > 0) candidates.push({ v, pos: match.index });
+    const v = parseNum(match[1]);
+    if (v === null || isNaN(v) || v <= 0) continue;
+    candidates.push({ v, pos: match.index, hasCreditSuffix: true });
+  }
+  // Se não encontrou com sufixo C, tenta formato padrão
+  if (candidates.length === 0) {
+    while ((match = numRxPlain.exec(slice)) !== null) {
+      const before = slice.slice(Math.max(0, match.index - 3), match.index);
+      if (/%\s*$/.test(before)) continue;
+      const v = parseNum(match[0]);
+      if (v === null || isNaN(v) || v <= 0) continue;
+      candidates.push({ v, pos: match.index, hasCreditSuffix: false });
+    }
   }
   // Filtra por limiar mínimo (evita códigos contábeis, alíquotas)
   const plausible = candidates.filter(c => c.v >= minRaw);
   if (plausible.length === 0) return null;
-  // Retorna o PRIMEIRO dos plausíveis (na DRE, receita é sempre a primeira linha de valor relevante)
-  return plausible[0].v;
+  // Prioriza valores com sufixo C (crédito); senão o primeiro plausível
+  const withCredit = plausible.filter(c => c.hasCreditSuffix);
+  return (withCredit.length > 0 ? withCredit[0] : plausible[0]).v;
 }
 
 function findAll(text, labelRx, maxRange) {
@@ -2596,34 +2677,48 @@ function extractDocFinancials(doc) {
   // e também o MAIOR valor — usa max dos C/D como confirmação, mas filtra
   // valores < receita provável (ex: itens de balanço > DRE não devem vencer).
   if (!r.receita) {
-    // Usa seção DRE já identificada (ou primeiros 8000 chars como fallback)
-    const fallbackDre = dreSection || t.slice(0, 8000);
+    // Usa seção DRE já identificada (ou primeiros 10000 chars como fallback)
+    const fallbackDre = dreSection || t.slice(0, 10000);
     const allNums = [];
     // Prioridade 1: sufixo contábil C (Crédito = receita/positivo)
-    const numRxCD = /\(?(\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{1,2})?|\d{4,}(?:[.,]\d{1,2})?)\)?\s*\b([CD])\b/gi;
-    let nm;
-    while ((nm = numRxCD.exec(fallbackDre)) !== null) {
-      if (nm[2].toUpperCase() === 'D') continue;
-      const v = parseNum(nm[1]);
-      if (v > 0) allNums.push(v);
+    // Procura especificamente após labels de receita de serviços/vendas
+    const receitaLabelRx = /receita\s+da\s+venda\s+de\s+(?:servi[çc]os?|produtos?)|servi[çc]os?\s+prestados?|receita\s+bruta|receitas?\s+operacionais?/gi;
+    let rlm;
+    while ((rlm = receitaLabelRx.exec(fallbackDre)) !== null) {
+      const sliceAfter = fallbackDre.slice(rlm.index + rlm[0].length, rlm.index + rlm[0].length + 350);
+      // Busca número com sufixo C no trecho após o label
+      const cdM = sliceAfter.match(/(\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{1,2})?)\s*C\b/i);
+      if (cdM) {
+        const v = parseNum(cdM[1]);
+        if (v >= 50000) { allNums.push(v); break; }
+      }
     }
-    // Prioridade 2: sem sufixo, ignora números negativos e muito pequenos
+    // Prioridade 2: qualquer número C grande na DRE (pega o maior entre os primeiros da seção)
+    if (allNums.length === 0) {
+      const numRxCD = /\(?(\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{1,2})?|\d{4,}(?:[.,]\d{1,2})?)\)?\s*\b([CD])\b/gi;
+      let nm;
+      const creditNums = [];
+      while ((nm = numRxCD.exec(fallbackDre)) !== null) {
+        if (nm[2].toUpperCase() === 'D') continue;
+        const v = parseNum(nm[1]);
+        if (v >= 50000) creditNums.push(v);
+      }
+      // Receita bruta = PRIMEIRO valor C encontrado na DRE (primeira linha = receita bruta, antes das deduções)
+      if (creditNums.length > 0) allNums.push(creditNums[0]);
+    }
+    // Prioridade 3: sem sufixo, ignora números negativos e muito pequenos
     if (allNums.length === 0) {
       const numRxPlain = /\(?(\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{1,2})?|\d{4,}(?:[.,]\d{1,2})?)\)?/g;
+      let nm;
       while ((nm = numRxPlain.exec(fallbackDre)) !== null) {
         const before = fallbackDre.slice(Math.max(0, nm.index - 2), nm.index);
         if (before.trim().endsWith('(')) continue;
         const v = parseNum(nm[1]);
-        // Receita mínima plausível: R$50k (evita capturar alíquotas, linhas de deduções, percentuais)
         if (v >= 50000) allNums.push(v);
       }
     }
-    // Usa o PRIMEIRO grande valor da DRE (Receita Bruta é sempre a primeira linha),
-    // NÃO o máximo (que poderia ser total do ativo ou outro item fora da DRE)
     if (allNums.length > 0) {
-      const firstLarge = allNums[0];
-      const scaled = applyScale(firstLarge);
-      // Receita mínima plausível após escala: R$50k
+      const scaled = applyScale(allNums[0]);
       if (scaled >= 50000) r.receita = scaled;
     }
   }
@@ -2640,8 +2735,18 @@ function extractDocFinancials(doc) {
   // ── EBITDA / LAJIDA ──
   // Lógica M&A: EBITDA = Lucro Operacional + Depreciação + Amortização
   // NUNCA usar "Lucro Bruto" (= Receita − CMV, muito acima do EBITDA)
-  // NUNCA usar "Lucro Operacional" sem confirmação de D&A adicionados
+  // Prioridade: label direto > cálculo sintético (LAJIR + D&A) > proxy LAIR/LAJIR > lucro líquido
   // Sinônimos completos: CPC/IFRS, Simples Nacional, todos os ERPs brasileiros
+
+  // Helper: extrai valor (positivo ou negativo) de linha específica na DRE
+  function findSigned(rx, range, txt) {
+    const src = txt || tDRE;
+    const m = src.match(rx);
+    if (!m) return null;
+    const slice = src.slice(m.index + m[0].length, m.index + m[0].length + (range||600));
+    return firstNum(slice); // pode ser negativo (despesa)
+  }
+
   r.ebitda = tryAll([
     /\bebitda\s+ajustado\b/i,
     /\bebitda\b/i,
@@ -2655,12 +2760,56 @@ function extractDocFinancials(doc) {
     /lucro\s+operacional\s+(?:antes\s+de\s+(?:ir|resultado\s+financ)|ajustado)/i,
     /resultado\s+antes\s+do\s+resultado\s+financeiro\s+e\s+tributos/i,
     /resultado\s+antes\s+dos?\s+tributos\s+(?:sobre\s+(?:o\s+)?lucro|e\s+resultado\s+financeiro)/i,
-    // Aceita LAIR/LAJIR como proxy (pré-impostos, pré-financeiro, sem D&A)
-    /\blair\b/i,
-    /\blajir\b/i,
-    // Lucro líquido como ÚLTIMO RECURSO — somente se nenhum acima encontrado
-    /lucro\s+l[íi]quido/i,
   ], 800, tDRE);
+
+  // Cálculo sintético M&A: LAJIR/EBIT + Depreciação + Amortização (linhas da própria DRE)
+  // Usado quando não há label direto de EBITDA mas DRE tem Lucro Operacional + D&A separados
+  if (!r.ebitda) {
+    const lajirRxs = [
+      /lucro\s+(?:antes\s+do\s+resultado\s+financeiro\s+e\s+(?:dos?\s+)?(?:tributos|impostos)|operacional\s+antes\s+(?:dos?\s+)?(?:ir|tributos|resultado\s+financ))/i,
+      /resultado\s+operacional\s+antes\s+(?:do\s+)?(?:ir|resultado\s+financeiro|tributos)/i,
+      /\blair\b/i, /\blajir\b/i, /\bebit\b/i,
+    ];
+    const depRxs = [
+      /deprecia[çc][ãa]o\s+(?:e\s+amortiza[çc][ãa]o|acumulada)?/i,
+      /deprecia[çc][ãa]o\s*[+e]?\s*amortiza[çc][ãa]o/i,
+      /amortiza[çc][ãa]o\s+(?:e\s+deprecia[çc][ãa]o)?/i,
+      /dep[.]\s*e\s*amort[.]/i,
+      /\bd[&e]a\b/i, /\bda\b(?=\s+\d)/i,
+    ];
+    let lajir = null;
+    for (const rx of lajirRxs) {
+      const v = findNear(tDRE, rx, 600);
+      if (v && v > 0) { lajir = applyScale(v); break; }
+    }
+    // D&A pode aparecer como adição (positiva) no DFC indireto ou como dedução (negativa) na DRE
+    let da = null;
+    for (const rx of depRxs) {
+      // Busca na DRE primeiro, depois no DFC (método indireto lista D&A como adição)
+      let v = findNear(tDRE, rx, 500);
+      if (v === null) v = findNear(tDFC, rx, 500);
+      if (v !== null) { da = applyScale(Math.abs(v)); break; }
+    }
+    if (lajir && da && lajir > 0 && da > 0) {
+      const candidato = lajir + da;
+      // Sanity check: EBITDA sintético deve ser > LAJIR e < Receita
+      if (candidato > lajir && (!r.receita || candidato < r.receita)) {
+        r.ebitda = Math.round(candidato);
+        const _fE = v => 'R$'+Math.round(v).toLocaleString('pt-BR');
+        r._ebitdaFormula = `LAJIR ${_fE(lajir)} + D&A ${_fE(da)}`;
+      }
+    }
+  }
+
+  // Fallback proxy: LAIR ou LAJIR como aproximação (sem D&A adicionados)
+  if (!r.ebitda) {
+    r.ebitda = tryAll([
+      /\blair\b/i,
+      /\blajir\b/i,
+      /lucro\s+l[íi]quido/i,
+    ], 800, tDRE);
+  }
+
   // Guard: EBITDA > Receita é impossível
   if (r.ebitda && r.receita && r.ebitda > r.receita * 0.98) { r._ebitdaSuspeito = true; r.ebitda = null; }
   // Guard: EBITDA margem fora de -100% a +80% é suspeito
@@ -2668,6 +2817,7 @@ function extractDocFinancials(doc) {
   if (r.ebitda) {
     setEvidence('ebitda', { label:'EBITDA', rawValue: r.ebitda, origin:'extracted',
       state:'validated', period: String(r._docYear||''), scale: r._scale||'',
+      formula: r._ebitdaFormula || 'Extraído da DRE',
       evidence: dreSection ? dreSection.substring(0,200) : '' });
   }
 
@@ -2931,11 +3081,14 @@ function extractDocFinancials(doc) {
   })();
 
   // ── CAPEX — Investimentos em Ativo Imobilizado (M&A Grade) ──
-  // Estratégia de analista: localizar seção de atividades de investimento no DFC
-  // e somar todas as aquisições de ativos (cada item aparece como saída de caixa negativa)
+  // Estratégia de analista M&A / auditor (3 camadas de fallback):
+  // 1ª: DFC — seção "Atividades de Investimento" (somar linhas de aquisição)
+  // 2ª: Notas Explicativas — tabela de movimentação do Imobilizado (Adições/Aquisições)
+  // 3ª: Balanço Patrimonial — variação bruta do Imobilizado entre anos (ΔImob + Depreciação)
   (function() {
     // 1. Encontrar a seção de Atividades de Investimento no DFC
-    const invSecRx = /atividades?\s+de\s+investimento|fluxo[s]?\s+de\s+(?:caixa\s+(?:das?|pelas?)\s+)?atividades?\s+de\s+investimento/i;
+    // Regex expandida para cobrir variações PME: "Investimentos", "Fluxos das Atividades de Invest."
+    const invSecRx = /atividades?\s+de\s+investimento|fluxo[s]?\s+(?:de\s+caixa\s+)?(?:das?\s+|pelas?\s+)?atividades?\s+de\s+investimento|fluxos?\s+das?\s+atividades?\s+de\s+investimento|(?:^|\n)\s*investimentos?\s*(?:\n|:)/im;
 
     // Lista de padrões de linha de CAPEX — cada um é uma saída de caixa (negativa no DFC)
     const capexLineRxs = [
@@ -2982,10 +3135,79 @@ function extractDocFinancials(doc) {
     // 3. Se somou múltiplas linhas, usar total; caso contrário busca individual
     if (found && capexTotal > 0) {
       r.capex = Math.round(capexTotal);
+      r._capexSource = 'DFC — soma de aquisições na seção de Investimentos';
     } else {
-      // Fallback: busca individual na seção DFC
+      // Fallback DFC: busca individual na seção completa
       const capexRaw = tryAllSigned(capexLineRxs, 900, tDFC);
-      if (capexRaw !== null) r.capex = Math.abs(capexRaw);
+      if (capexRaw !== null) { r.capex = Math.abs(capexRaw); r._capexSource = 'DFC — linha de aquisição de ativos'; }
+    }
+
+    // ── Fallback 2: Notas Explicativas — tabela de movimentação do imobilizado ──
+    // Padrão CPC 27: "Saldo Inicial | Adições | Baixas | Depreciação | Saldo Final"
+    // Extraímos a coluna "Adições" ou "Aquisições" da linha de Imobilizado/Intangível
+    if (!r.capex) {
+      const notasText = t; // notas podem estar no texto completo
+      const notasCapexRxs = [
+        /adi[çc][õo]es?\b(?!\s+de\s+capital)/i,          // coluna "Adições" na tabela do imob
+        /aquisi[çc][õo]es?\s+(?:de\s+)?(?:imobilizado|ativos?)/i,
+        /incorpora[çc][õo]es?\s+(?:ao|de)\s+imobilizado/i,
+        /investimentos?\s+realizados?\s+(?:em|no)\s+imobilizado/i,
+        /\badditions\b/i,                                  // notas em inglês (IFRS bilíngue)
+      ];
+      // Buscar dentro do contexto "imobilizado" ou "ativo fixo" nas notas
+      const imobCtxRx = /imobilizado|ativo[s]?\s+(?:fixo[s]?|tangível|intangível)/i;
+      const imobIdx = notasText.search(imobCtxRx);
+      if (imobIdx >= 0) {
+        const imobCtx = notasText.slice(imobIdx, imobIdx + 4000);
+        for (const rx of notasCapexRxs) {
+          const v = findNear(imobCtx, rx, 400);
+          if (v && v > 0 && applyScale(v) > 0) {
+            r.capex = Math.round(applyScale(v));
+            r._capexSource = 'Notas Explicativas — movimentação do imobilizado';
+            break;
+          }
+        }
+      }
+    }
+
+    // ── Fallback 3 (Auditor): Balanço — variação bruta do Imobilizado + Depreciação ──
+    // CAPEX ≈ Imobilizado Bruto (ano atual) − Imobilizado Bruto (ano anterior) + Depreciação do período
+    // Se só temos o líquido: busca dois valores consecutivos de "Imobilizado" no Balanço
+    if (!r.capex && balSection) {
+      const imobAllRx = /imobilizado\s+(?:l[íi]quido|bruto|total|l[íi]quido\s+de\s+deprecia[çc][ãa]o)?/gi;
+      const depPeriodRxs = [
+        /deprecia[çc][ãa]o\s+(?:do|no)\s+(?:per[íi]odo|exerc[íi]cio|ano)/i,
+        /dep[.]?\s*(?:do|no)\s+(?:per[íi]odo|exerc[íi]cio)/i,
+        /encargo[s]?\s+de\s+deprecia[çc][ãa]o/i,
+      ];
+      // Coletar todos os valores de Imobilizado no Balanço
+      const imobVals = [];
+      let mImob;
+      const balCopy = balSection;
+      const imobAllRxCopy = /imobilizado\s+(?:l[íi]quido|bruto|total)?/gi;
+      while ((mImob = imobAllRxCopy.exec(balCopy)) !== null) {
+        const slice = balCopy.slice(mImob.index + mImob[0].length, mImob.index + mImob[0].length + 300);
+        const v = firstNum(slice);
+        if (v && v > 0) imobVals.push(applyScale(v));
+      }
+      // Se temos dois valores (comparativo), delta é candidato a CAPEX líquido
+      if (imobVals.length >= 2) {
+        const delta = imobVals[0] - imobVals[1]; // recente − anterior (pode ser negativo se vendeu)
+        // Busca depreciação do período para converter líquido → bruto
+        let depPeriodo = 0;
+        for (const rx of depPeriodRxs) {
+          const dv = findNear(tDFC || t, rx, 500);
+          if (dv && dv > 0) { depPeriodo = applyScale(dv); break; }
+        }
+        const capexEstimado = delta + depPeriodo;
+        if (capexEstimado > 0 && (!r.receita || capexEstimado < r.receita * 0.8)) {
+          r.capex = Math.round(capexEstimado);
+          const _f = v => 'R$'+Math.round(v).toLocaleString('pt-BR');
+        r._capexSource = depPeriodo > 0
+            ? `Balanço — ΔImobilizado (${_f(delta)}) + Depreciação do período (${_f(depPeriodo)})`
+            : `Balanço — variação do Imobilizado entre anos (estimativa)`;
+        }
+      }
     }
   })();
 
@@ -2998,8 +3220,8 @@ function extractDocFinancials(doc) {
   if (r.capex) {
     setEvidence('capex', { label:'CAPEX', rawValue: r.capex, origin:'extracted',
       state:'validated', period: String(r._docYear||''), scale: r._scale||'',
-      formula:'Soma de aquisições de ativos na seção "Atividades de Investimento" (DFC)',
-      evidence: dfcSection ? dfcSection.substring(0,200) : '' });
+      formula: r._capexSource || 'Soma de aquisições de ativos (DFC / Balanço / Notas)',
+      evidence: (dfcSection || balSection || '').substring(0,200) });
   }
 
   // ── FCL — Fluxo de Caixa Livre ──
@@ -3167,11 +3389,36 @@ function extractTextFinancials(t) {
   // Versão que extrai E anualiza
   const flA = (rx) => annualize(flCtx(rx));
 
-  r.receita     = flA('(?:receita|faturamento)(?:\\s+brut[ao]|\\s+l[íi]quida|\\s+total|\\s+anual)?[^\\d]{0,40}?(' + NUM_RX + ')');
+  // ── v46: Receita — padrão reverso primeiro (número ANTES do keyword é mais confiável em PT-BR)
+  // "100 milhões de faturamento anual e 10 milhões de caixa" → reverso captura 100M, não 10M
+  // Padrão forward usa gap ≤5 chars para não cruzar para o próximo campo
+  r.receita = flA('(' + NUM_RX + ')\\s*(?:de\\s+reais?\\s+)?(?:de\\s+)?(?:faturamento|receita)(?:\\s+brut[ao]|\\s+l[íi]quida|\\s+total|\\s+anual)?')
+           || flA('(?:receita|faturamento)(?:\\s+brut[ao]|\\s+l[íi]quida|\\s+total|\\s+anual)?\\s{0,3}(?:(?:de|é|foi|era)\\s)?(?:r\\$\\s*)?(' + NUM_RX + ')');
   r.ebitda      = flA('(?:ebitda|lajida|lucro\\s+operacional)[^\\d]{0,40}?(' + NUM_RX + ')')
                || flA('(' + NUM_RX + ')\\s*(?:de\\s*)?(?:ebitda|lajida)');
-  r.divida      = fl('(?:d[íi]vida[s]?|empr[eé]stimos?)[^\\d]{0,30}?(' + NUM_RX + ')');
-  r.caixa       = fl('(?:caixa|disponibilidades?|cash)[^\\d]{0,30}?(' + NUM_RX + ')');
+  // FCL e FCO — extraídos do texto livre também
+  r.fcl = flA('(?:fcl|fluxo\\s+de\\s+caixa\\s+livre)[^\\d]{0,40}?(' + NUM_RX + ')')
+       || flA('(' + NUM_RX + ')\\s*(?:de\\s+)?(?:fcl|fluxo\\s+de\\s+caixa\\s+livre)');
+  r.fco = flA('(?:fco|fluxo\\s+de\\s+caixa\\s+operacional)[^\\d]{0,40}?(' + NUM_RX + ')')
+       || flA('(' + NUM_RX + ')\\s*(?:de\\s+)?(?:fco|fluxo\\s+de\\s+caixa\\s+operacional)');
+  r.capex = flA('(?:capex|investimentos?\\s+(?:em\\s+)?ativos?\\s+fixos?)[^\\d]{0,40}?(' + NUM_RX + ')')
+          || flA('(' + NUM_RX + ')\\s*(?:de\\s+)?(?:capex|investimentos?\\s+(?:em\\s+)?ativos?\\s+fixos?)');
+  r.divida = fl('(?:d[íi]vida[s]?|empr[eé]stimos?)[^\\d]{0,30}?(' + NUM_RX + ')');
+  // ── v46: "caixa por ano" / "geração de caixa" → FCO (não saldo de balanço)
+  // Padrão reverso adicionado: "10 milhões de caixa" → capturado
+  (() => {
+    const caixaCtx = flCtx('(?:gera[çc][ãa]o|fluxo)\\s+de\\s+caixa[^\\d]{0,30}?(' + NUM_RX + ')')
+                  || flCtx('(?:caixa|disponibilidades?|cash)[^\\d]{0,30}?(' + NUM_RX + ')')
+                  || flCtx('(' + NUM_RX + ')\\s*(?:de\\s+)?(?:caixa|disponibilidade)(?:\\s+(?:livre|por\\s+ano|anual|operacional))?');
+    if (!caixaCtx || caixaCtx.v == null) return;
+    const ctx = (caixaCtx.ctx || '').toLowerCase();
+    // "caixa por ano", "caixa anual", "geração de caixa", "fluxo de caixa" → FCO
+    if (/por\s+ano|por\s+m[eê]s|anual|ao\s+ano|gera[çc][ãa]o|fluxo/.test(ctx)) {
+      if (!r.fco) r.fco = annualize(caixaCtx);
+    } else {
+      r.caixa = caixaCtx.v;
+    }
+  })();
   r.crescimento = (() => {
     const m = t.match(/(?:crescimento|cresceu|cagr)\s*(?:de|médio|anual)?\s*(?:de|é)?\s*([\d,\.]+)\s*%/i)
            || t.match(/([\d,\.]+)\s*%\s*(?:ao\s*ano|a\.a\.|por\s*ano|anual|de\s+crescimento)/i);
@@ -3274,7 +3521,7 @@ async function parseText() {
       const nomes = pdfFiles.map(f => f.name).join(', ');
       const _workerR = await callExtractionWorkerPDF(pdfFiles);
       if (_workerR) {
-        console.log('[Worker PDF] Consolidado — receita:', _workerR.receita_bruta?.valor_normalizado, 'conf:', _workerR.receita_bruta?.confianca);
+        console.log('[Worker PDF] Consolidado — receita_bruta:', _workerR.receita_bruta?.valor_normalizado, 'conf:', _workerR.receita_bruta?.confianca, '| evidência:', _workerR.receita_bruta?.linha_evidencia);
         docR = mergeWorkerResult(docR, _workerR, nomes, true); // forceOverride: PDF nativo sempre vence
         console.log('[Worker PDF] docR.receita após merge:', docR.receita);
       } else {
@@ -3295,6 +3542,37 @@ async function parseText() {
   _lastDocR = docR; // expõe para o overlay e debugging
   const txtR  = extractTextFinancials(userText);
 
+  // ── v45: Extração semântica do texto livre via Worker (Claude AI) ──────────
+  // Mesmo motor usado para PDFs — muito mais preciso que regex para linguagem
+  // natural variada. Só ativa quando o Worker está configurado e há texto útil.
+  if (userText.length > 30 && WORKER_URL && WORKER_API_KEY) {
+    try {
+      const _twR = await callExtractionWorker(userText, 'texto-livre');
+      if (_twR) {
+        const _twMap = {
+          receita_bruta:    'receita',
+          ebitda:           'ebitda',
+          fco:              'fco',
+          capex:            'capex',
+          fcl:              'fcl',
+          divida_financeira:'divida',
+          caixa:            'caixa',
+        };
+        for (const [wk, rk] of Object.entries(_twMap)) {
+          const wf = _twR[wk];
+          if (!wf || wf.valor_normalizado == null) continue;
+          const wv = wf.valor_normalizado;
+          // Guard mínimo: não aceitar receita < R$50k do texto livre
+          if (rk === 'receita' && wv < 50000) continue;
+          if (!txtR[rk]) {
+            txtR[rk] = wv;
+            console.log('[Worker Texto-livre] Preencheu', rk, '=', brl(wv,true), '| conf:', wf.confianca);
+          }
+        }
+      }
+    } catch(_e) { console.warn('[Worker Texto-livre]', _e.message); }
+  }
+
   S.receita     = docR.receita      || txtR.receita      || null;
   S.ebitda      = docR.ebitda       || txtR.ebitda       || null;
   S.divida      = docR.divida       || txtR.divida       || null;
@@ -3303,17 +3581,23 @@ async function parseText() {
   S.funcionarios= docR.funcionarios || txtR.funcionarios || null;
   S.recorrencia = docR.recorrencia  || txtR.recorrencia  || null;
   S.fundador    = txtR.fundador || null;
-  S.fco         = docR.fco   || null;
-  S.capex       = docR.capex || null;
-  // FCL guard: só calcula FCO-CAPEX se ambos vieram da mesma extração (docR)
+  S.fco         = docR.fco   || txtR.fco   || null;
+  S.capex       = docR.capex || txtR.capex || null;
+  // FCL: documentos têm prioridade; texto livre como fallback
   if (docR.fcl) {
     S.fcl = docR.fcl;
     setEvidence('fcl', { label:'FCL', rawValue: docR.fcl, origin:'extracted', state:'validated',
       evidence: docR._fclEvidence || '', period: String(docR._docYear||''), scale: docR._scale||'' });
-  } else if (docR.fco && docR.fco > 0 && docR.capex && docR.capex > 0) {
-    S.fcl = docR.fco - docR.capex;
+  } else if (txtR.fcl) {
+    S.fcl = txtR.fcl;
+    setEvidence('fcl', { label:'FCL', rawValue: txtR.fcl, origin:'text', state:'needs-review',
+      evidence:'Extraído do texto informado pelo usuário.' });
+  } else if (S.fco && S.fco > 0 && S.capex && S.capex > 0) {
+    S.fcl = S.fco - S.capex;
+    const fcoSrc = docR.fco ? brl(docR.fco,true) : brl(S.fco,true);
+    const capSrc = docR.capex ? brl(docR.capex,true) : brl(S.capex,true);
     setEvidence('fcl', { label:'FCL', rawValue: null, scaledValue: S.fcl, origin:'calculated',
-      state:'needs-review', formula:'FCO − CAPEX = ' + brl(docR.fco,true) + ' − ' + brl(docR.capex,true),
+      state:'needs-review', formula:'FCO − CAPEX = ' + fcoSrc + ' − ' + capSrc,
       period: String(docR._docYear||''), scale: docR._scale||'' });
   } else {
     S.fcl = null;
@@ -3369,7 +3653,8 @@ async function parseText() {
 
   const sel = document.getElementById('sector');
   if (!sel._manualSet) {
-    const detected = docR.sectorHint || txtR.sectorHint;
+    // Texto do usuário tem prioridade sobre documento (usuário pode corrigir setor via texto)
+    const detected = txtR.sectorHint || docR.sectorHint;
     if (detected && detected !== sel.value) {
       sel.value = detected;
       S.sector = detected;
@@ -3588,18 +3873,63 @@ function checkReady() {
   document.getElementById('calc-btn').disabled = !ok;
 }
 
-// ─── TOOLTIP MOBILE (tap to toggle) ─────────────────────────────────────────
-document.addEventListener('click', function(e) {
-  const btn = e.target.closest('.tip-icon');
-  if (btn) {
-    e.stopPropagation();
-    const wasOpen = btn.classList.contains('open');
-    document.querySelectorAll('.tip-icon.open').forEach(el => el.classList.remove('open'));
-    if (!wasOpen) btn.classList.add('open');
-    return;
+// ─── TOOLTIP SISTEMA UNIFICADO ──────────────────────────────────────────────
+// Usa #shared-tip (position:fixed) — um de cada vez, não clipado pelo panel.
+(function() {
+  const tip = document.getElementById('shared-tip');
+  if (!tip) return;
+  let _hide = null;
+
+  function pos(btn) {
+    const text = btn.getAttribute('data-tip');
+    if (!text) return;
+    tip.textContent = text;
+    tip.classList.remove('arr-down','arr-up','visible');
+    // Mede a altura renderizando fora da tela
+    tip.style.width = Math.min(240, window.innerWidth - 20) + 'px';
+    tip.style.top = '-9999px'; tip.style.left = '-9999px';
+    const h = tip.offsetHeight;
+    const r = btn.getBoundingClientRect();
+    const tw = parseInt(tip.style.width);
+    // Centro X do tooltip alinhado ao ícone, guardado na viewport
+    let lx = r.left + r.width / 2 - tw / 2;
+    lx = Math.max(8, Math.min(lx, window.innerWidth - tw - 8));
+    // Flecha: posição relativa ao tooltip
+    const ax = Math.max(12, Math.min(r.left + r.width / 2 - lx, tw - 12));
+    tip.style.setProperty('--ax', ax + 'px');
+    // Acima ou abaixo?
+    let ty, dir;
+    if (r.top - h - 10 >= 0) {
+      ty = r.top - h - 8; dir = 'arr-down';
+    } else {
+      ty = r.bottom + 6; dir = 'arr-up';
+    }
+    tip.style.left = lx + 'px';
+    tip.style.top  = ty + 'px';
+    tip.classList.add(dir, 'visible');
   }
-  document.querySelectorAll('.tip-icon.open').forEach(el => el.classList.remove('open'));
-});
+
+  function hide(delay) { _hide = setTimeout(() => tip.classList.remove('visible'), delay||0); }
+
+  document.addEventListener('mouseover', e => {
+    const b = e.target.closest('.tip-icon');
+    if (!b) return;
+    clearTimeout(_hide); pos(b);
+  });
+  document.addEventListener('mouseout', e => {
+    if (e.target.closest('.tip-icon') && !e.relatedTarget?.closest('.tip-icon')) hide(180);
+  });
+  // Click / tap (mobile)
+  document.addEventListener('click', e => {
+    const b = e.target.closest('.tip-icon');
+    if (b) {
+      e.stopPropagation();
+      tip.classList.contains('visible') && tip._src === b ? hide(0) : (clearTimeout(_hide), pos(b), tip._src = b);
+      return;
+    }
+    if (!e.target.closest('#shared-tip')) hide(0);
+  });
+})();
 
 // ─── WACC & DCF ────────────────────────────────────────────────────────────
 /* ── Regime tributário por faturamento (Lei 9.718/98 art.14) ── */
@@ -3803,7 +4133,7 @@ function calculate() {
     dcfResult = calcDCF(baseFluxo, S.crescimento, S.sector,
                         S.divida, S.caixa, S.recorrencia, S.fcl, S.receita);
   } else {
-    whyNoDCF = 'A projeção de caixa descontado requer lucro operacional (EBITDA) ou caixa operacional (FCO). Mencione esses valores no texto, ou envie a DRE e o Demonstrativo de Fluxo de Caixa para ativá-la.';
+    whyNoDCF = 'Valuation calculado por múltiplos setoriais de referência. Para empresas com faturamento até R$ 300 milhões, a metodologia principal é o FCL (Fluxo de Caixa Livre) — que exige EBITDA ou FCO (Fluxo de Caixa Operacional). Envie a DRE e o DFC (Demonstrativo de Fluxo de Caixa) para ativar o cálculo completo pelo FCL e obter maior precisão.';
   }
 
   if (dcfResult && evMultMin != null) {
@@ -3899,18 +4229,31 @@ function _updateUpgradeCTA() {
   // Não-associado: mantém fluxo padrão (botão "Quero o relatório completo" que leva à associação)
 }
 
+// Emails que recebem o relatório IMEDIATAMENTE (sem fila de 24h) — para testes
+const _IMMEDIATE_EMAILS = ['hcayuela@gmail.com'];
+
 async function _solicitarRelatorioAssociado() {
   // Envia email de solicitação via Worker (usa a infra de envio existente)
   const btn = event.target;
   btn.disabled = true; btn.textContent = 'Enviando solicitação…';
+  const isImmediate = _IMMEDIATE_EMAILS.includes((S.email||'').toLowerCase().trim());
   try {
     await fetch(WORKER_URL + '/request-report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Api-Key': WORKER_API_KEY },
-      body: JSON.stringify({ email: S.email, nome: S.name, empresa: S.empresa || '', ev_min: S.evMin, ev_max: S.evMax })
+      body: JSON.stringify({
+        email: S.email, nome: S.name, empresa: S.empresa || '',
+        ev_min: S.evMin, ev_max: S.evMax,
+        // Flag de prioridade: Worker envia imediatamente em vez de enfileirar para 24h
+        prioridade: isImmediate ? 'imediato' : 'padrao',
+      })
     });
   } catch {}
-  btn.textContent = '✅ Solicitação enviada! Verifique seu e-mail em até 24h.';
+  if (isImmediate) {
+    btn.textContent = '✅ Relatório enviado! Verifique seu e-mail agora.';
+  } else {
+    btn.textContent = '✅ Solicitação enviada! Verifique seu e-mail em até 24h.';
+  }
   btn.style.background = 'rgba(36,84,60,.8)';
 }
 
@@ -3985,6 +4328,63 @@ function doUpgrade() {
   window.open('https://www.ibgovernancaeestrategia.com.br/', '_blank');
 }
 
+function jaAssociado() {
+  // Cria modal inline para verificar e-mail de associado
+  const existing = document.getElementById('ja-assoc-modal');
+  if (existing) { existing.remove(); }
+
+  const modal = document.createElement('div');
+  modal.id = 'ja-assoc-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border-radius:14px;padding:28px 24px;width:100%;max-width:380px;box-shadow:0 8px 40px rgba(0,0,0,.4);">
+      <div style="font-size:15px;font-weight:600;color:var(--amber);margin-bottom:8px;">🎖 Verificar associação IBGESF</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.5;">Digite o e-mail cadastrado na sua associação para desbloquear o relatório completo.</p>
+      <input id="ja-assoc-email" type="email" placeholder="seu@email.com.br"
+        style="width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px;outline:none;margin-bottom:8px;box-sizing:border-box;">
+      <div id="ja-assoc-msg" style="font-size:12px;min-height:18px;margin-bottom:12px;"></div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="verificarAssociado()" style="flex:1;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">Verificar →</button>
+        <button onclick="document.getElementById('ja-assoc-modal').remove()" style="padding:11px 16px;background:transparent;border:1.5px solid var(--border);border-radius:8px;font-size:14px;color:var(--muted);cursor:pointer;">Cancelar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  setTimeout(() => document.getElementById('ja-assoc-email')?.focus(), 80);
+}
+
+async function verificarAssociado() {
+  const emailEl = document.getElementById('ja-assoc-email');
+  const msgEl   = document.getElementById('ja-assoc-msg');
+  if (!emailEl || !msgEl) return;
+  const email = emailEl.value.trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    msgEl.style.color = '#e05252';
+    msgEl.textContent = 'Digite um e-mail válido.';
+    return;
+  }
+  msgEl.style.color = 'var(--amber)';
+  msgEl.textContent = '⏳ Verificando…';
+  const membro = await checkMembership(email);
+  if (membro === true) {
+    S.associado = true;
+    S.email = email;
+    msgEl.style.color = 'var(--green)';
+    msgEl.textContent = '✅ Associado confirmado!';
+    setTimeout(() => {
+      document.getElementById('ja-assoc-modal')?.remove();
+      // Recalcula resultado já com status de associado
+      calculate();
+    }, 900);
+  } else if (membro === false) {
+    msgEl.style.color = '#e05252';
+    msgEl.textContent = '❌ E-mail não encontrado. Verifique ou solicite sua associação.';
+  } else {
+    msgEl.style.color = 'var(--amber)';
+    msgEl.textContent = '⚠ Não foi possível verificar agora. Tente novamente.';
+  }
+}
+
 // ─── OVERLAY DE ANÁLISE ────────────────────────────────────────────────────
 // Fila visual para marcar docs "lido" um por um, com delay mínimo entre eles
 let _aovMarkQueue = [];
@@ -3996,7 +4396,17 @@ function flushMarkQueue() {
   _aovMarkRunning = true;
   const { i } = _aovMarkQueue.shift();
   const st = document.getElementById('aov-doc-st-' + i);
-  if (st) { st.textContent = '✓ lido'; st.className = 'aov-doc-status done'; }
+  if (st) {
+    const item = document.getElementById('aov-doc-' + i);
+    const isFinancial = item && item.dataset.financial !== 'false';
+    if (isFinancial) {
+      st.textContent = '✓ utilizado no valuation';
+      st.className = 'aov-doc-status done';
+    } else {
+      st.textContent = '💬 discussão futura';
+      st.className = 'aov-doc-status future';
+    }
+  }
   setTimeout(() => {
     _aovMarkRunning = false;
     flushMarkQueue();
@@ -4015,13 +4425,14 @@ function showAnalysisOverlay(files) {
 
   // Lista de documentos
   const docsEl = document.getElementById('aov-docs');
-  docsEl.innerHTML = files.map((f, i) =>
-    `<div class="aov-doc-item" id="aov-doc-${i}">
+  docsEl.innerHTML = files.map((f, i) => {
+    const isFinancial = _isFinancialDoc(f);
+    return `<div class="aov-doc-item" id="aov-doc-${i}" data-financial="${isFinancial}">
        <span class="aov-doc-icon">${docIcon(f.name)}</span>
-       <span class="aov-doc-name">${f.name}</span>
+       <span class="aov-doc-name${isFinancial ? '' : ' future-name'}">${f.name}</span>
        <span class="aov-doc-status loading" id="aov-doc-st-${i}">lendo…</span>
-     </div>`
-  ).join('');
+     </div>`;
+  }).join('');
 
   document.getElementById('aov-steps').innerHTML = '';
   document.getElementById('aov-footer').hidden = true;
@@ -4054,15 +4465,17 @@ function revealAnalysisSteps() {
   const docR = _lastDocR || {};
 
   const STEPS = [
-    { label: 'Receita Bruta',                    val: S.receita,     fmt: v => brl(v, true),        section: 'Alta prioridade' },
-    { label: 'Lucro operacional (EBITDA)',        val: S.ebitda,      fmt: v => brl(v, true) },
-    { label: 'Fluxo de Caixa Operacional (FCO)', val: S.fco,         fmt: v => brl(v, true) },
-    { label: 'Crescimento anual (CAGR)',          val: S.crescimento, fmt: v => v + '% a.a.' },
-    { label: 'Dívida + Caixa',                   val: S.divida || S.caixa,
-      fmt: () => [S.divida ? 'Dívida: '+brl(S.divida,true) : null, S.caixa ? 'Caixa: '+brl(S.caixa,true) : null].filter(Boolean).join(' · '),
-      section: 'Média prioridade' },
-    { label: 'Fluxo de Caixa Livre (FCL)',        val: S.fcl,         fmt: v => brl(v, true) },
+    // ── Alta prioridade: FCL e seus componentes ──
+    { label: 'Fluxo de Caixa Livre (FCL)',        val: S.fcl,         fmt: v => brl(v, true),        section: 'Alta prioridade — FCL (metodologia principal)' },
+    { label: 'Fluxo de Caixa Operacional (FCO)',  val: S.fco,         fmt: v => brl(v, true) },
     { label: 'Investimentos em ativos (CAPEX)',   val: S.capex,       fmt: v => brl(v, true) },
+    { label: 'Dívida + Caixa',                   val: S.divida || S.caixa,
+      fmt: () => [S.divida ? 'Dívida: '+brl(S.divida,true) : null, S.caixa ? 'Caixa: '+brl(S.caixa,true) : null].filter(Boolean).join(' · ') },
+    // ── Média prioridade: complementam o FCL ──
+    { label: 'Receita Bruta',                    val: S.receita,     fmt: v => brl(v, true),        section: 'Média prioridade — complementos' },
+    { label: 'Lucro operacional (EBITDA)',        val: S.ebitda,      fmt: v => brl(v, true) },
+    { label: 'Crescimento anual (CAGR)',          val: S.crescimento, fmt: v => v + '% a.a.' },
+    // ── Complementar ──
     { label: 'Nº de funcionários',               val: S.funcionarios, fmt: v => v + ' colaboradores', section: 'Complementar' },
     { label: 'Receita recorrente',               val: S.recorrencia,  fmt: v => v + '%' },
     { label: 'Concentração de clientes',         val: S.concentracao, fmt: v => v + '% maior cliente', section: 'BTB — Compra com Crescimento' },
@@ -4171,4 +4584,7 @@ function closeAnalysisOverlay() {
     <div id="evidence-modal-body"></div>
   </div>
 </div>
+
+<!-- Tooltip compartilhado — position:fixed, nunca clipado pelo overflow:hidden do panel -->
+<div id="shared-tip" role="tooltip" aria-live="polite"></div>
 </body></html>
