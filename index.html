@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Valuation IBGESF v61</title>
+<title>Valuation IBGESF v62</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap">
 
 <!-- Leitura client-side de PDF e Excel/CSV -->
@@ -1480,6 +1480,12 @@ body {
     <span style="color:var(--muted);font-size:12px;">O FCL (Fluxo de Caixa Livre) não foi informado. A metodologia principal do IBGESF utiliza o FCL como base do FCD (Fluxo de Caixa Descontado). Sem este dado, o valuation foi calculado exclusivamente por múltiplos setoriais — metodologia de menor precisão — e o valor resultante recebeu um fator de desconto de 33,33% para refletir a incerteza adicional. Para obter o valuation completo sem desconto, envie o DFC (Demonstrativo de Fluxo de Caixa) com FCO e CAPEX.</span>
   </div>
 
+  <!-- v62: Aviso de FCL normalizado por distribuições de lucros -->
+  <div id="r-fcl-norm-warn" hidden style="background:rgba(227,181,5,.1);border:1px solid rgba(227,181,5,.35);border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--text);margin-bottom:12px;display:none;">
+    <strong style="color:#7a5c00;">⚠️ FCL normalizado</strong><br>
+    <span id="r-fcl-norm-msg" style="color:var(--muted);font-size:12px;"></span>
+  </div>
+
   <!-- v2.0: Resumo pré-envio (aparece antes do CTA de relatório) -->
   <div id="r-presend-summary" hidden style="background:rgba(15,65,93,.06);border:1px solid rgba(15,65,93,.18);border-radius:var(--r);padding:14px 18px;font-size:13px;color:var(--text);margin-bottom:18px;display:none;">
     <div style="font-weight:700;color:var(--navy);margin-bottom:8px;">📋 Resumo da avaliação</div>
@@ -1541,6 +1547,7 @@ body {
     @media (max-width:440px) { #r-boxes { grid-template-columns:1fr !important; } }
     #r-nodcf-warn:not([hidden]) { display:block !important; }
     #r-fcl-penalty:not([hidden]) { display:block !important; }
+    #r-fcl-norm-warn:not([hidden]) { display:block !important; }
     #r-presend-summary:not([hidden]) { display:block !important; }
   </style>
 
@@ -4338,7 +4345,7 @@ function calcBTBAdjustments(evMid, S) {
   return { delta, alerts };
 }
 
-// ─── CÁLCULO PRINCIPAL v61 — Lógica Excel precisa (aba por aba) ─────────────
+// ─── CÁLCULO PRINCIPAL v62 — Lógica Excel precisa (aba por aba) ─────────────
 // Replica exatamente: 1_DRE → 4_Normalizacao → 5_Valuation → equity bridge
 // Pesos: SDE 20% + EBITDA_adj 20% + FCD 60% (template B67:B69)
 // WACC fixo template: (1-0.30)*0.245 + 0.30*0.16*(1-0.34) = 0.20318
@@ -4403,6 +4410,22 @@ function calculate() {
   if (S.fcl != null && S.fcl > 0)                              fclBase = S.fcl;
   else if (S.fco != null && S.capex != null)                   fclBase = S.fco - S.capex;
   else if (S.fco != null)                                      fclBase = S.fco - S.fco*CAPEX_pct;
+
+  // ─── Normalização de FCL distorcido por distribuições de lucros ───────────
+  // Empresas de Lucro Presumido frequentemente distribuem lucros via adiantamentos
+  // de sócios, que aparecem no DFC como saída no FCO, tornando o FCL muito baixo.
+  // Se EBITDA > FCO*3, há indício de distorção por distribuições.
+  let fclNormalizado = false;
+  let fclNormMsg = '';
+  if (S.ebitda && S.fco != null && S.ebitda > Math.abs(S.fco) * 3) {
+    const fclCalc = S.ebitda + (S.depreciacao || 0) - (S.capex || 0);
+    if (fclBase === null || (fclCalc > 0 && fclCalc > fclBase * 3)) {
+      console.log('[FCL norm] FCL distorcido por distribuições. FCL orig:', fclBase, '→ FCL norm:', fclCalc);
+      fclNormMsg = `FCL normalizado (${brl(fclCalc, true)}) — FCL do DFC (${brl(fclBase || 0, true)}) foi distorcido por distribuições de lucros aos sócios`;
+      fclBase = fclCalc;
+      fclNormalizado = true;
+    }
+  }
 
   // Projeta FCLs anos 1-5 (H33 = último ano = FCL base do TV)
   const fcls = [];
@@ -4558,6 +4581,16 @@ function calculate() {
   const penEl = document.getElementById('r-fcl-penalty');
   if (penEl) penEl.hidden = !fclPenaltyApplied;
 
+  // Aviso FCL normalizado por distribuições
+  const fclNormEl = document.getElementById('r-fcl-norm-warn');
+  if (fclNormEl) {
+    fclNormEl.hidden = !fclNormalizado;
+    if (fclNormalizado) {
+      const msgEl = document.getElementById('r-fcl-norm-msg');
+      if (msgEl) msgEl.textContent = fclNormMsg;
+    }
+  }
+
   // WACC box
   const waccBox = document.getElementById('r-wacc-row');
   if (waccBox) {
@@ -4566,7 +4599,13 @@ function calculate() {
       const betaEl = document.getElementById('r-beta');
       if (betaEl) betaEl.textContent = B37.toFixed(2);
       const regimeEl = document.getElementById('r-regime');
-      if (regimeEl) regimeEl.textContent = '';
+      if (regimeEl) {
+        // Melhoria 3: nota informativa para Lucro Presumido (EBITDA já pós-IRPJ/CSLL)
+        const { regime: regimeAtual } = regimeTributario(S.receita, S.sector);
+        regimeEl.textContent = regimeAtual === 'Lucro Presumido'
+          ? ' · EBITDA pós-IRPJ/CSLL (Lucro Presumido)'
+          : '';
+      }
       waccBox.hidden = false;
     } else {
       waccBox.hidden = true;
@@ -4792,7 +4831,8 @@ Campos esperados (valores em R$ inteiro, sem centavos):
   "fco": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."},
   "capex": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."},
   "divida_financeira": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."},
-  "caixa": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."}
+  "caixa": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."},
+  "empresa_principal": "razão social da empresa analisada (se múltiplas entidades no documento) ou null"
 }
 
 Regras críticas:
@@ -4805,6 +4845,7 @@ Regras críticas:
 - Dívida = total de empréstimos + financiamentos (curto + longo prazo)
 - Use apenas o período mais recente (ano fiscal mais recente ou últimos 12 meses)
 - NUNCA invente valores — retorne null se não encontrar
+- IMPORTANTE: Se o documento contiver dados de MÚLTIPLAS empresas (diferentes CNPJs ou razões sociais), extraia APENAS a empresa com MAIOR receita bruta. Informe o campo "empresa_principal" com a razão social identificada.
 
 DOCUMENTO (${fileName}):
 ${textTrimmed}`;
