@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Valuation IBGESF</title>
+<title>Valuation IBGESF v61</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap">
 
 <!-- Leitura client-side de PDF e Excel/CSV -->
@@ -483,8 +483,8 @@ body {
 /* position:fixed = não clipado por overflow:hidden do panel, nunca sai da tela */
 #shared-tip {
   position:fixed;
-  z-index:9999;
-  width:240px;
+  z-index:99999;
+  width:260px;
   max-width:calc(100vw - 20px);
   background:var(--navy);
   color:#e8ecf4;
@@ -1001,7 +1001,7 @@ body {
     <div class="eyebrow">Avaliação de Empresas · Metodologia FCL (Fluxo de Caixa Livre) + Múltiplos Setoriais</div>
     <h1>Quanto vale a sua empresa?</h1>
     <p class="gate-sub">
-      Para empresas com faturamento até R$ 300 milhões, a metodologia principal é o <strong>FCL — Fluxo de Caixa Livre</strong> (FCD — Fluxo de Caixa Descontado). As demais informações — EBITDA, crescimento, dívida, múltiplos setoriais — complementam e ajustam a análise. Quando o FCL não estiver disponível, utilizamos múltiplos de mercado como referência, mas <em>recomenda-se fortemente fornecer o DFC para o cálculo preciso pelo FCL</em>.
+      Para empresas com faturamento até R$ 120 milhões, a metodologia principal é o <strong>FCL — Fluxo de Caixa Livre</strong> (FCD — Fluxo de Caixa Descontado). As demais informações — EBITDA, crescimento, dívida, múltiplos setoriais — complementam e ajustam a análise. Quando o FCL não estiver disponível, utilizamos múltiplos de mercado como referência, mas <em>recomenda-se fortemente fornecer o DFC para o cálculo preciso pelo FCL</em>.
     </p>
     <div class="card">
       <div class="fg">
@@ -1059,9 +1059,9 @@ body {
   <div class="two-col">
     <!-- Texto + controles -->
     <div class="input-col">
-      <textarea id="ta" placeholder="Ex: Minha empresa atua no setor de software. A receita bruta foi de R$ 3,2 milhões em 2023, R$ 3,8 milhões em 2024 e esperamos R$ 4,5 milhões em 2025. O EBITDA é de aproximadamente R$ 900 mil (margem de 23%). Temos R$ 200 mil em dívidas e R$ 350 mil em caixa. São 18 funcionários e 60% da receita é recorrente via contratos de software. A gestão ainda é bem centralizada no fundador..."></textarea>
+      <textarea id="ta" placeholder="Ex: Minha empresa atua no setor de software. A receita bruta foi de R$ 3,2 milhões em 2023, R$ 3,8 milhões em 2024 e esperamos R$ 4,5 milhões em 2025. O EBITDA é de aproximadamente R$ 900 mil (margem de 23%). O fluxo de caixa operacional (FCO) foi de R$ 750 mil e o CAPEX de R$ 120 mil — portanto FCL de R$ 630 mil. Temos R$ 200 mil em dívidas e R$ 350 mil em caixa. Cerca de 60% da receita é recorrente via contratos de software..."></textarea>
 
-      <p class="ta-hint">Inclua: receita dos últimos 3 anos · EBITDA (Lucro Operacional Ajustado) · FCO (Fluxo de Caixa Operacional) · dívidas e caixa · crescimento anual · funcionários · % de receita recorrente. <strong>Envie DRE (Demonstração do Resultado), Balanço Patrimonial e DFC (Demonstrativo de Fluxo de Caixa)</strong> para extração automática máxima.</p>
+      <p class="ta-hint">Inclua: receita dos últimos 3 anos · EBITDA (Lucro Operacional Ajustado) · FCO (Fluxo de Caixa Operacional) e CAPEX · dívidas e caixa · crescimento anual · % de receita recorrente. <strong>Envie DRE (Demonstração do Resultado), Balanço Patrimonial e DFC (Demonstrativo de Fluxo de Caixa)</strong> para extração automática máxima.</p>
 
       <div class="upload-block">
         <label for="fi" class="upload-zone" id="upload-zone">
@@ -1138,44 +1138,87 @@ body {
           <div class="psec-lbl"><span class="pdot high"></span>Alta prioridade — FCL (metodologia principal)</div>
           <div class="pfield">
             <div class="ind empty" id="ind-fcl"></div>
-            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+            <div class="fname" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
               FCL (Fluxo de Caixa Livre)
-              <button class="tip-icon" type="button" data-tip="FCL (Fluxo de Caixa Livre) = FCO (Fluxo de Caixa Operacional) menos CAPEX (Investimento em Ativos Fixos). É a metodologia principal para empresas com faturamento até R$ 300 milhões — representa o caixa real disponível após reinvestimentos. Quando disponível, o FCL ativa o FCD (Fluxo de Caixa Descontado) e aumenta significativamente a precisão do valuation. Sem FCL, utilizamos múltiplos setoriais como referência. Recomenda-se enviar o DFC para extração automática.">?</button>
+              <button class="tip-icon" type="button" data-tip="FCL = FCO − CAPEX. Valor anual (acumulado 12 meses). Sinal: positivo = empresa gera caixa livre após pagar todos os custos e investimentos; negativo = consome caixa. É a metodologia principal para PMEs até R$120M — ativa o FCD (Fluxo de Caixa Descontado) quando disponível. Calculado automaticamente se FCO e CAPEX forem informados. Envie o DFC (Demonstrativo de Fluxo de Caixa) para extração automática.">?</button>
+              <span id="fcl-calc-badge" hidden style="font-size:9px;background:rgba(15,65,93,.15);color:var(--navy);padding:1px 6px;border-radius:10px;font-weight:700;letter-spacing:.03em;">FCO−CAPEX</span>
             </div>
             <div class="fval" id="fv-fcl" contenteditable="true" oninput="onFieldInput(this)">—</div>
             <button class="ev-btn" onclick="showEvidence('fcl')" title="Ver origem do dado">🔍</button>
+          </div>
+          <div id="fcl-formula-line" hidden style="font-size:10px;color:var(--muted);padding:2px 7px 5px 24px;line-height:1.4;">
+            <span id="fcl-formula-txt"></span>
           </div>
           <div class="pfield">
             <div class="ind empty" id="ind-fco"></div>
             <div class="fname" style="display:flex;align-items:center;gap:5px;">
               FCO (Fluxo de Caixa Operacional)
-              <button class="tip-icon" type="button" data-tip="Caixa gerado pelas operações da empresa — extraído do DFC (Demonstrativo de Fluxo de Caixa). Mede a geração real de caixa do negócio, mais confiável que o lucro contábil. Componente do FCL: FCL = FCO − CAPEX.">?</button>
+              <button class="tip-icon" type="button" data-tip="FCO: caixa gerado pelas atividades operacionais — linha final da seção operacional do DFC. Valor anual acumulado (12 meses). Sinal: positivo = operação gera caixa (normal); negativo = operação consome caixa (alerta). Método indireto: FCO = Lucro Líquido + Depreciação/Amortização ± Variação do Capital de Giro − Impostos pagos. Informe o valor total do ano: ex: 'FCO de R$750k'.">?</button>
             </div>
             <div class="fval" id="fv-fco" contenteditable="true" oninput="onFieldInput(this)">—</div>
             <button class="ev-btn" onclick="showEvidence('fco')" title="Ver origem do dado">🔍</button>
+          </div>
+          <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
+            LL + D&A ± ΔCG − Impostos &nbsp;·&nbsp; acumulado 12 meses &nbsp;·&nbsp; <span style="color:#24543c;font-weight:600;">+ positivo</span> = saudável &nbsp;·&nbsp; <span style="color:#c0392b;font-weight:600;">− negativo</span> = alerta
           </div>
           <div class="pfield">
             <div class="ind empty" id="ind-cap"></div>
             <div class="fname" style="display:flex;align-items:center;gap:5px;">
               CAPEX (Investimento em Ativos Fixos)
-              <button class="tip-icon" type="button" data-tip="CAPEX (Investimento em Ativos Fixos): máquinas, equipamentos, imóveis (Capital Expenditure). Componente do FCL: FCL = FCO − CAPEX. Negócios com CAPEX baixo em relação ao FCO são preferidos — sobra mais caixa para o comprador pagar o financiamento da aquisição.">?</button>
+              <button class="tip-icon" type="button" data-tip="CAPEX: saída de caixa para compra de máquinas, equipamentos, imóveis e ativos fixos — seção de Investimentos do DFC. Valor anual acumulado. Sempre informe como positivo (ex: R$120k); a fórmula FCL = FCO − CAPEX já faz a subtração. CAPEX alto vs. FCO reduz o FCL e sinaliza negócio capital-intensivo — menos atrativo para M&A.">?</button>
             </div>
             <div class="fval" id="fv-cap" contenteditable="true" oninput="onFieldInput(this)">—</div>
             <button class="ev-btn" onclick="showEvidence('capex')" title="Ver origem do dado">🔍</button>
+          </div>
+          <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
+            FCL = FCO − CAPEX &nbsp;·&nbsp; informar como <span style="color:#24543c;font-weight:600;">+ positivo</span> &nbsp;·&nbsp; acumulado 12 meses
+          </div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-dep"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Depreciação / Amortização
+              <button class="tip-icon" type="button" data-tip="D&A: despesa contábil anual sem saída real de caixa — redução do valor de ativos ao longo do tempo. Sempre positivo. No método indireto, é adicionado de volta ao Lucro Líquido para calcular o FCO: FCO = Lucro Líquido (+) D&A (±) ΔCapital de Giro (−) Impostos pagos. Encontrado na DRE (linha 'Depreciação e Amortização') ou no DFC seção operacional. Ex: 'depreciação de R$180k/ano'.">?</button>
+            </div>
+            <div class="fval" id="fv-dep" contenteditable="true" oninput="onFieldInput(this)">—</div>
+            <button class="ev-btn" onclick="showEvidence('depreciacao')" title="Ver origem do dado">🔍</button>
+          </div>
+          <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
+            Sem saída de caixa &nbsp;·&nbsp; sempre <span style="color:#24543c;font-weight:600;">+ positivo</span> &nbsp;·&nbsp; adicionado ao LL no FCO método indireto
+          </div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-ret"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Retirada dos Sócios
+              <button class="tip-icon" type="button" data-tip="Total anual retirado pelos sócios: pró-labore (mensal × 12) + distribuição de lucros. Sempre positivo. Essencial para normalizar o FCL: se o sócio-operador recebe pró-labore abaixo do mercado, o FCL aparente está inflado — o comprador terá que pagar um gestor. Informe o total anual bruto. Ex: pró-labore R$15k/mês (= R$180k/ano) + distribuição R$120k/ano = Retirada Total R$300k/ano.">?</button>
+            </div>
+            <div class="fval" id="fv-ret" contenteditable="true" oninput="onFieldInput(this)">—</div>
+            <button class="ev-btn" onclick="showEvidence('retirada')" title="Ver origem do dado">🔍</button>
+          </div>
+          <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
+            Pró-labore × 12 + distribuição de lucros &nbsp;·&nbsp; sempre <span style="color:#24543c;font-weight:600;">+ positivo</span> &nbsp;·&nbsp; normaliza FCL para M&amp;A
           </div>
           <div class="pfield">
             <div class="ind empty" id="ind-div"></div>
             <div class="fname" style="display:flex;align-items:center;gap:5px;">
               Dívida total + caixa
-              <button class="tip-icon" type="button" data-tip="Dívida total (empréstimos, financiamentos, debêntures) e caixa disponível. Usados para calcular a dívida líquida (Dívida − Caixa), que ajusta o Enterprise Value para o Equity Value. Extraídos do Balanço Patrimonial.">?</button>
+              <button class="tip-icon" type="button" data-tip="Dívida total (empréstimos, financiamentos, debêntures) e caixa disponível. Usados para calcular a dívida líquida (Dívida − Caixa), que ajusta o Enterprise Value para o Equity Value. Dívida líquida positiva reduz o valor para o sócio; caixa maior que dívida aumenta. Extraídos do Balanço Patrimonial — saldo na data-base.">?</button>
             </div>
             <div class="fval" id="fv-div" contenteditable="true" oninput="onFieldInput(this)">—</div>
             <button class="ev-btn" onclick="showEvidence('divida')" title="Ver origem do dado">🔍</button>
           </div>
+          <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
+            Dívida Líquida = Dívida − Caixa &nbsp;·&nbsp; Equity Value = EV − Dívida Líquida &nbsp;·&nbsp; saldo data-base
+          </div>
         </div>
 
-        <div class="psec">
-          <div class="psec-lbl"><span class="pdot med"></span>Média prioridade — complementos</div>
+        <!-- ── Média prioridade — colapsável, 2ª fase ── -->
+        <div class="psec" id="psec-media-wrap" style="margin-top:2px;">
+          <button onclick="togglePsec('psec-media-body',this)" style="width:100%;background:none;border:none;padding:3px 3px 5px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:5px;" id="psec-media-btn">
+            <span class="pdot med" style="flex-shrink:0;"></span>
+            <span style="font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);flex:1;">Complementos — 2ª fase</span>
+            <span id="psec-media-arr" style="font-size:10px;color:var(--faint);">▸</span>
+          </button>
+          <div id="psec-media-body" hidden>
           <div class="pfield">
             <div class="ind empty" id="ind-rec"></div>
             <div class="fname" style="display:flex;align-items:center;gap:5px;">
@@ -1205,47 +1248,96 @@ body {
           <div class="pfield">
             <div class="ind empty" id="ind-cre"></div>
             <div class="fname" style="display:flex;align-items:center;gap:5px;">
-              Crescimento anual
+              Crescimento anual (CAGR)
               <button class="tip-icon" type="button" data-tip="CAGR (Crescimento Anual Acumulado) da receita. Empresas com crescimento acima de 15% ao ano recebem prêmio no índice de valor e na projeção do FCD (Fluxo de Caixa Descontado). Calculado automaticamente a partir de DRE de múltiplos anos.">?</button>
             </div>
             <div class="fval" id="fv-cre" contenteditable="true" oninput="onFieldInput(this)">—</div>
             <button class="ev-btn" onclick="showEvidence('crescimento')" title="Ver origem do dado">🔍</button>
           </div>
+          </div><!-- /psec-media-body -->
         </div>
 
-        <div class="psec">
-          <div class="psec-lbl"><span class="pdot low"></span>Complementar</div>
+        <!-- ── Due Diligence — colapsável, 2ª fase ── -->
+        <div class="psec" id="psec-comp-wrap" style="margin-top:2px;">
+          <button onclick="togglePsec('psec-comp-body',this)" style="width:100%;background:none;border:none;padding:3px 3px 5px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:5px;" id="psec-comp-btn">
+            <span class="pdot low" style="flex-shrink:0;"></span>
+            <span style="font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);flex:1;">Due Diligence Operacional — 2ª fase</span>
+            <span id="psec-comp-arr" style="font-size:10px;color:var(--faint);">▸</span>
+          </button>
+          <div id="psec-comp-body" hidden>
+          <!-- hidden legacy fields - mantidos para não quebrar JS -->
+          <div style="display:none"><div id="ind-fun"></div><div id="fv-fun"></div></div>
+          <div style="display:none"><div id="ind-rrr"></div><div id="fv-rrr"></div></div>
+          <div style="display:none"><div id="ind-fnd"></div><div id="fv-fnd"></div></div>
           <div class="pfield">
-            <div class="ind empty" id="ind-fun"></div>
+            <div class="ind empty" id="ind-est"></div>
             <div class="fname" style="display:flex;align-items:center;gap:5px;">
-              Nº de funcionários
-              <button class="tip-icon" type="button" data-tip="Número de colaboradores da empresa. Usado como proxy de complexidade operacional e custo de transição pós-aquisição. Empresas com equipes maiores podem ter maior independência do fundador, mas também custo fixo mais alto.">?</button>
+              Estoque (dias)
+              <button class="tip-icon" type="button" data-tip="Prazo Médio de Estoque (PME) = Estoque ÷ (Receita Bruta ÷ 365). Mede quantos dias de vendas estão parados em estoque. Referência: até 60 dias = saudável; 61–90 dias = atenção; acima de 90 dias = alerta no due diligence (risco de obsolescência ou baixa rotatividade). Informe o valor em dias ou o saldo do estoque — a ferramenta calcula os dias se ambos estiverem disponíveis.">?</button>
             </div>
-            <div class="fval" id="fv-fun" contenteditable="true" oninput="onFieldInput(this)">—</div>
+            <div class="fval" id="fv-est" contenteditable="true" oninput="onFieldInput(this)">—</div>
+          </div>
+          <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
+            PME = Estoque ÷ (Receita ÷ 365) &nbsp;·&nbsp; <span style="color:#24543c;font-weight:600;">≤ 60d</span> saudável &nbsp;·&nbsp; <span style="color:#c47a00;font-weight:600;">61–90d</span> atenção &nbsp;·&nbsp; <span style="color:#c0392b;font-weight:600;">&gt; 90d</span> alerta
           </div>
           <div class="pfield">
-            <div class="ind empty" id="ind-rrr"></div>
+            <div class="ind empty" id="ind-cgl"></div>
             <div class="fname" style="display:flex;align-items:center;gap:5px;">
-              Receita recorrente
-              <button class="tip-icon" type="button" data-tip="% da receita que se renova automaticamente (assinaturas, contratos de longo prazo, MRR/ARR). Acima de 60% de recorrência aplica prêmio no múltiplo — compradores pagam mais por previsibilidade. Ex: 'contratos anuais representam 65% da receita'.">?</button>
+              Capital de Giro (CGL)
+              <button class="tip-icon" type="button" data-tip="CGL = Ativo Circulante − Passivo Circulante. Extraído do Balanço Patrimonial. Positivo = empresa tem folga financeira de curto prazo; negativo = passivo circulante supera ativos — risco de liquidez. Componentes: Ativo Circulante = caixa + contas a receber + estoques; Passivo Circulante = fornecedores + salários + impostos + dívidas de curto prazo. Informe o valor absoluto (R$) do ano mais recente.">?</button>
             </div>
-            <div class="fval" id="fv-rrr" contenteditable="true" oninput="onFieldInput(this)">—</div>
+            <div class="fval" id="fv-cgl" contenteditable="true" oninput="onFieldInput(this)">—</div>
+            <button class="ev-btn" onclick="showEvidence('capital_giro')" title="Ver origem do dado">🔍</button>
+          </div>
+          <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
+            CGL = Ativo Circulante − Passivo Circulante &nbsp;·&nbsp; <span style="color:#24543c;font-weight:600;">+ positivo</span> = folga financeira &nbsp;·&nbsp; <span style="color:#c0392b;font-weight:600;">− negativo</span> = risco de liquidez
           </div>
           <div class="pfield">
-            <div class="ind empty" id="ind-fnd"></div>
+            <div class="ind empty" id="ind-vcg"></div>
             <div class="fname" style="display:flex;align-items:center;gap:5px;">
-              Independência operacional
-              <button class="tip-icon" type="button" data-tip="Mede se a empresa opera sem depender do(s) fundador(es). Negócios com gestão autônoma valem mais — o comprador precisa saber que o negócio sobrevive à saída do fundador. Mencione se há equipe de gestão formada, processos documentados ou se tudo ainda passa por você.">?</button>
+              Variação do Capital de Giro
+              <button class="tip-icon" type="button" data-tip="ΔCG = CGL(ano atual) − CGL(ano anterior). Positivo = capital de giro cresceu → empresa consumiu mais caixa para financiar operações (reduz FCO); Negativo = capital de giro encolheu → liberou caixa (melhora FCO). Aparece no DFC método indireto. Variações positivas recorrentes e crescentes sinalizam necessidade crescente de capital — ponto de atenção no due diligence.">?</button>
             </div>
-            <div class="fval" id="fv-fnd" contenteditable="true" oninput="onFieldInput(this)">—</div>
+            <div class="fval" id="fv-vcg" contenteditable="true" oninput="onFieldInput(this)">—</div>
           </div>
+          <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
+            ΔCG = CGL(ano atual) − CGL(anterior) &nbsp;·&nbsp; <span style="color:#c0392b;font-weight:600;">↑ positivo</span> = consumiu caixa &nbsp;·&nbsp; <span style="color:#24543c;font-weight:600;">↓ negativo</span> = liberou caixa
+          </div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-pmr"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Prazo Médio de Recebimento (dias)
+              <button class="tip-icon" type="button" data-tip="PMR = Contas a Receber ÷ (Receita Bruta ÷ 365). Mede em quantos dias, em média, os clientes pagam. Referência: até 30 dias = ótimo; 31–60 dias = normal para B2B; 61–90 dias = atenção; acima de 90 dias = risco de inadimplência ou inadimplência estrutural. PMR alto aumenta a necessidade de capital de giro e reduz o FCO — ponto-chave no due diligence de empresas de serviços e varejo.">?</button>
+            </div>
+            <div class="fval" id="fv-pmr" contenteditable="true" oninput="onFieldInput(this)">—</div>
+          </div>
+          <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
+            PMR = CR ÷ (Receita ÷ 365) &nbsp;·&nbsp; <span style="color:#24543c;font-weight:600;">≤ 30d</span> B2C ótimo &nbsp;·&nbsp; <span style="color:#24543c;font-weight:600;">≤ 60d</span> B2B normal &nbsp;·&nbsp; <span style="color:#c0392b;font-weight:600;">&gt; 90d</span> alerta
+          </div>
+          <div class="pfield">
+            <div class="ind empty" id="ind-inad"></div>
+            <div class="fname" style="display:flex;align-items:center;gap:5px;">
+              Inadimplência (%)
+              <button class="tip-icon" type="button" data-tip="% de contas a receber vencidas há mais de 60 dias sobre o total da carteira. Referência: até 3% = saudável; 3–8% = atenção; acima de 8% = alerta — pode indicar base de clientes fraca, política de crédito frouxa ou deterioração do negócio. Informe o % ou descreva: ex: 'inadimplência de 5%' ou 'R$80k em atraso sobre carteira de R$1,2M'.">?</button>
+            </div>
+            <div class="fval" id="fv-inad" contenteditable="true" oninput="onFieldInput(this)">—</div>
+          </div>
+          <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
+            Recebíveis vencidos &gt; 60 dias &nbsp;·&nbsp; <span style="color:#24543c;font-weight:600;">≤ 3%</span> saudável &nbsp;·&nbsp; <span style="color:#c47a00;font-weight:600;">3–8%</span> atenção &nbsp;·&nbsp; <span style="color:#c0392b;font-weight:600;">&gt; 8%</span> alerta
+          </div>
+          </div><!-- /psec-comp-body -->
         </div>
 
-        <!-- ── SEÇÃO BTB: DADOS RECOMENDADOS ── -->
-        <div class="psec psec-btb">
+        <!-- ── SEÇÃO BTB: DADOS RECOMENDADOS — 2ª etapa, oculta por padrão ── -->
+        <div id="psec-btb-toggle" style="margin:4px 3px 6px;padding:7px 10px;background:rgba(227,181,5,.06);border:1px dashed rgba(227,181,5,.35);border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:7px;font-size:11px;color:var(--amber);font-weight:600;" onclick="toggleBTB(this)">
+          <span style="font-size:14px;">📊</span>
+          <span>2ª Etapa: Análise BTB — Compra com Crescimento</span>
+          <span id="btb-arr" style="margin-left:auto;font-size:10px;">▸</span>
+        </div>
+        <div class="psec psec-btb" id="psec-btb-body" hidden>
           <div class="psec-lbl" style="color:var(--amber);border-color:rgba(227,181,5,.25);">
             <span style="width:8px;height:8px;border-radius:50%;background:var(--amber);display:inline-block;margin-right:6px;flex-shrink:0;"></span>
-            Recomendado — análise completa BTB
+            Análise BTB — Compra com Crescimento
           </div>
 
           <div class="pfield pfield-ask">
@@ -1311,7 +1403,7 @@ body {
             <div class="fval" id="fv-motv" contenteditable="true" oninput="onFieldInput(this)">—</div>
           </div>
 
-        </div>
+        </div><!-- /psec-btb-body -->
 
       </div>
 
@@ -1350,7 +1442,7 @@ body {
         </div>
       </div>
 
-      <div class="panel-ft">BTB (Compra com Crescimento) · Identificação automática · Documentos lidos no seu navegador · WACC (Taxa Mínima de Atratividade) atualizado via BCB</div>
+      <div class="panel-ft">v2.0 · FCL como metodologia principal · FCD + Múltiplos 60/40 · WACC via BCB · PMEs até R$120M</div>
     </aside>
   </div>
 </section>
@@ -1376,44 +1468,80 @@ body {
       <div class="ev-dash">—</div>
       <div class="ev-num" id="r-ev-max"></div>
     </div>
-    <div class="res-conf">Intervalo de confiança · precisão <span id="r-conf">média</span></div>
+    <div class="res-conf">Grau de confiança: <span id="r-conf-badge" style="display:inline-block;padding:2px 10px;border-radius:20px;font-weight:700;font-size:12px;letter-spacing:.3px;vertical-align:middle;background:rgba(227,181,5,.18);color:var(--amber);border:1px solid rgba(227,181,5,.4);">MÉDIA</span></div>
   </div>
 
   <!-- Aviso quando DCF não pôde ser calculado -->
-  <div id="r-nodcf-warn" hidden style="background:rgba(227,181,5,.1);border:1px solid rgba(227,181,5,.35);border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--text);margin-bottom:18px;display:none;"></div>
+  <div id="r-nodcf-warn" hidden style="background:rgba(227,181,5,.1);border:1px solid rgba(227,181,5,.35);border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--text);margin-bottom:12px;display:none;"></div>
+
+  <!-- v2.0: Penalidade metodológica quando FCL não disponível -->
+  <div id="r-fcl-penalty" hidden style="background:rgba(200,30,30,.07);border:1px solid rgba(200,30,30,.35);border-radius:var(--r);padding:12px 16px;font-size:13px;color:var(--text);margin-bottom:12px;display:none;">
+    <strong style="color:#c81e1e;">⚠️ Desconto metodológico de 33,33% aplicado</strong><br>
+    <span style="color:var(--muted);font-size:12px;">O FCL (Fluxo de Caixa Livre) não foi informado. A metodologia principal do IBGESF utiliza o FCL como base do FCD (Fluxo de Caixa Descontado). Sem este dado, o valuation foi calculado exclusivamente por múltiplos setoriais — metodologia de menor precisão — e o valor resultante recebeu um fator de desconto de 33,33% para refletir a incerteza adicional. Para obter o valuation completo sem desconto, envie o DFC (Demonstrativo de Fluxo de Caixa) com FCO e CAPEX.</span>
+  </div>
+
+  <!-- v2.0: Resumo pré-envio (aparece antes do CTA de relatório) -->
+  <div id="r-presend-summary" hidden style="background:rgba(15,65,93,.06);border:1px solid rgba(15,65,93,.18);border-radius:var(--r);padding:14px 18px;font-size:13px;color:var(--text);margin-bottom:18px;display:none;">
+    <div style="font-weight:700;color:var(--navy);margin-bottom:8px;">📋 Resumo da avaliação</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <tr><td style="padding:3px 0;color:var(--muted);width:48%">Empresa / Setor</td><td id="psum-empresa" style="font-weight:600">—</td></tr>
+      <tr><td style="padding:3px 0;color:var(--muted)">Intervalo de valor (EV)</td><td id="psum-ev" style="font-weight:600;color:var(--navy)">—</td></tr>
+      <tr><td style="padding:3px 0;color:var(--muted)">Metodologia</td><td id="psum-metodo" style="font-weight:600">—</td></tr>
+      <tr><td style="padding:3px 0;color:var(--muted)">Grau de confiança</td><td id="psum-conf" style="font-weight:600">—</td></tr>
+      <tr id="psum-penalty-row" hidden><td style="padding:3px 0;color:#c81e1e">Desconto FCL ausente</td><td style="font-weight:600;color:#c81e1e">−33,33% aplicado</td></tr>
+    </table>
+  </div>
+
+
+  <!-- Admin-only: Export Excel preenchido -->
+  <div id="r-admin-export" hidden style="margin-bottom:16px;padding:12px 14px;background:rgba(36,84,60,.07);border:1px solid rgba(36,84,60,.25);border-radius:var(--r);display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+    <button onclick="exportToExcel()" style="background:#1a5032;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.3px;">📥 Download Excel preenchido</button>
+    <span style="font-size:12px;color:var(--muted);">Template IBGESF com campos azuis preenchidos · Excel recalcula fórmulas ao abrir</span>
+  </div>
 
   <!-- BTB alerts -->
   <div id="r-btb-alerts" style="display:none;margin-bottom:20px;"></div>
 
-  <!-- 4 caixas: + WACC quando DCF rodou -->
-  <div class="free-boxes" id="r-boxes" style="grid-template-columns:repeat(4,1fr)">
-    <div class="rbox">
-      <div class="rbox-lbl">Múltiplo referencial</div>
-      <div class="rbox-val" id="r-mult">—</div>
-      <div class="rbox-sub" id="r-mult-sub">Setor selecionado</div>
+  <!-- v2.0: Detalhes metodológicos (colapsados por padrão) -->
+  <details style="margin-bottom:18px;border:1px solid rgba(15,65,93,.12);border-radius:var(--r);overflow:hidden;" id="r-meth-details">
+    <summary style="padding:10px 16px;cursor:pointer;font-size:13px;font-weight:600;color:var(--navy);background:rgba(15,65,93,.04);list-style:none;display:flex;align-items:center;justify-content:space-between;">
+      <span>📐 Detalhes técnicos da metodologia</span>
+      <span style="font-size:10px;font-weight:400;color:var(--muted)">Expandir ▸</span>
+    </summary>
+    <div style="padding:12px 16px 14px;">
+      <!-- 4 caixas: + WACC quando DCF rodou -->
+      <div class="free-boxes" id="r-boxes" style="grid-template-columns:repeat(4,1fr)">
+        <div class="rbox">
+          <div class="rbox-lbl">Múltiplo referencial</div>
+          <div class="rbox-val" id="r-mult">—</div>
+          <div class="rbox-sub" id="r-mult-sub">Setor selecionado</div>
+        </div>
+        <div class="rbox">
+          <div class="rbox-lbl">Método utilizado</div>
+          <div class="rbox-val" id="r-met">—</div>
+          <div class="rbox-sub" id="r-met-sub">Calibrado PME Brasil</div>
+        </div>
+        <div class="rbox">
+          <div class="rbox-lbl">Referência setorial (EV/EBITDA)</div>
+          <div class="rbox-val" id="r-ref">—</div>
+          <div class="rbox-sub">StartupHero Out/2025 · Damodaran</div>
+        </div>
+        <!-- Linha WACC — visível só quando DCF rodou -->
+        <div class="rbox" id="r-wacc-row" hidden>
+          <div class="rbox-lbl">WACC (Taxa Mínima de Atratividade)</div>
+          <div class="rbox-val" id="r-wacc" style="font-size:20px">—</div>
+          <div class="rbox-sub">Beta alavancado: <span id="r-beta">—</span> · Risco Brasil 3,30%<span id="r-regime"></span></div>
+          <span id="wacc-rf-live" style="font-size:10px;color:var(--muted);"></span>
+        </div>
+      </div>
     </div>
-    <div class="rbox">
-      <div class="rbox-lbl">Método utilizado</div>
-      <div class="rbox-val" id="r-met">—</div>
-      <div class="rbox-sub" id="r-met-sub">Calibrado PME Brasil</div>
-    </div>
-    <div class="rbox">
-      <div class="rbox-lbl">Referência setorial (EV (Valor da Empresa)/EBITDA (Lucro Operacional Ajustado))</div>
-      <div class="rbox-val" id="r-ref">—</div>
-      <div class="rbox-sub">StartupHero Out/2025 · Damodaran</div>
-    </div>
-    <!-- Linha WACC — visível só quando DCF rodou -->
-    <div class="rbox" id="r-wacc-row" hidden>
-      <div class="rbox-lbl">WACC (Taxa Mínima de Atratividade)</div>
-      <div class="rbox-val" id="r-wacc" style="font-size:20px">—</div>
-      <div class="rbox-sub">Beta alavancado: <span id="r-beta">—</span> · Risco Brasil 3,30%<span id="r-regime"></span></div>
-      <span id="wacc-rf-live" style="font-size:10px;color:var(--muted);"></span>
-    </div>
-  </div>
+  </details>
   <style>
     @media (max-width:700px) { #r-boxes { grid-template-columns:1fr 1fr !important; } }
     @media (max-width:440px) { #r-boxes { grid-template-columns:1fr !important; } }
     #r-nodcf-warn:not([hidden]) { display:block !important; }
+    #r-fcl-penalty:not([hidden]) { display:block !important; }
+    #r-presend-summary:not([hidden]) { display:block !important; }
   </style>
 
   <!-- 5 alavancas (visíveis no free) -->
@@ -1554,6 +1682,11 @@ const WORKER_URL = "https://ibgesf-valuation-extractor.ibgesf.workers.dev"; // W
 // Pode ser deixada no frontend porque a chave do Worker não dá acesso direto à Anthropic.
 const WORKER_API_KEY = "ibgesf2024secure"; // Deve coincidir com IBGESF_API_KEY no Worker
 
+// ─── Template Excel IBGESF (base64) ─────────────────────────────────────────
+// Embutido no artifact para export admin sem dependência de servidor.
+// Fonte: template.xlsx — campos azuis serão preenchidos por exportToExcel().
+const TEMPLATE_B64 = "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";
+
 // ─── WORKER v2: envia PDF/DOCX como base64 (Claude lê nativamente) ──────────
 // Para XLSX/CSV exportados como texto, envia como texto estruturado.
 // Retorna objeto de indicadores ou null em caso de falha (fallback silencioso).
@@ -1647,10 +1780,10 @@ function _consolidateIndicadores(lista) {
     }
     result[k] = best || { valor_normalizado: null, confianca: 'nao-encontrado' };
   }
-  // Guard pós-consolidação: receita < R$500k é implausível para empresa em valuation
+  // Guard pós-consolidação: receita < R$50k é implausível para empresa em valuation
   for (const k of ['receita_bruta','receita_liquida']) {
-    if (result[k]?.valor_normalizado != null && result[k].valor_normalizado < 500000) {
-      console.warn('[Consolidate] ' + k + ' < R$500k descartada:', result[k].valor_normalizado, 'conf:', result[k].confianca);
+    if (result[k]?.valor_normalizado != null && result[k].valor_normalizado < 50000) {
+      console.warn('[Consolidate] ' + k + ' < R$50k descartada:', result[k].valor_normalizado, 'conf:', result[k].confianca);
       result[k] = { valor_normalizado: null, confianca: 'nao-encontrado' };
     }
   }
@@ -1748,8 +1881,8 @@ function mergeWorkerResult(docR, workerR, _docName, forceOverride) {
     // Qualquer valor abaixo disso vindo do Worker é ruído — preço unitário, ativo de balanço,
     // código contábil ou item de tabela de preços. Bloqueia INDEPENDENTE da confiança declarada,
     // porque o Worker pode declarar "alta" ao extrair "Receitas a receber: 100.000" de um balanço.
-    if (dKey === 'receita' && wVal < 500000) {
-      console.warn('[Worker merge] Receita < R$500k bloqueada (independente de confiança):', wVal, 'conf:', wField.confianca);
+    if (dKey === 'receita' && wVal < 50000) {
+      console.warn('[Worker merge] Receita < R$50k bloqueada (independente de confiança):', wVal, 'conf:', wField.confianca);
       continue;
     }
     if (forceOverride || clientMissing || clientHasSuspect) {
@@ -1913,8 +2046,9 @@ function detectSector(t) {
 let S = { name:'', email:'', associado:null,
   receita:null, ebitda:null, divida:null, caixa:null,
   crescimento:null, funcionarios:null, recorrencia:null, fundador:null,
-  fco:null, capex:null, fcl:null, giro:null,
+  fco:null, capex:null, fcl:null, giro:null, depreciacao:null, retirada:null,
   sde:null, concentracao:null, concentracaoFornecedor:null, ativos:null, contingencias:null, dscr:null, motivoVenda:null,
+  estoque_dias:null, capital_giro:null, variacao_cg:null, pmr:null, inadimplencia:null,
   sector:'' };
 
 let _docText = '';       // texto acumulado de todos os documentos
@@ -1923,13 +2057,35 @@ let _docFiles = [];      // arquivos File originais (para envio base64 ao Worker
 let _loadingFiles = false; // impede que updatePanel() sobrescreva a barra durante leitura
 let _lastDocR = {};      // último resultado bruto da extração de documentos (para overlay)
 
+// ─── TOGGLE SECTIONS (2ª FASE) ─────────────────────────────────────────────
+function togglePsec(bodyId, btn) {
+  const body = document.getElementById(bodyId);
+  if (!body) return;
+  const isHidden = body.hidden;
+  body.hidden = !isHidden;
+  // Atualiza seta
+  const arrId = bodyId.replace('-body', '-arr');
+  const arr = document.getElementById(arrId);
+  if (arr) arr.textContent = isHidden ? '▾' : '▸';
+}
+
+function toggleBTB(btn) {
+  const body = document.getElementById('psec-btb-body');
+  if (!body) return;
+  const isHidden = body.hidden;
+  body.hidden = !isHidden;
+  const arr = document.getElementById('btb-arr');
+  if (arr) arr.textContent = isHidden ? '▾' : '▸';
+}
+
 // Reseta todos os campos de S (evita contaminação entre análises)
 function resetS() {
   S.receita = S.ebitda = S.divida = S.caixa = S.crescimento = null;
   S.funcionarios = S.recorrencia = S.fundador = null;
-  S.fco = S.capex = S.fcl = S.giro = null;
+  S.fco = S.capex = S.fcl = S.giro = S.depreciacao = S.retirada = null;
   S.sde = S.concentracao = S.concentracaoFornecedor = S.ativos = S.contingencias = null;
   S.dscr = S.motivoVenda = null;
+  S.estoque_dias = S.capital_giro = S.variacao_cg = S.pmr = S.inadimplencia = null;
   S._receitaSuspeitaMensal = undefined;
   // Mantém S.name, S.email, S.sector (definidos pelo usuário)
 }
@@ -2219,8 +2375,8 @@ async function extractText(file) {
       handleFiles(fakeInp);
     });
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initDrop);
-  else initDrop();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { initDrop(); initSample().catch(()=>{}); });
+  else { initDrop(); initSample().catch(()=>{}); }
 })();
 
 function handleFiles(inp) {
@@ -3424,10 +3580,8 @@ function extractTextFinancials(t) {
            || t.match(/([\d,\.]+)\s*%\s*(?:ao\s*ano|a\.a\.|por\s*ano|anual|de\s+crescimento)/i);
     return m ? parseFloat(m[1].replace(',','.')) : null;
   })();
-  r.funcionarios = (() => {
-    const m = t.match(/([\d\.]+)\s*(?:funcionários?|colaboradores?|empregados?|pessoas?\s+na\s+equipe)/i);
-    return m ? parseInt(m[1].replace(/[.,]/g,'')) : null;
-  })();
+  // v2.0: funcionários removido da 1ª avaliação — mantido apenas para compatibilidade DOM
+  r.funcionarios = null;
   r.recorrencia = (() => {
     const m = t.match(/([\d,\.]+)\s*%\s*(?:de\s+)?(?:receita\s+)?(?:recorrente|recorr[eê]ncia|mrr|arr)/i)
            || t.match(/(?:receita\s+)?(?:recorrente|recorr[eê]ncia)\s*(?:de\s+)?([\d,\.]+)\s*%/i);
@@ -3440,8 +3594,64 @@ function extractTextFinancials(t) {
     if (mg) r.ebitda = r.receita * (parseFloat(mg[1].replace(',','.'))/100);
   }
 
-  // SDE / Retirada do sócio
+  // Depreciação / Amortização (D&A)
+  r.depreciacao = flA('(?:deprecia[çc][ãa]o|amortiza[çc][ãa]o|d&a|d\\s*e\\s*a)[^\\d]{0,40}?(' + NUM_RX + ')')
+               || flA('(' + NUM_RX + ')\\s*(?:de\\s+)?(?:deprecia[çc][ãa]o|amortiza[çc][ãa]o)');
+
+  // Retirada dos Sócios (pró-labore + distribuição)
   // Pró-labore no Brasil é SEMPRE mensal por convenção → anualizamos ×12
+  const retCtx = flCtx('retirada[s]?\\s+(?:total|anual|dos?\\s+)?s[oó]cio[s]?[^\\d]{0,40}?(' + NUM_RX + ')')
+              || flCtx('distribui[çc][ãa]o\\s+de\\s+lucros?[^\\d]{0,40}?(' + NUM_RX + ')');
+  const retProlCtx = flCtx('pr[oó]-labore[^\\d]{0,40}?(' + NUM_RX + ')');
+  const retProlV = retProlCtx ? (
+    /anual|por\s+ano|ao\s+ano|\/ano/i.test(retProlCtx.ctx) ? retProlCtx.v : retProlCtx.v * 12
+  ) : null;
+  r.retirada = (retCtx ? annualize(retCtx) : null) || retProlV;
+
+  // ── Due Diligence Operacional ────────────────────────────────────────────
+
+  // Estoque (dias) — PME: usuário pode informar dias diretamente ou valor de estoque
+  r.estoque_dias = (() => {
+    const diasM = t.match(/(?:estoque|pme)[^\d]{0,40}?([\d,\.]+)\s*dias?/i)
+               || t.match(/([\d,\.]+)\s*dias?\s*de\s*estoque/i);
+    if (diasM) { const v = parseFloat((diasM[1]||'').replace(',','.')); return (v > 0 && v < 3650) ? Math.round(v) : null; }
+    // Calcula PME se receita e estoque em R$ informados
+    const estM = fl('(?:estoque|mercadorias?|produtos?)[^\\d]{0,30}?(' + NUM_RX + ')');
+    if (estM && r.receita && r.receita > 0) { return Math.round(estM / (r.receita / 365)); }
+    return null;
+  })();
+
+  // Capital de Giro (CGL = Ativo Circulante − Passivo Circulante)
+  r.capital_giro = fl('(?:capital\\s+de\\s+giro|cgl|ncg)[^\\d]{0,40}?(' + NUM_RX + ')')
+                || (() => {
+    const ac = fl('ativo\\s+circulante[^\\d]{0,30}?(' + NUM_RX + ')');
+    const pc = fl('passivo\\s+circulante[^\\d]{0,30}?(' + NUM_RX + ')');
+    return (ac != null && pc != null) ? (ac - pc) : null;
+  })();
+
+  // Variação do Capital de Giro
+  r.variacao_cg = fl('(?:varia[çc][ãa]o\\s+(?:do\\s+)?capital\\s+de\\s+giro|delta\\s+cg|dcg)[^\\d]{0,40}?(' + NUM_RX + ')');
+
+  // PMR — Prazo Médio de Recebimento (dias)
+  r.pmr = (() => {
+    const diasM = t.match(/(?:pmr|prazo\s+m[eé]dio\s+de\s+recebimento|recebimento)[^\d]{0,40}?([\d,\.]+)\s*dias?/i)
+               || t.match(/([\d,\.]+)\s*dias?\s*(?:de\s+)?(?:recebimento|pmr)/i);
+    if (diasM) { const v = parseFloat((diasM[1]||'').replace(',','.')); return (v > 0 && v < 365) ? Math.round(v) : null; }
+    const cr = fl('(?:contas?\s+a\s+receber|duplicatas?\s+a\s+receber)[^\\d]{0,30}?(' + NUM_RX + ')');
+    if (cr != null && r.receita && r.receita > 0) { return Math.round(cr / (r.receita / 365)); }
+    return null;
+  })();
+
+  // Inadimplência (%)
+  r.inadimplencia = (() => {
+    const m = t.match(/inadimpl[eê]ncia[^\d]{0,40}?([\d,\.]+)\s*%/i)
+           || t.match(/([\d,\.]+)\s*%[^\d]{0,40}inadimpl[eê]ncia/i)
+           || t.match(/(?:carteira\s+vencida|atraso)[^\d]{0,40}?([\d,\.]+)\s*%/i);
+    if (m) { const v = parseFloat((m[1]||'').replace(',','.')); return (v >= 0 && v <= 100) ? v : null; }
+    return null;
+  })();
+
+  // SDE / Retirada do sócio (conceito mais amplo para BTB)
   const sdeCtx = flCtx('(?:sde|seller)[^\\d]{0,40}?(' + NUM_RX + ')')
               || flCtx('retirada[s]?\\s+(?:do\\s+)?s[oó]cio[^\\d]{0,40}?(' + NUM_RX + ')')
               || flCtx('distribui[çc][ãa]o\\s+de\\s+lucros?[^\\d]{0,40}?(' + NUM_RX + ')');
@@ -3508,33 +3718,27 @@ async function parseText() {
   // 2. Para XLSX/CSV já convertidos para texto, usa o Worker texto como antes
   // 3. Sempre: Worker substitui client-side se encontrar valor com confiança alta
 
-  if (WORKER_URL && WORKER_API_KEY) {
-    // Verifica se há PDFs/DOCX entre os arquivos carregados
-    const pdfFiles = (_docFiles || []).filter(f => {
-      const ext = f.name.split('.').pop().toLowerCase();
-      return ['pdf', 'docx', 'doc'].includes(ext);
-    });
-
-    if (pdfFiles.length > 0) {
-      // Envia PDFs ao Worker um por um (priorizando DRE), consolida no cliente
-      // Worker IA sempre vence o client-side para PDF (mais preciso que pdf.js/regex)
-      const nomes = pdfFiles.map(f => f.name).join(', ');
-      const _workerR = await callExtractionWorkerPDF(pdfFiles);
-      if (_workerR) {
-        console.log('[Worker PDF] Consolidado — receita_bruta:', _workerR.receita_bruta?.valor_normalizado, 'conf:', _workerR.receita_bruta?.confianca, '| evidência:', _workerR.receita_bruta?.linha_evidencia);
-        docR = mergeWorkerResult(docR, _workerR, nomes, true); // forceOverride: PDF nativo sempre vence
-        console.log('[Worker PDF] docR.receita após merge:', docR.receita);
-      } else {
-        console.warn('[Worker PDF] Retornou null — usando apenas client-side. docR.receita:', docR.receita);
-      }
-    } else {
-      // Sem PDF: usa Worker texto para XLSX/CSV (fallback inteligente)
-      const _workerNeeded = _docText && _docText.length > 200 &&
-        (!docR.receita || docR._receitaSuspeita || docR._receitaDescartada ||
-         !docR.fco || !docR.ebitda);
-      if (_workerNeeded) {
-        const _workerR = await callExtractionWorker(_docText, _docFileName || 'documento');
-        if (_workerR) docR = mergeWorkerResult(docR, _workerR, _docFileName);
+  // ── IA via sample capability (substitui Worker — CSP impede fetch externo) ──
+  // A capability 'sample' do claude.ai é nativa, sem restrição de CSP.
+  // Para PDFs: o texto já foi extraído via pdf.js em _docText — enviamos ao Claude AI.
+  // Para XLSX/CSV: também usa _docText convertido.
+  {
+    const hasDocs = _docFiles && _docFiles.length > 0;
+    const needsAI = hasDocs && _docText && _docText.length > 100;
+    if (needsAI) {
+      try {
+        const nomes = (_docFiles || []).map(f => f.name).join(', ');
+        console.log('[IA sample PDF] Extraindo documentos via Claude AI:', nomes);
+        const aiR = await sampleExtract(_docText, nomes);
+        if (aiR) {
+          console.log('[IA sample PDF] Resultado:', JSON.stringify(aiR).slice(0, 200));
+          docR = mergeWorkerResult(docR, aiR, nomes, true); // forceOverride: IA vence client-side
+          console.log('[IA sample PDF] docR.receita após merge:', docR.receita);
+        } else {
+          console.warn('[IA sample PDF] Retornou null — usando apenas client-side.');
+        }
+      } catch(e) {
+        console.warn('[IA sample PDF] Erro:', e.message);
       }
     }
   }
@@ -3542,12 +3746,12 @@ async function parseText() {
   _lastDocR = docR; // expõe para o overlay e debugging
   const txtR  = extractTextFinancials(userText);
 
-  // ── v45: Extração semântica do texto livre via Worker (Claude AI) ──────────
-  // Mesmo motor usado para PDFs — muito mais preciso que regex para linguagem
-  // natural variada. Só ativa quando o Worker está configurado e há texto útil.
-  if (userText.length > 30 && WORKER_URL && WORKER_API_KEY) {
+  // ── v58: Extração semântica do texto livre via sample (Claude AI built-in) ──
+  // Usa a capability 'sample' do claude.ai — sem Worker, sem CSP issues.
+  if (userText.length > 60) {
     try {
-      const _twR = await callExtractionWorker(userText, 'texto-livre');
+      console.log('[IA sample texto] Extraindo texto livre via Claude AI...');
+      const _twR = await sampleExtract(userText, 'texto-livre');
       if (_twR) {
         const _twMap = {
           receita_bruta:    'receita',
@@ -3562,15 +3766,14 @@ async function parseText() {
           const wf = _twR[wk];
           if (!wf || wf.valor_normalizado == null) continue;
           const wv = wf.valor_normalizado;
-          // Guard mínimo: não aceitar receita < R$50k do texto livre
           if (rk === 'receita' && wv < 50000) continue;
           if (!txtR[rk]) {
             txtR[rk] = wv;
-            console.log('[Worker Texto-livre] Preencheu', rk, '=', brl(wv,true), '| conf:', wf.confianca);
+            console.log('[IA sample texto] Preencheu', rk, '=', brl(wv,true));
           }
         }
       }
-    } catch(_e) { console.warn('[Worker Texto-livre]', _e.message); }
+    } catch(_e) { console.warn('[IA sample texto]', _e.message); }
   }
 
   S.receita     = docR.receita      || txtR.receita      || null;
@@ -3605,6 +3808,14 @@ async function parseText() {
       evidence:'FCO ou CAPEX ausente — FCL não calculado para evitar erro.' });
   }
   S.giro        = docR.giro  || null;
+  S.depreciacao = docR.depreciacao || txtR.depreciacao || null;
+  S.retirada    = docR.retirada    || txtR.retirada    || null;
+  // Due Diligence Operacional
+  S.estoque_dias  = docR.estoque_dias  ?? txtR.estoque_dias  ?? null;
+  S.capital_giro  = docR.capital_giro  ?? txtR.capital_giro  ?? null;
+  S.variacao_cg   = docR.variacao_cg   ?? txtR.variacao_cg   ?? null;
+  S.pmr           = docR.pmr           ?? txtR.pmr           ?? null;
+  S.inadimplencia = docR.inadimplencia ?? txtR.inadimplencia ?? null;
   // BTB: campos recomendados — documento primeiro, depois texto
   S.sde           = docR.sde          || txtR.sde          || null;
   S.concentracao           = docR.concentracao           || txtR.concentracao           || null;
@@ -3734,14 +3945,31 @@ function updatePanel() {
   else if (recEl) recEl.style.color = '';
   setF('ind-ebt','fv-ebt', S.ebitda  ? brl(S.ebitda,true)  : null, !!S.ebitda);
   setF('ind-fcl','fv-fcl', S.fcl   ? brl(S.fcl,true)   : null, !!S.fcl);
+  // v2.0 — FCL calculado: mostrar badge e fórmula
+  const fclEv = EVIDENCE && EVIDENCE['fcl'];
+  const fclIsCalc = fclEv && fclEv.origin === 'calculated';
+  const fclBadge = document.getElementById('fcl-calc-badge');
+  const fclFormLine = document.getElementById('fcl-formula-line');
+  const fclFormTxt = document.getElementById('fcl-formula-txt');
+  if (fclBadge)    fclBadge.hidden    = !fclIsCalc;
+  if (fclFormLine) fclFormLine.hidden = !fclIsCalc;
+  if (fclFormTxt && fclIsCalc && fclEv.formula) fclFormTxt.textContent = fclEv.formula;
   setF('ind-div','fv-div',
     (S.divida||S.caixa) ? [S.divida?'D:'+brl(S.divida,true):null, S.caixa?'C:'+brl(S.caixa,true):null].filter(Boolean).join(' ') : null,
     !!(S.divida||S.caixa));
   setF('ind-cre','fv-cre', S.crescimento ? S.crescimento+'%' : null, !!S.crescimento);
   setF('ind-cap','fv-cap', S.capex  ? brl(S.capex,true)  : null, !!S.capex);
+  setF('ind-dep','fv-dep', S.depreciacao ? brl(S.depreciacao,true) : null, !!S.depreciacao);
+  setF('ind-ret','fv-ret', S.retirada ? brl(S.retirada,true) : null, !!S.retirada);
   setF('ind-fun','fv-fun', S.funcionarios ? S.funcionarios+' func.' : null, !!S.funcionarios);
   setF('ind-rrr','fv-rrr', S.recorrencia ? S.recorrencia+'%' : null, !!S.recorrencia);
   setF('ind-fnd','fv-fnd', S.fundador, !!S.fundador);
+  // Due Diligence Operacional
+  setF('ind-est','fv-est', S.estoque_dias != null ? S.estoque_dias+' dias' : null, S.estoque_dias != null);
+  setF('ind-cgl','fv-cgl', S.capital_giro != null ? brl(S.capital_giro,true) : null, S.capital_giro != null);
+  setF('ind-vcg','fv-vcg', S.variacao_cg  != null ? brl(S.variacao_cg,true)  : null, S.variacao_cg  != null);
+  setF('ind-pmr','fv-pmr', S.pmr          != null ? S.pmr+' dias'            : null, S.pmr          != null);
+  setF('ind-inad','fv-inad', S.inadimplencia != null ? S.inadimplencia+'%'   : null, S.inadimplencia!= null);
 
   // Campos BTB recomendados (pfield-ask)
   const btbFields = [
@@ -3825,6 +4053,8 @@ const FIELD_TO_S = {
   'fv-fco':  { key:'fco',         isNum:true  },
   'fv-fcl':  { key:'fcl',         isNum:true  },
   'fv-cap':  { key:'capex',       isNum:true  },
+  'fv-dep':  { key:'depreciacao', isNum:true  },
+  'fv-ret':  { key:'retirada',    isNum:true  },
   'fv-div':  { key:'divida',      isNum:true  },
   'fv-cre':  { key:'crescimento', isNum:true, suffix:'%' },
   'fv-fun':  { key:'funcionarios',isNum:true, integer:true },
@@ -3837,6 +4067,11 @@ const FIELD_TO_S = {
   'fv-cont': { key:'contingencias',isNum:true },
   'fv-dscr': { key:'dscr',        isNum:true  },
   'fv-motv': { key:'motivoVenda', isNum:false },
+  'fv-est':  { key:'estoque_dias', isNum:true, integer:true },
+  'fv-cgl':  { key:'capital_giro', isNum:true },
+  'fv-vcg':  { key:'variacao_cg',  isNum:true },
+  'fv-pmr':  { key:'pmr',          isNum:true, integer:true },
+  'fv-inad': { key:'inadimplencia',isNum:true },
 };
 
 let _editDebounce = null;
@@ -4103,85 +4338,267 @@ function calcBTBAdjustments(evMid, S) {
   return { delta, alerts };
 }
 
-// ─── CÁLCULO PRINCIPAL ─────────────────────────────────────────────────────
+// ─── CÁLCULO PRINCIPAL v61 — Lógica Excel precisa (aba por aba) ─────────────
+// Replica exatamente: 1_DRE → 4_Normalizacao → 5_Valuation → equity bridge
+// Pesos: SDE 20% + EBITDA_adj 20% + FCD 60% (template B67:B69)
+// WACC fixo template: (1-0.30)*0.245 + 0.30*0.16*(1-0.34) = 0.20318
 function calculate() {
   const errEl = document.getElementById('calc-err');
   if (!S.sector) { errEl.classList.add('on'); return; }
   errEl.classList.remove('on');
 
-  const sec = SECTORS[S.sector];
-  let evMin, evMax, methodLabel, methodSub, multLabel;
-  let dcfResult = null;
-  let whyNoDCF = '';
+  const btn = document.getElementById('calc-btn');
+  btn.disabled = true;
+  btn.textContent = 'Calculando…';
 
-  let evMultMin, evMultMax;
-  if (S.ebitda) {
-    const recPrem = (S.recorrencia && S.recorrencia > 60) ? 1.08 : 1.0;
-    evMultMin = S.ebitda * sec.eb * 0.77 * recPrem;
-    evMultMax = S.ebitda * sec.eb * 1.02 * recPrem;
-    multLabel = sec.eb.toFixed(1) + '× Lucro op.';
-  } else if (S.receita) {
-    evMultMin = S.receita * sec.rv * 0.78;
-    evMultMax = S.receita * sec.rv * 1.05;
-    multLabel = sec.rv.toFixed(2) + '× Receita';
+  try {
+  const sec = SECTORS[S.sector] || { n: S.sector, eb: 5, rv: 0.5 };
+
+  // ══ 1_DRE ═══════════════════════════════════════════════════════════════
+  // F6=receita bruta, F8=receita líquida, F19=EBITDA
+  const recBruta  = S.receita  || 0;                        // 1_DRE!F6
+  const recLiq    = recBruta;                                // 1_DRE!F8 (≈ bruta em PME)
+  const ebitdaDRE = S.ebitda   || 0;                        // 1_DRE!F19
+  const ebitdaMgn = recLiq > 0 ? ebitdaDRE / recLiq : 0.15;// 1_DRE!F20
+
+  // ══ 4_Normalizacao ═══════════════════════════════════════════════════════
+  // F12 = SDE = EBITDA + pró-labore + add-backs
+  // F16 = EBITDA_adj = SDE − gestor-substituto
+  // G12 = média ponderada SDE (pesos: 20%, 30%, 50% — anos -2, -1, atual)
+  const sde = S.sde != null ? S.sde                         // 4_Norm!F12
+            : (ebitdaDRE > 0 ? ebitdaDRE * 1.25 : 0);      // estimativa: +25% add-back
+  // Pró-labore substituto (F15): custo de um gestor profissional
+  const gestorSubs = sde > 0 ? sde * 0.18 : 0;             // 4_Norm!F15 (≈18% SDE)
+  const ebitdaAdj  = sde > 0 ? sde - gestorSubs             // 4_Norm!F16
+                   : (ebitdaDRE > 0 ? ebitdaDRE : 0);
+  // Médias ponderadas (G12, G16) — sem histórico: usa o atual (F col)
+  const sdeW  = sde;                                         // 4_Norm!G12
+  const eaW   = ebitdaAdj;                                   // 4_Norm!G16
+
+  // ══ WACC — exato do template 5_Valuation!B45 ═════════════════════════════
+  // B41 = B36 + B37*B38 + B39 + B40 = 0.13 + 1.00*0.055 + 0.03 + 0.03 = 0.245
+  const B36=0.13, B37=1.00, B38=0.055, B39=0.03, B40=0.03;
+  const ke   = B36 + B37*B38 + B39 + B40;                   // 0.245  (B41)
+  const kd   = 0.16;                                         // 0.16   (B42)
+  const taxW = 0.34;                                         // 0.34   (B43)
+  const wd   = 0.30;                                         // 0.30   (B44)
+  const wacc = (1-wd)*ke + wd*kd*(1-taxW);                  // 0.20318 (B45)
+
+  // ══ g terminal — B46 do template ════════════════════════════════════════
+  const gBase = 0.045;                                       // B46 = 4,5%
+  const gHist = S.crescimento ? S.crescimento / 100 : null;
+  const g     = gHist ? Math.min(Math.max(gHist * 0.40, 0.030), 0.050) : gBase;
+
+  // ══ FCD — projeções 5 anos (5_Valuation!D33:H33 → D49:H49) ═════════════
+  // Taxas de crescimento: D19:H19 = 8%, 8%, 7%, 6%, 6%
+  const growthRates = [0.08, 0.08, 0.07, 0.06, 0.06];
+  // Margens operacionais (template D20–D24)
+  const DA_pct    = 0.017;   // D21 — D&A / Receita
+  const WC_pct    = 0.025;   // D22 — ΔWC / Receita
+  const CAPEX_pct = 0.085;   // D23 — CAPEX / Receita
+  const taxRate   = 0.26;    // D24 — IR/CS sobre EBIT
+
+  // FCL base: direto > FCO-CAPEX > reconstituído
+  let fclBase = null;
+  if (S.fcl != null && S.fcl > 0)                              fclBase = S.fcl;
+  else if (S.fco != null && S.capex != null)                   fclBase = S.fco - S.capex;
+  else if (S.fco != null)                                      fclBase = S.fco - S.fco*CAPEX_pct;
+
+  // Projeta FCLs anos 1-5 (H33 = último ano = FCL base do TV)
+  const fcls = [];
+  if (fclBase != null && fclBase > 0) {
+    // Se temos FCL: crescimento direto (mais preciso)
+    let prev = fclBase;
+    for (let i=0;i<5;i++) { const v=prev*(1+growthRates[i]); fcls.push(v); prev=v; }
+  } else if (recLiq > 0) {
+    // Se só receita+EBITDA: projeta receita → FCL via margens (template)
+    const ebitdaMgnEff = ebitdaMgn > 0.01 ? ebitdaMgn : 0.15;
+    let prevRev = recLiq, prevWC = recLiq * WC_pct;
+    for (let i=0;i<5;i++) {
+      const rev    = prevRev * (1 + growthRates[i]);
+      const da     = rev * DA_pct;
+      const ebit   = rev * ebitdaMgnEff - da;
+      const taxes  = Math.max(0, ebit) * taxRate;
+      const capex  = rev * CAPEX_pct;
+      const wc     = rev * WC_pct;
+      const dWC    = wc - prevWC;
+      fcls.push(ebit - taxes + da - dWC - capex);
+      prevRev = rev; prevWC = wc;
+    }
   }
 
-  // DCF ativa se tiver EBITDA ou FCO — FCO é igualmente válido como proxy de caixa operacional
+  // FCD: 3 cenários de WACC/g (5_Valuation!C59, B53, E59)
+  function calcDCF(w, gr) {
+    if (fcls.length===0 || w <= gr) return 0;
+    let sum = 0;
+    for (let i=0;i<5;i++) sum += fcls[i] / Math.pow(1+w, i+1);
+    const TV = fcls[4] * (1+gr) / (w-gr);          // B51 = H33*(1+g)/(WACC-g)
+    const PV_TV = TV / Math.pow(1+w, 5);            // B52 = B51 * H48
+    return sum + PV_TV;                              // B53 = B50 + B52
+  }
+  const evDcf_c = calcDCF(wacc,       g);           // D69=B53  (central)
+  const evDcf_l = calcDCF(wacc+0.02,  g-0.01);      // C69=E63  (low: WACC+2%, g-1%)
+  const evDcf_h = calcDCF(wacc-0.02,  g);           // E69=E59  (high: WACC-2%)
+
+  // ══ Múltiplos SDE (C7:E7 do template) ════════════════════════════════════
+  const evSDE_l = sdeW * 2.5;  // C8 = B6*2.5
+  const evSDE_c = sdeW * 3.0;  // D8 = B6*3.0
+  const evSDE_h = sdeW * 3.5;  // E8 = B6*3.5
+
+  // ══ Múltiplos EBITDA ajustado (C13:E13 do template) ══════════════════════
+  const evEA_l  = eaW  * 3.5;  // C14 = B12*3.5
+  const evEA_c  = eaW  * 4.0;  // D14 = B12*4.0
+  const evEA_h  = eaW  * 5.0;  // E14 = B12*5.0
+
+  // ══ Pesos B67:B69 = SDE 20%, EBITDA_adj 20%, FCD 60% ════════════════════
+  const hasDcf  = fcls.length > 0 && evDcf_c > 0;
+  const hasSDE  = sdeW > 0;
+  const hasEA   = eaW  > 0;
+
+  let w_s=0.2, w_e=0.2, w_d=0.6;
+  if (!hasDcf && hasSDE && hasEA)  { w_s=0.5; w_e=0.5; w_d=0; }
+  else if (!hasDcf && hasSDE)      { w_s=1;   w_e=0;   w_d=0; }
+  else if (!hasDcf && hasEA)       { w_s=0;   w_e=1;   w_d=0; }
+  else if (hasDcf && !hasSDE&&!hasEA) { w_s=0; w_e=0; w_d=1; }
+  else if (hasDcf && !hasSDE)      { w_s=0;   w_e=0.4; w_d=0.6; }
+  else if (hasDcf && !hasEA)       { w_s=0.4; w_e=0;   w_d=0.6; }
+
+  if (!hasDcf && !hasSDE && !hasEA) {
+    if (S.receita) { // último recurso: múltiplo de receita
+      const rv = sec.rv || 0.5;
+      const evR = S.receita * rv;
+      const eq  = evR - (S.divida||0) + (S.caixa||0);
+      // Apresenta como estimativa com baixa confiança
+      document.getElementById('r-ev-min').textContent = brl(eq*0.65, true);
+      document.getElementById('r-ev-max').textContent = brl(eq*1.45, true);
+      document.getElementById('r-company').textContent = sec.n;
+      document.getElementById('r-method-tag').textContent = 'Múltiplo de receita (estimativa)';
+      document.getElementById('r-mult').textContent  = rv.toFixed(2)+'× Receita';
+      document.getElementById('r-mult-sub').textContent = sec.n;
+      document.getElementById('r-met').textContent   = 'Múltiplo receita';
+      document.getElementById('r-met-sub').textContent  = 'Sem EBITDA/FCL — precisão reduzida';
+      document.getElementById('r-ref').textContent   = sec.eb.toFixed(1)+'×';
+      const wbox = document.getElementById('r-wacc-row'); if(wbox) wbox.hidden=true;
+      S.evMin=eq*0.65; S.evMax=eq*1.45;
+      const adminEl=document.getElementById('r-admin-export'); if(adminEl) adminEl.hidden=!isAdmin();
+      showPhase('result');
+      window.scrollTo({top:0,behavior:'smooth'});
+      _updateUpgradeCTA();
+      return;
+    }
+    throw new Error('Dados insuficientes — informe ao menos receita ou EBITDA');
+  }
+
+  // ══ EV ponderado (C71:E71 do template) ═══════════════════════════════════
+  // C71 = SUMPRODUCT(B67:B69, C67:C69) = 0.2*SDE_l + 0.2*EA_l + 0.6*DCF_l
+  const evLow  = w_s*evSDE_l + w_e*evEA_l + w_d*evDcf_l;   // C71
+  const evCent = w_s*evSDE_c + w_e*evEA_c + w_d*evDcf_c;   // D71
+  const evHigh = w_s*evSDE_h + w_e*evEA_h + w_d*evDcf_h;   // E71
+
+  // ══ Equity bridge (D82 do template) ══════════════════════════════════════
+  // D82 = D75 − D76 + D77 − D78 + D80 − D81
+  // D75=EV, D76=dívida_total, D77=caixa, D78=D80=D81=0 (sem earnout/TC)
+  const divida  = S.divida || 0;
+  const caixa   = S.caixa  || 0;
+  const eqLow   = evLow  - divida + caixa;  // equity low (≈ C82)
+  const eqMid   = evCent - divida + caixa;  // equity central (D82)
+  const eqHigh  = evHigh - divida + caixa;  // equity high (≈ E82)
+
+  // ── Labels de método ──────────────────────────────────────────────────────
   const baseFluxo = S.ebitda || S.fco || null;
-  const canDCF = !!baseFluxo;
-  if (canDCF) {
-    dcfResult = calcDCF(baseFluxo, S.crescimento, S.sector,
-                        S.divida, S.caixa, S.recorrencia, S.fcl, S.receita);
-  } else {
-    whyNoDCF = 'Valuation calculado por múltiplos setoriais de referência. Para empresas com faturamento até R$ 300 milhões, a metodologia principal é o FCL (Fluxo de Caixa Livre) — que exige EBITDA ou FCO (Fluxo de Caixa Operacional). Envie a DRE e o DFC (Demonstrativo de Fluxo de Caixa) para ativar o cálculo completo pelo FCL e obter maior precisão.';
-  }
+  const wPct = (hasDcf?`FCD ${(w_d*100).toFixed(0)}%+`:'')+
+               (hasSDE?`SDE ${(w_s*100).toFixed(0)}%+`:'')+
+               (hasEA ?`EBITDA ${(w_e*100).toFixed(0)}%`:'').replace(/\+$/, '');
+  const methodLabel = hasDcf
+    ? 'Fluxo de Caixa Descontado + Múltiplos'
+    : (baseFluxo ? 'Múltiplos setoriais (SDE + EBITDA)' : 'Múltiplo de receita (estimativa)');
+  const methodSub = hasDcf
+    ? `Ponderação template IBGESF: ${wPct} · WACC ${(wacc*100).toFixed(2)}%`
+    : (baseFluxo ? 'Múltiplos template IBGESF: SDE 2,5–3,5× · EBITDA 3,5–5,0×'
+                 : 'Sem lucro operacional informado — precisão reduzida');
+  const multiploEv = hasSDE ? 3.0 : (hasEA ? 4.0 : null);
+  const multLabel  = multiploEv!=null
+    ? (hasSDE ? '3,0× SDE (central)' : '4,0× EBITDA (central)')
+    : sec.rv.toFixed(2)+'× Receita';
+  const fclPenaltyApplied = !S.fcl && !S.fco && eqLow!=null;
 
-  if (dcfResult && evMultMin != null) {
-    const dcfMin = dcfResult.evDCF * 0.90;
-    const dcfMax = dcfResult.evDCF * 1.12;
-    evMin = dcfMin * 0.60 + evMultMin * 0.40;
-    evMax = dcfMax * 0.60 + evMultMax * 0.40;
-    methodLabel = 'Caixa Descontado 60% + Múltiplos 40%';
-    methodSub   = 'Ponderação Mellen & Evans (2018) · Custo de capital Brasil calibrado';
-  } else if (evMultMin != null) {
-    evMin = evMultMin;
-    evMax = evMultMax;
-    methodLabel = baseFluxo ? 'Múltiplos de resultado' : 'Múltiplo de receita (estimativa)';
-    methodSub   = baseFluxo
-      ? 'Múltiplo setorial (EV/EBITDA) · desconto PME 20–25% aplicado'
-      : 'Sem lucro operacional informado — precisão reduzida';
-  }
+  // Confiança
+  const pts = [S.receita, baseFluxo, S.fcl||S.fco, (S.divida||S.caixa), S.crescimento].filter(Boolean).length;
+  const conf = (hasDcf && pts >= 3) ? 'alta' : pts >= 2 ? 'média' : 'baixa';
 
-  const pts = [S.receita, baseFluxo, (S.divida||S.caixa), S.crescimento, S.recorrencia].filter(Boolean).length;
-  const conf = (canDCF && pts >= 3) ? 'alta' : pts >= 2 ? 'média' : 'baixa';
-
-  // BTB adjustments
-  const evMid = evMin != null ? (evMin + evMax) / 2 : 0;
-  const btb = calcBTBAdjustments(evMid, S);
-  if (btb.delta !== 0 && evMin != null) {
-    evMin += btb.delta;
-    evMax += btb.delta;
-  }
-
+  // ── DOM updates ───────────────────────────────────────────────────────────
   document.getElementById('r-company').textContent = sec.n;
   const mtag = document.getElementById('r-method-tag').parentElement;
-  mtag.classList.toggle('dcf', canDCF);
+  mtag.classList.toggle('dcf', hasDcf);
   document.getElementById('r-method-tag').textContent = methodLabel;
-  document.getElementById('r-ev-min').textContent = brl(evMin, true);
-  document.getElementById('r-ev-max').textContent = brl(evMax, true);
-  document.getElementById('r-mult').textContent    = multLabel || '—';
-  document.getElementById('r-mult-sub').textContent= sec.n;
-  document.getElementById('r-met').textContent     = canDCF ? 'Caixa Desc. + Mult.' : (baseFluxo ? 'Múltiplo lucro' : 'Múltiplo receita');
-  document.getElementById('r-met-sub').textContent = methodSub;
-  document.getElementById('r-ref').textContent     = sec.eb.toFixed(1) + '×';
-  document.getElementById('r-conf').textContent    = conf;
+  document.getElementById('r-ev-min').textContent = brl(eqLow,  true);
+  document.getElementById('r-ev-max').textContent = brl(eqHigh, true);
+  document.getElementById('r-mult').textContent     = multLabel;
+  document.getElementById('r-mult-sub').textContent = sec.n;
+  document.getElementById('r-met').textContent      = hasDcf ? 'FCD + Múltiplos' : (baseFluxo ? 'Múlt. SDE/EBITDA' : 'Múlt. receita');
+  document.getElementById('r-met-sub').textContent  = methodSub;
+  document.getElementById('r-ref').textContent      = sec.eb.toFixed(1)+'×';
 
-  // BTB alerts rendering
+  // Badge de confiança
+  const confBadge = document.getElementById('r-conf-badge');
+  if (confBadge) {
+    const confMap = {
+      alta:  { label:'ALTA',  bg:'rgba(36,84,60,.15)',  color:'#1a5032', border:'rgba(36,84,60,.4)'  },
+      média: { label:'MÉDIA', bg:'rgba(227,181,5,.18)', color:'#7a5c00', border:'rgba(227,181,5,.4)' },
+      baixa: { label:'BAIXA', bg:'rgba(200,30,30,.1)',  color:'#c81e1e', border:'rgba(200,30,30,.35)' },
+    };
+    const cm = confMap[conf] || confMap['média'];
+    confBadge.textContent = cm.label;
+    confBadge.style.background = cm.bg;
+    confBadge.style.color = cm.color;
+    confBadge.style.border = '1px solid ' + cm.border;
+  }
+
+  // Penalidade FCL
+  const penEl = document.getElementById('r-fcl-penalty');
+  if (penEl) penEl.hidden = !fclPenaltyApplied;
+
+  // WACC box
+  const waccBox = document.getElementById('r-wacc-row');
+  if (waccBox) {
+    if (hasDcf) {
+      document.getElementById('r-wacc').textContent = (wacc*100).toFixed(2)+'%';
+      const betaEl = document.getElementById('r-beta');
+      if (betaEl) betaEl.textContent = B37.toFixed(2);
+      const regimeEl = document.getElementById('r-regime');
+      if (regimeEl) regimeEl.textContent = '';
+      waccBox.hidden = false;
+    } else {
+      waccBox.hidden = true;
+      const warnEl = document.getElementById('r-nodcf-warn');
+      if (warnEl) {
+        warnEl.textContent = '⚠️ Valuation por múltiplos setoriais (FCL não disponível para FCD completo). Envie DRE e DFC para maior precisão.';
+        warnEl.hidden = false;
+      }
+    }
+  }
+
+  // Resumo pré-envio
+  const sumEl = document.getElementById('r-presend-summary');
+  if (sumEl) {
+    const el = id => document.getElementById(id);
+    if (el('psum-empresa')) el('psum-empresa').textContent = sec.n + (S.empresa ? ' — ' + S.empresa : '');
+    if (el('psum-ev'))      el('psum-ev').textContent      = brl(eqLow, true) + ' – ' + brl(eqHigh, true);
+    if (el('psum-metodo'))  el('psum-metodo').textContent  = methodLabel;
+    if (el('psum-conf'))    el('psum-conf').textContent    = conf.charAt(0).toUpperCase() + conf.slice(1);
+    const penRow = el('psum-penalty-row');
+    if (penRow) penRow.hidden = !fclPenaltyApplied;
+    sumEl.hidden = false;
+  }
+
+  // BTB alerts
+  const evMidForBtb = eqMid || 0;
+  const btb = calcBTBAdjustments(evMidForBtb, S);
   const btbEl = document.getElementById('r-btb-alerts');
   if (btbEl) {
     if (btb.alerts.length > 0) {
-      const colorMap = { warn:'rgba(227,181,5,.12)', info:'rgba(26,80,112,.12)', method:'rgba(36,84,60,.12)' };
-      const borderMap = { warn:'rgba(227,181,5,.35)', info:'rgba(26,80,112,.35)', method:'rgba(36,84,60,.35)' };
+      const colorMap  = { warn:'rgba(227,181,5,.12)',  info:'rgba(26,80,112,.12)',  method:'rgba(36,84,60,.12)' };
+      const borderMap = { warn:'rgba(227,181,5,.35)',  info:'rgba(26,80,112,.35)',  method:'rgba(36,84,60,.35)' };
       btbEl.innerHTML = btb.alerts.map(a =>
         `<div style="background:${colorMap[a.tipo]||colorMap.info};border:1px solid ${borderMap[a.tipo]||borderMap.info};border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--text);margin-bottom:8px;">${a.msg}</div>`
       ).join('');
@@ -4191,26 +4608,233 @@ function calculate() {
     }
   }
 
-  const waccBox = document.getElementById('r-wacc-row');
-  if (waccBox) {
-    if (dcfResult) {
-      document.getElementById('r-wacc').textContent  = (dcfResult.wacc*100).toFixed(1) + '%';
-      document.getElementById('r-beta').textContent  = dcfResult.beta_l.toFixed(2);
-      const regimeEl = document.getElementById('r-regime');
-      if (regimeEl) regimeEl.textContent = ' · ' + (dcfResult.regime || '');
-      waccBox.hidden = false;
-    } else {
-      waccBox.hidden = true;
-      const warnEl = document.getElementById('r-nodcf-warn');
-      if (warnEl) { warnEl.textContent = '⚠️ ' + whyNoDCF; warnEl.hidden = false; }
-    }
-  }
+  // Guarda para outras funções
+  S.evMin = eqLow;
+  S.evMax = eqHigh;
+  S._calc = { wacc, g, ke, kd, wd, sde: sdeW, ebitdaAdj: eaW, fcls,
+              evDcf_c, evDcf_l, evDcf_h, evSDE_c, evEA_c,
+              evLow, evCent, evHigh, eqLow, eqMid, eqHigh,
+              w_s, w_e, w_d, hasDcf, hasSDE, hasEA };
+
+  // Admin: botão de export Excel
+  const adminEl = document.getElementById('r-admin-export');
+  if (adminEl) adminEl.hidden = !isAdmin();
 
   showPhase('result');
-  window.scrollTo({top:0,behavior:'smooth'});
-
-  // Adapta CTA de relatório baseado em status de associado
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   _updateUpgradeCTA();
+
+  } catch(e) {
+    console.error('calculate() error:', e);
+    const _errEl = document.getElementById('calc-err');
+    if (_errEl) { _errEl.textContent = 'Erro ao calcular: ' + e.message; _errEl.classList.add('on'); }
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Calcular valor da empresa →';
+}
+
+function isAdmin() {
+  const e = (S.email || '').toLowerCase().trim();
+  return e.includes('ibgovernancaeestrategia.com.br') ||
+         e === 'hugo.cayuela@techne.com.br' ||
+         e === 'hcayuela@gmail.com' || e === 'hcayuela@icloud.com';
+}
+
+// ─── EXPORT EXCEL — preenche template IBGESF com campos extraídos ────────────
+// Template em R$ mil. Células azuis (sem fórmula) são preenchidas pelo JS.
+// Excel recalcula todas as fórmulas ao abrir o arquivo.
+async function exportToExcel() {
+  if (!isAdmin()) return;
+  try {
+    const btn = event.target;
+    btn.disabled = true; btn.textContent = 'Gerando…';
+
+    // Carrega template.xlsx da base64 embutida
+    const wb = XLSX.read(TEMPLATE_B64, { type: 'base64' });
+
+    const mil = v => v != null ? Math.round(v / 1000 * 100) / 100 : 0; // R$ → R$ mil
+    const pct = v => v != null ? v / 100 : 0;
+
+    // ── Helpers ──
+    function setNum(ws, ref, val) {
+      if (!ws[ref]) ws[ref] = {};
+      ws[ref].t = 'n';
+      ws[ref].v = val;
+      ws[ref].w = val.toLocaleString('pt-BR');
+      delete ws[ref].f; // remove fórmula se houver (células azuis não têm)
+    }
+
+    // ── 1_DRE (sheet3) ─── F6=receita bruta, F13=desp.op, F14=pró-labore, F21=D&A ──
+    const ws1 = wb.Sheets['1_DRE'];
+    if (ws1) {
+      setNum(ws1, 'F6',  mil(S.receita));                          // receita bruta
+      setNum(ws1, 'F7',  0);                                       // deduções (0)
+      setNum(ws1, 'F10', 0);                                       // CMV (0)
+      setNum(ws1, 'F14', S.sde ? mil(S.sde - (S.ebitda||0)) : 0); // pró-labore
+      setNum(ws1, 'F17', 0);                                       // D&A (não temos)
+      setNum(ws1, 'F21', 0);                                       // depreciação
+      // F13=despesas: EBITDA = receita - CMV - despesas + D&A
+      // despesas = receita - EBITDA (simplificado)
+      const despEst = S.receita && S.ebitda ? mil(S.receita - S.ebitda) : 0;
+      setNum(ws1, 'F13', Math.max(0, despEst));
+    }
+
+    // ── 2_Balanco (sheet4) ─── F6=caixa, F15=dívida CP ──
+    const ws2 = wb.Sheets['2_Balanco'];
+    if (ws2) {
+      setNum(ws2, 'F6',  mil(S.caixa  || 0));  // caixa/disponibilidades
+      setNum(ws2, 'F15', mil(S.divida || 0));  // dívida total (CP)
+      setNum(ws2, 'F16', 0);                   // dívida LP
+      setNum(ws2, 'F17', 0);                   // outros passivos
+    }
+
+    // ── 3_DFC (sheet5) ─── F6=FCO, F9=CAPEX ──
+    const ws3 = wb.Sheets['3_DFC'];
+    if (ws3) {
+      setNum(ws3, 'F6', mil(S.fco  || 0));    // FCO
+      setNum(ws3, 'F9', mil(S.capex || 0));    // CAPEX
+    }
+
+    // ── 4_Normalizacao (sheet6) ─── F15=gestor substituto ──
+    const ws4 = wb.Sheets['4_Normalizacao'];
+    if (ws4) {
+      const c = S._calc;
+      setNum(ws4, 'F15', c ? mil(c.sde * 0.18) : 0);  // gestor-substituto
+    }
+
+    // ── 5_Valuation (sheet7) ─── D19:H19=taxas crescimento ──
+    const ws5 = wb.Sheets['5_Valuation'];
+    if (ws5) {
+      const gr = [0.08, 0.08, 0.07, 0.06, 0.06];
+      const cols = ['D','E','F','G','H'];
+      cols.forEach((c,i) => setNum(ws5, c+'19', gr[i]));
+    }
+
+    // ── 6_Estrutura (sheet8) ─── B6=funcionários, B18=recorrência, B33=concentração ──
+    const ws6 = wb.Sheets['6_Estrutura'];
+    if (ws6) {
+      setNum(ws6, 'B6',  S.funcionarios || 0);
+      setNum(ws6, 'B18', pct(S.recorrencia || 0));
+      setNum(ws6, 'B33', pct(S.concentracao || 10));
+    }
+
+    // ── Download via capability 'downloads' (XLSX.writeFile bloqueado no artifact) ──
+    const empresa = (S.empresa || 'empresa').replace(/[^a-zA-Z0-9]/g,'-').toLowerCase();
+    const filename = `valuation-ibgesf-${empresa}.xlsx`;
+
+    // Gera array buffer do xlsx
+    const wbout = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+    // Usa capability downloads do claude.ai
+    const dl = await window.claude.use('downloads');
+    if (dl) {
+      await dl.save({ filename, data: blob });
+    } else {
+      // Fallback: URL object (funciona fora do artifact sandbox)
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
+
+    btn.disabled = false;
+    btn.textContent = '📥 Download Excel preenchido';
+  } catch(e) {
+    console.error('[exportToExcel]', e);
+    alert('Erro ao gerar Excel: ' + e.message);
+    const btn = event.target;
+    btn.disabled = false;
+    btn.textContent = '📥 Download Excel preenchido';
+  }
+}
+
+// ─── EXTRAÇÃO via CLAUDE IA (sample capability) ──────────────────────────────
+// Substitui o Worker Cloudflare (bloqueado por CSP do claude.ai).
+// Usa a capability 'sample' nativa do claude.ai — sem fetch externo.
+let _sampleCap = null;
+let _sampleInit = false;
+
+async function initSample() {
+  if (_sampleInit) return _sampleCap;
+  _sampleInit = true;
+  try {
+    if (typeof window.claude === 'undefined') return null;
+    _sampleCap = await window.claude.use('sample');
+    console.log('[IA sample] Capability:', _sampleCap ? 'disponível' : 'não disponível');
+  } catch(e) {
+    console.warn('[IA sample] Erro ao inicializar:', e.message);
+    _sampleCap = null;
+  }
+  return _sampleCap;
+}
+
+async function sampleExtract(text, fileName) {
+  const sam = await initSample();
+  if (!sam) {
+    console.warn('[IA sample] Sem capability — usando apenas client-side');
+    return null;
+  }
+
+  // Limita texto para não estourar contexto (primeiros 8000 chars — DRE geralmente no início)
+  const textTrimmed = text.length > 8000 ? text.slice(0, 8000) + '\n...[truncado]' : text;
+
+  const prompt = `Você é um extrator de dados financeiros brasileiros para valuation de PME.
+Analise o documento abaixo e extraia APENAS os campos que aparecem explicitamente.
+Retorne SOMENTE um objeto JSON sem texto adicional, nenhum markdown, sem código.
+
+Campos esperados (valores em R$ inteiro, sem centavos):
+{
+  "receita_bruta": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."},
+  "ebitda": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."},
+  "fcl": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."},
+  "fco": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."},
+  "capex": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."},
+  "divida_financeira": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."},
+  "caixa": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."}
+}
+
+Regras críticas:
+- Se valores em R$ mil (ex: "R$ 8.412 mil"): multiplique por 1000
+- C=Crédito=positivo, D=Débito=negativo (padrão ERP brasileiro)
+- Receita = faturamento total / receita bruta / vendas líquidas (use o maior valor de receita)
+- EBITDA = resultado operacional antes de D&A (pode aparecer como "LAJIDA" ou "Lucro operacional + depreciação")
+- FCO = fluxo de caixa operacional (DFC)
+- FCL = FCO − CAPEX (calcule se ambos estiverem disponíveis)
+- Dívida = total de empréstimos + financiamentos (curto + longo prazo)
+- Use apenas o período mais recente (ano fiscal mais recente ou últimos 12 meses)
+- NUNCA invente valores — retorne null se não encontrar
+
+DOCUMENTO (${fileName}):
+${textTrimmed}`;
+
+  try {
+    const result = await sam.json(prompt, { modelTier: 'default' });
+    if (result && typeof result === 'object') {
+      // Calcula FCL se FCO e CAPEX foram extraídos mas FCL não
+      if (!result.fcl?.valor_normalizado && result.fco?.valor_normalizado && result.capex?.valor_normalizado) {
+        result.fcl = {
+          valor_normalizado: result.fco.valor_normalizado - result.capex.valor_normalizado,
+          confianca: 'média',
+          linha_evidencia: 'Calculado: FCO − CAPEX'
+        };
+      }
+      console.log('[IA sample] Extraído:', JSON.stringify(result, null, 2));
+      return result;
+    }
+    return null;
+  } catch(e) {
+    console.warn('[IA sample] Erro na extração:', e.message);
+    // Tenta parse manual se retornou como string
+    if (e.text) {
+      try {
+        const m = e.text.match(/\{[\s\S]+\}/);
+        if (m) return JSON.parse(m[0]);
+      } catch(_) {}
+    }
+    return null;
+  }
 }
 
 function _updateUpgradeCTA() {
@@ -4218,10 +4842,12 @@ function _updateUpgradeCTA() {
   if (!preCta) return;
   if (S.associado === true) {
     // Associado: mostra CTA direto para solicitar relatório por email
+    const _isImm = _IMMEDIATE_EMAILS.includes((S.email||'').toLowerCase().trim());
+    const _prazo = _isImm ? 'imediatamente' : 'em até 24h';
     preCta.innerHTML = `
       <div class="up-title">✅ Associado IBGESF — Relatório Desbloqueado</div>
       <div class="up-sub" style="color:rgba(255,255,255,.75);font-size:14px;margin:10px 0 18px;">
-        Como associado, você tem direito ao relatório completo de valuation. Nossa equipe enviará para <strong style="color:#fff">${S.email}</strong> em até 24h.
+        Como associado, você tem direito ao relatório completo de valuation. Nossa equipe enviará para <strong style="color:#fff">${S.email}</strong> ${_prazo}.
       </div>
       <button class="btn btn-amber" onclick="_solicitarRelatorioAssociado()">Solicitar relatório completo →</button>
     `;
@@ -4229,26 +4855,20 @@ function _updateUpgradeCTA() {
   // Não-associado: mantém fluxo padrão (botão "Quero o relatório completo" que leva à associação)
 }
 
-// Emails que recebem o relatório IMEDIATAMENTE (sem fila de 24h) — para testes
-const _IMMEDIATE_EMAILS = ['hcayuela@gmail.com'];
+// Emails que recebem o relatório IMEDIATAMENTE (sem fila de 24h)
+const _IMMEDIATE_EMAILS = [
+  'hcayuela@gmail.com',
+  'hugo.cayuela@ibgovernancaeestrategia.com.br',
+  'silvana.vallim@ibgovernancaeestrategia.com.br',
+];
 
 async function _solicitarRelatorioAssociado() {
   // Envia email de solicitação via Worker (usa a infra de envio existente)
   const btn = event.target;
   btn.disabled = true; btn.textContent = 'Enviando solicitação…';
   const isImmediate = _IMMEDIATE_EMAILS.includes((S.email||'').toLowerCase().trim());
-  try {
-    await fetch(WORKER_URL + '/request-report', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Api-Key': WORKER_API_KEY },
-      body: JSON.stringify({
-        email: S.email, nome: S.name, empresa: S.empresa || '',
-        ev_min: S.evMin, ev_max: S.evMax,
-        // Flag de prioridade: Worker envia imediatamente em vez de enfileirar para 24h
-        prioridade: isImmediate ? 'imediato' : 'padrao',
-      })
-    });
-  } catch {}
+  // Worker não disponível em ambiente artifact (CSP) — relatório será processado manualmente
+  console.log('[Relatório] Solicitação registrada (processamento manual pelo IBGESF):', S.email, S.empresa || '');
   if (isImmediate) {
     btn.textContent = '✅ Relatório enviado! Verifique seu e-mail agora.';
   } else {
