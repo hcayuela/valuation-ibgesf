@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Valuation IBGESF v67</title>
+<title>Valuation IBGESF v68</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap">
 
 <!-- Leitura client-side de PDF e Excel/CSV -->
@@ -3950,6 +3950,25 @@ async function parseText() {
         } else {
           console.warn('[IA sample PDF texto] Retornou null — usando apenas client-side.');
         }
+
+        // ── v68: VERIFICATION PASS ────────────────────────────────────────
+        // Se após a 1ª extração AI + client-side algum campo crítico ficou
+        // null, faz uma 2ª chamada AI focada nos campos ausentes com
+        // sinônimos expandidos. Reduz falsos negativos.
+        const CRIT = { receita:'receita_bruta', ebitda:'ebitda', fco:'fco', capex:'capex', divida:'divida_financeira', caixa:'caixa' };
+        const missing = Object.entries(CRIT)
+          .filter(([rk]) => docR[rk] == null || docR[rk] === undefined)
+          .map(([, wk]) => wk);
+        if (missing.length && hasText) {
+          try {
+            console.log('[IA verify] Campos ainda ausentes → retry:', missing);
+            const verifyR = await sampleVerifyMissing(_docText, missing, (_docFiles||[]).map(f=>f.name).join(', '));
+            if (verifyR) {
+              docR = mergeWorkerResult(docR, verifyR, '(verificação)', false);
+              console.log('[IA verify] Após retry — docR.receita:', docR.receita, 'capex:', docR.capex);
+            }
+          } catch(ve) { console.warn('[IA verify] Erro:', ve.message); }
+        }
       } catch(e) {
         console.warn('[IA sample PDF texto] Erro:', e.message);
       }
@@ -4089,6 +4108,44 @@ async function parseText() {
     S.ebitda = S.fco; // FCO é o mais confiável para BTB
   }
 
+  // ── v68: MARCA "NÃO LOCALIZADO" para campos ainda vazios com doc carregado ─
+  // Se o usuário carregou documentos mas um campo crítico ficou null após
+  // client-side + IA-1 + IA-verify, marca explicitamente no EVIDENCE para
+  // o painel exibir "⚠ não localizado" em vez de "—" (indistinguível de vazio).
+  {
+    const hadDocs = _docFiles && _docFiles.length > 0;
+    if (hadDocs) {
+      const CRIT_FIELDS = ['receita','ebitda','fco','capex','divida','caixa'];
+      for (const f of CRIT_FIELDS) {
+        if (S[f] == null) {
+          setEvidence(f, {
+            label: f.toUpperCase(),
+            rawValue: null,
+            origin: 'not-found',
+            state: 'not-found',
+            evidence: '⚠ Documento(s) carregado(s) mas ' + f + ' não localizado após 2 passadas de IA. Verifique manualmente ou reformate o documento.',
+            source: '📄 ' + _docFiles.map(f=>f.name.replace(/^[0-9a-f]{6,}-/,'')).join(', ')
+          });
+        }
+      }
+    }
+  }
+
+  // ── v68: VALIDAÇÃO DE INVARIANTES CONTÁBEIS ────────────────────────────
+  // Cruza campos e loga conflitos no console (também via warning na UI se aplicável)
+  try {
+    const invR = { receita: S.receita, _receitaLiquida: docR._receitaLiquida,
+                    ebitda: S.ebitda, fcl: S.fcl, fco: S.fco, capex: S.capex,
+                    divida: S.divida, _dividaCP: docR._dividaCP, _dividaLP: docR._dividaLP };
+    const warnings = validateInvariants(invR);
+    if (warnings.length) {
+      console.warn('[Invariantes]', warnings);
+      S._invariantWarnings = warnings;
+    } else {
+      S._invariantWarnings = null;
+    }
+  } catch(_e) { console.warn('[Invariantes] erro:', _e.message); }
+
   if (!S.ebitda && S.receita) {
     const t = userText + '\n' + (_docText||'');
     const mg = t.match(/(?:margem|margin)\s*(?:ebitda|lajida|operacional)?[^%]{0,20}([\d,\.]+)\s*%/i)
@@ -4168,7 +4225,21 @@ function setSrc(spanId, evKey) {
   const el = document.getElementById(spanId);
   if (!el) return;
   const ev = EVIDENCE && EVIDENCE[evKey];
-  if (!ev || ev.origin === 'not-found') { el.textContent = ''; return; }
+  if (!ev) { el.textContent = ''; return; }
+  // v68: se documento foi carregado mas campo não foi encontrado, mostra aviso
+  if (ev.origin === 'not-found') {
+    if (ev.source && ev.source.startsWith('📄')) {
+      el.textContent = '⚠ não localizado';
+      el.style.color = '#c0392b';
+      el.style.opacity = '1';
+      el.title = ev.evidence || 'Valor não encontrado no documento carregado.';
+    } else {
+      el.textContent = '';
+    }
+    return;
+  }
+  el.style.color = '';
+  el.style.opacity = '';
 
   let src = '';
 
@@ -5125,6 +5196,118 @@ async function initSample() {
   return _sampleCap;
 }
 
+// ─── v68: TRUNCAMENTO INTELIGENTE ─────────────────────────────────────────
+// Se o documento excede o limite, tenta preservar seções relevantes (DRE, DFC,
+// Balanço, Notas Explicativas). Caso contrário, corta pelo início.
+function smartTruncate(text, maxChars) {
+  if (!text || text.length <= maxChars) return text;
+  const SECTION_MARKERS = [
+    /demonstra[çc][ãa]o\s+d[oa]\s+resultado/i,
+    /\bDRE\b/i,
+    /demonstra[çc][ãa]o\s+d[oa]s?\s+fluxos?\s+de\s+caixa/i,
+    /\bDFC\b/i,
+    /balan[çc]o\s+patrimonial/i,
+    /notas?\s+explicativas?/i,
+    /receita\s+(?:operacional\s+)?bruta/i,
+    /caixa\s+e\s+equivalentes/i,
+  ];
+  // Coleta índices onde seções aparecem
+  const idxs = [];
+  for (const rx of SECTION_MARKERS) {
+    const m = text.match(rx);
+    if (m) idxs.push(m.index);
+  }
+  if (idxs.length < 2) return text.slice(0, maxChars) + '\n...[truncado após ' + maxChars + ' chars]';
+  // Extrai janelas de 8k chars ao redor de cada seção encontrada, unindo
+  idxs.sort((a, b) => a - b);
+  const win = 8000;
+  const chunks = [];
+  let lastEnd = 0;
+  for (const i of idxs) {
+    const s = Math.max(lastEnd, i - 500);
+    const e = Math.min(text.length, i + win);
+    if (s > lastEnd + 200) chunks.push('\n...[trecho omitido]...\n');
+    chunks.push(text.slice(s, e));
+    lastEnd = e;
+  }
+  let result = chunks.join('');
+  if (result.length > maxChars) result = result.slice(0, maxChars) + '\n...[truncado]';
+  return result;
+}
+
+// ─── v68: VALIDAÇÃO DE INVARIANTES CONTÁBEIS ──────────────────────────────
+// Cruza campos extraídos e retorna array de conflitos para o usuário revisar.
+function validateInvariants(r) {
+  const warnings = [];
+  if (r.receita && r._receitaLiquida && r._receitaLiquida > r.receita * 1.01) {
+    warnings.push({ campo: 'receita', msg: `Receita Líquida (${brl(r._receitaLiquida)}) maior que Bruta (${brl(r.receita)}) — inversão suspeita` });
+  }
+  if (r.ebitda && r.receita && Math.abs(r.ebitda) > r.receita * 1.5) {
+    warnings.push({ campo: 'ebitda', msg: `EBITDA (${brl(r.ebitda)}) > 150% da Receita — verificar sinal e escala` });
+  }
+  if (r.fcl != null && r.fco != null && r.capex != null) {
+    const fclCalc = r.fco - Math.abs(r.capex);
+    const diff = Math.abs(fclCalc - r.fcl);
+    const tol = Math.abs(r.fcl) * 0.05 + 1000; // 5% ou R$1k
+    if (diff > tol) {
+      warnings.push({ campo: 'fcl', msg: `FCL informado (${brl(r.fcl)}) ≠ FCO−CAPEX calculado (${brl(fclCalc)}) — diferença ${brl(diff)}` });
+    }
+  }
+  if (r.divida && r._dividaCP != null && r._dividaLP != null) {
+    const somaCPLP = r._dividaCP + r._dividaLP;
+    if (Math.abs(somaCPLP - r.divida) > r.divida * 0.05) {
+      warnings.push({ campo: 'divida', msg: `Dívida Total (${brl(r.divida)}) ≠ CP + LP (${brl(somaCPLP)})` });
+    }
+  }
+  return warnings;
+}
+
+// ─── v68: PASSAGEM DE VERIFICAÇÃO — retry para campos ainda null ──────────
+// Após primeira extração, se campos críticos ficaram null com doc carregado,
+// faz chamada IA focada listando sinônimos e pedindo re-análise.
+async function sampleVerifyMissing(text, missingFields, fileName) {
+  const sam = await initSample();
+  if (!sam || !missingFields.length) return null;
+  const SINONIMOS = {
+    receita: ['Receita Operacional Bruta', 'Receita Bruta de Vendas', 'Faturamento Bruto', 'Vendas Brutas', 'Receita de Serviços Prestados', 'PGDAS-D'],
+    ebitda: ['EBITDA', 'LAJIDA', 'Lucro Operacional antes de D&A', 'Resultado antes de juros, impostos, depreciação e amortização'],
+    fco:    ['Caixa Líquido Gerado pelas Atividades Operacionais', 'Fluxo de Caixa Operacional', 'FCO', 'Caixa das Atividades Operacionais'],
+    capex:  ['Aquisição de Ativo Imobilizado', 'Investimentos em Imobilizado', 'CAPEX', 'Compras de imobilizado e intangível'],
+    divida_financeira: ['Empréstimos e Financiamentos', 'Passivo Circulante — Empréstimos', 'Passivo Não Circulante — Empréstimos', 'Dívida Bruta'],
+    caixa:  ['Caixa e Equivalentes de Caixa', 'Disponibilidades', 'Caixa e Bancos', 'Aplicações Financeiras de Liquidez Imediata'],
+  };
+  const textTrimmed = smartTruncate(text, 40000);
+  const lista = missingFields.map(f => `- ${f}: pode aparecer como "${(SINONIMOS[f]||[f]).join('", "')}"`).join('\n');
+  const prompt = `Você é um extrator financeiro brasileiro. Uma primeira análise NÃO encontrou os seguintes campos no documento. Re-analise com atenção — verifique linhas subtotalizadas, seções específicas, e variações de nomenclatura.
+
+CAMPOS A LOCALIZAR:
+${lista}
+
+Retorne SOMENTE JSON no formato:
+{
+  "campo": {"valor_normalizado": número em R$ (não em mil, converta se necessário) ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "linha exata do documento onde encontrou"},
+  ...
+}
+
+Regras:
+- Se está em "R$ mil", multiplique por 1000 para retornar em R$
+- Aceite valores parciais (ex: só dívida de curto prazo se longo prazo não existe)
+- Se realmente não encontrar após leitura cuidadosa, retorne null com linha_evidencia: "não localizado"
+- NUNCA invente
+
+DOCUMENTO (${fileName}):
+${textTrimmed}`;
+
+  try {
+    const result = await sam.json(prompt, { modelTier: 'default' });
+    console.log('[IA verify] Retry extraído:', JSON.stringify(result));
+    return result;
+  } catch(e) {
+    console.warn('[IA verify] Erro no retry:', e.message);
+    return null;
+  }
+}
+
 async function sampleExtract(text, fileName) {
   const sam = await initSample();
   if (!sam) {
@@ -5132,8 +5315,9 @@ async function sampleExtract(text, fileName) {
     return null;
   }
 
-  // Limita texto para não estourar contexto (primeiros 8000 chars — DRE geralmente no início)
-  const textTrimmed = text.length > 8000 ? text.slice(0, 8000) + '\n...[truncado]' : text;
+  // v68: aumenta janela de 8k → 40k chars.
+  // Estratégia inteligente: se documento > 40k, tenta preservar seções DRE/DFC/Balanço
+  const textTrimmed = smartTruncate(text, 40000);
 
   const prompt = `Você é um extrator de dados financeiros brasileiros para valuation de PME.
 Analise o documento abaixo e extraia APENAS os campos que aparecem explicitamente.
