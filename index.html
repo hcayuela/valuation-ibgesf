@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Valuation IBGESF v68</title>
+<title>Valuation IBGESF v69</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap">
 
 <!-- Leitura client-side de PDF e Excel/CSV -->
@@ -2320,16 +2320,79 @@ async function extractPDF(file) {
   }
 }
 
+// ─── v69: EXTRAÇÃO XLSX WORLD-CLASS ──────────────────────────────────────
+// Antes: sheet_to_csv() destruía dados brasileiros — vírgula decimal + separador
+// CSV colidiam. Além disso, nome do sheet era perdido → AI extraía sem saber se
+// era DRE/Balanço/DFC. Colunas comparativas (2023|2024|2025) viravam linha
+// corrida sem regex-match. Sheets irrelevantes (gráficos, instruções) eram
+// enviados à IA junto.
+//
+// Agora: TSV com sheet header semântico, formatador BR-aware, filtro por
+// palavra-chave financeira no nome do sheet, e preservação da grade tabular
+// para permitir que o regex de anos multi-ano (v67) e a IA (v68) reconheçam
+// as colunas de exercícios.
 async function extractXLSX(file) {
   try {
     if (typeof XLSX === 'undefined') return '';
     const ab = await file.arrayBuffer();
-    const wb = XLSX.read(ab, { type: 'array' });
-    let txt = '';
-    wb.SheetNames.forEach(name => {
-      const ws = wb.Sheets[name];
-      txt += XLSX.utils.sheet_to_csv(ws) + '\n';
+    const wb = XLSX.read(ab, { type: 'array', cellDates: true, cellNF: false, cellText: false });
+
+    // Palavras-chave que indicam sheet financeiro relevante
+    const FIN_KW = /\b(dre|dfc|balan[çc]o|bp|resultado|fluxo|caixa|patrimoni|receita|ebitda|financ|contabil|escritura[çc][ãa]o|razao|balancete|demonstra)\b/i;
+    // Sheets a ignorar sempre
+    const SKIP_KW = /\b(instru[çc][ãa]o|leia-?me|readme|gr[aá]fico|chart|dashboard|resumo|cover|capa|[íi]ndice|sumario)\b/i;
+
+    // Ordena: financeiros primeiro (relevância decrescente)
+    const orderedNames = [...wb.SheetNames].sort((a, b) => {
+      const aFin = FIN_KW.test(a), bFin = FIN_KW.test(b);
+      const aSkip = SKIP_KW.test(a), bSkip = SKIP_KW.test(b);
+      if (aFin && !bFin) return -1;
+      if (!aFin && bFin) return 1;
+      if (aSkip && !bSkip) return 1;
+      if (!aSkip && bSkip) return -1;
+      return 0;
     });
+
+    const parts = [];
+    for (const name of orderedNames) {
+      const ws = wb.Sheets[name];
+      if (!ws) continue;
+      // Extrai como matriz 2D (header: 1 = raw arrays; blank cells preservam índice)
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', blankrows: false, raw: true });
+      if (!rows.length) continue;
+
+      // Formata células BR-aware: números com vírgula decimal, datas em dd/mm/aaaa
+      const fmt = v => {
+        if (v == null || v === '') return '';
+        if (v instanceof Date) {
+          const d = String(v.getDate()).padStart(2,'0');
+          const m = String(v.getMonth()+1).padStart(2,'0');
+          return `${d}/${m}/${v.getFullYear()}`;
+        }
+        if (typeof v === 'number') {
+          // Preserva números com formato brasileiro para o regex reconhecer
+          if (Number.isInteger(v) && v >= 1900 && v <= 2100) return String(v); // ano puro
+          return v.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+        }
+        // String: remove tabs/quebras que atrapalhariam o TSV
+        return String(v).replace(/[\t\r\n]+/g, ' ').trim();
+      };
+
+      // Cabeçalho semântico do sheet — AI e regex identificam contexto
+      parts.push(`\n\n=== SHEET: ${name} ===`);
+      // TSV (tab-separated) evita conflito com vírgula decimal brasileira.
+      // Alinhamento por tab também preserva colunas comparativas — o regex
+      // hdrRx v67 casa "2023\s+2024\s+2025" (\s+ engloba tab).
+      for (const row of rows) {
+        const cells = row.map(fmt);
+        // Remove linhas totalmente vazias
+        if (cells.every(c => c === '')) continue;
+        parts.push(cells.join('\t'));
+      }
+    }
+
+    const txt = parts.join('\n');
+    console.log('[extractXLSX v69]', file.name, '— sheets:', wb.SheetNames.length, '· chars:', txt.length);
     return txt;
   } catch(e) {
     console.error('[extractXLSX]', e);
