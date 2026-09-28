@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Valuation IBGESF v64</title>
+<title>Valuation IBGESF v65</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap">
 
 <!-- Leitura client-side de PDF e Excel/CSV -->
@@ -2648,6 +2648,40 @@ function firstNum(slice) {
   return m ? parseNum(m[0]) : null;
 }
 
+// v65: collectLineNums — varre próximas N linhas não-brancas coletando números com sinal.
+// Resolve o layout colunar do pdftotext (DFC): label numa linha, valor N linhas abaixo.
+// Também reconstrói parênteses partidos: "(\n\n354.388,05)" → -354388.05
+function collectLineNums(slice, maxLines) {
+  maxLines = maxLines || 12;
+  const lines = slice.split('\n');
+  const results = [];
+  let orphanOpen = false;
+  let count = 0;
+  const numLineRx = /^-?[\d.,]+\)?$|^\([\d.,]+\)$|^\([\d.,]+\)\s+[CD]$|^[\d.,]+\s+[CD]$/i;
+  for (let i = 0; i < lines.length; i++) {
+    if (count >= maxLines) break;
+    const trimmed = lines[i].trim();
+    if (!trimmed) continue;
+    count++;
+    if (trimmed === '(') { orphanOpen = true; continue; } // paren partida pdftotext
+    if (numLineRx.test(trimmed)) {
+      let str = trimmed;
+      if (orphanOpen && str.endsWith(')') && !str.startsWith('(')) str = '(' + str;
+      orphanOpen = false;
+      const v = parseNum(str); // parseNum já trata parênteses como negativo
+      if (v !== null) results.push(v);
+      else if (/^[\d.,]+$/.test(str.replace(',','.')) && parseFloat(str.replace(/[.,](?=\d{3})/g,'').replace(',','.')) === 0) {
+        results.push(0); // captura 0,00 (parseNum retorna null para zero)
+      }
+    } else {
+      orphanOpen = false;
+      // Nova seção ou linha de texto — para a varredura
+      if (/^[A-ZÁÉÍÓÚ2-9(+=]{3}/i.test(trimmed)) break;
+    }
+  }
+  return results;
+}
+
 function findNear(text, labelRx, range, allowNeg) {
   range = range || 500;
   const m = text.match(labelRx);
@@ -3243,7 +3277,19 @@ function extractDocFinancials(doc) {
         if (!m) continue;
         const absIdx = pos + m.index + m[0].length;
         const slice = fcoText.slice(absIdx, absIdx + 600);
-        const v = firstNum(slice);
+        // v65: usa collectLineNums para layout colunar pdftotext (label + blank + valor em linha separada)
+        // Para "TOTAL DAS ATIVIDADES OPERACIONAIS", pode haver dois valores:
+        //   (354.388,05) = delta passivo intermediário (ERRADO, primeiro)
+        //   241.754,24   = FCO real (CORRETO, último positivo)
+        // Pega o ÚLTIMO positivo para capturar o total correto, não valores intermediários.
+        const lineNums = collectLineNums(slice, 12);
+        let v = null;
+        if (lineNums.length > 0) {
+          const positiveLineNums = lineNums.filter(n => n > 0);
+          v = positiveLineNums.length > 0 ? positiveLineNums[positiveLineNums.length - 1] : lineNums[lineNums.length - 1];
+        } else {
+          v = firstNum(slice); // fallback para DFCs sem layout colunar
+        }
         if (v !== null) {
           fcoVals.push({ v: applyScale(v), idx: absIdx });
           pos = absIdx + 1;
@@ -3325,8 +3371,10 @@ function extractDocFinancials(doc) {
         // Pegar o número mais próximo após a linha (pode estar negativo no DFC)
         // Para DFC comparativo, limitar janela para pegar só a primeira coluna (ano mais recente)
         const after = invSection.slice(m.index + m[0].length, m.index + m[0].length + afterLen);
-        const v = firstNum(after);
-        if (v !== null && Math.abs(v) > 0) {
+        // v65: collectLineNums para layout colunar pdftotext; aceita 0,00 explícito
+        const lineNums = collectLineNums(after, 8);
+        const v = lineNums.length > 0 ? lineNums[0] : firstNum(after);
+        if (v !== null) {
           // No DFC atividades de investimento: saída = negativo; armazena como positivo
           capexTotal += Math.abs(applyScale(v));
           found = true;
@@ -3335,7 +3383,8 @@ function extractDocFinancials(doc) {
     }
 
     // 3. Se somou múltiplas linhas, usar total; caso contrário busca individual
-    if (found && capexTotal > 0) {
+    // v65: found=true mesmo quando capexTotal=0 (empresa sem CAPEX — CAPEX = 0 é válido)
+    if (found) {
       r.capex = Math.round(capexTotal);
       r._capexSource = 'DFC — soma de aquisições na seção de Investimentos';
     } else {
