@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Valuation IBGESF v78</title>
+<title>Valuation IBGESF v79</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap">
 
 <!-- Leitura client-side de PDF e Excel/CSV -->
@@ -2133,7 +2133,7 @@ body {
         </div>
       </div>
 
-      <div class="panel-ft">v78 · FCL como metodologia principal · Revisão Humana · Extração multi-ano IA</div>
+      <div class="panel-ft">v79 · FCL como metodologia principal · Revisão Humana · Extração multi-ano IA</div>
     </aside>
   </div>
 </section>
@@ -2370,6 +2370,17 @@ body {
 </main>
 
 <script>
+/* ── Suprimir logs em produção ── */
+(function() {
+  const _dbg = (typeof location !== 'undefined' && location.hostname === 'localhost');
+  if (!_dbg) {
+    const noop = () => {};
+    console.log  = noop;
+    console.info = noop;
+    console.debug = noop;
+    // mantém console.warn e console.error para erros reais
+  }
+})();
 // ─── EVIDENCE STORE ─────────────────────────────────────────────────────────
 // Registro auditável por indicador: origin, raw value, state, evidence snippet
 const EVIDENCE = {};
@@ -5564,7 +5575,7 @@ async function parseText() {
     S.fcl = txtR.fcl;
     setEvidence('fcl', { label:'FCL', rawValue: txtR.fcl, origin:'text', state:'needs-review',
       evidence:'Extraído do texto informado pelo usuário.' });
-  } else if (S.fco && S.fco > 0 && S.capex && S.capex > 0) {
+  } else if (S.fco && S.fco > 0 && S.capex != null) {
     S.fcl = S.fco - S.capex;
     const fcoSrc = docR.fco ? brl(docR.fco,true) : brl(S.fco,true);
     const capSrc = docR.capex ? brl(docR.capex,true) : brl(S.capex,true);
@@ -6107,9 +6118,11 @@ const WACC_PARAMS = {
 /* ── Auto-fetch Rf via BCB SGS (Selic real) — atualiza mensalmente ── */
 (async function fetchRfBCB() {
   try {
+    const _bcbCtrl = new AbortController();
+    setTimeout(() => _bcbCtrl.abort(), 5000);
     const [r1, r2] = await Promise.all([
-      fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json'),
-      fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.13522/dados/ultimos/1?formato=json'),
+      fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json', { signal: _bcbCtrl.signal }),
+      fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.13522/dados/ultimos/1?formato=json', { signal: _bcbCtrl.signal }),
     ]);
     const d1 = await r1.json();
     const d2 = await r2.json();
@@ -6557,10 +6570,10 @@ function calculate() {
     console.error('calculate() error:', e);
     const _errEl = document.getElementById('calc-err');
     if (_errEl) { _errEl.textContent = 'Erro ao calcular: ' + e.message; _errEl.classList.add('on'); }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Calcular valor da empresa →';
   }
-
-  btn.disabled = false;
-  btn.textContent = 'Calcular valor da empresa →';
 }
 
 function isAdmin() {
@@ -7118,7 +7131,7 @@ ${textTrimmed}`;
           if (!yr) continue;
           const filtered = {};
           for (const [year, val] of Object.entries(yr)) {
-            if (val != null && val > 0) filtered[year] = val;
+            if (val != null && val >= 0) filtered[year] = val;
           }
           if (Object.keys(filtered).length > 0) s[sk] = filtered;
         }
@@ -7261,7 +7274,7 @@ Regras críticas:
           if (!yr) continue;
           const filtered = {};
           for (const [year, val] of Object.entries(yr)) {
-            if (val != null && val > 0) filtered[year] = val;
+            if (val != null && val >= 0) filtered[year] = val;
           }
           if (Object.keys(filtered).length > 0) s[sk] = filtered;
         }
@@ -7327,7 +7340,7 @@ async function _solicitarRelatorioAssociado() {
   // Worker não disponível em ambiente artifact (CSP) — relatório será processado manualmente
   console.log('[Relatório] Solicitação registrada (processamento manual pelo IBGESF):', S.email, S.empresa || '');
   if (isImmediate) {
-    btn.textContent = '✅ Relatório enviado! Verifique seu e-mail agora.';
+    btn.textContent = '✅ Solicitação recebida! Nossa equipe enviará o relatório em até 24h.';
   } else {
     btn.textContent = '✅ Solicitação enviada! Verifique seu e-mail em até 24h.';
   }
