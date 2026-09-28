@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Valuation IBGESF v65</title>
+<title>Valuation IBGESF v66</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap">
 
 <!-- Leitura client-side de PDF e Excel/CSV -->
@@ -427,6 +427,9 @@ body {
 .ind.empty { border:1.5px solid var(--faint); background:transparent; }
 .ind.done  { background:var(--green); box-shadow:0 0 0 2px rgba(36,84,60,.18); }
 .fname { font-size:12px; color:var(--muted); flex:1; line-height:1.3; }
+.fsrc  { display:block; font-size:9px; color:var(--faint); font-weight:400;
+  letter-spacing:.01em; margin-top:1px; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis; max-width:140px; opacity:.85; }
 .fval  {
   font-size:11px; font-weight:600; color:var(--text);
   font-variant-numeric:tabular-nums;
@@ -1144,6 +1147,7 @@ body {
               <span id="fcl-calc-badge" hidden style="font-size:9px;background:rgba(15,65,93,.15);color:var(--navy);padding:1px 6px;border-radius:10px;font-weight:700;letter-spacing:.03em;">FCO−CAPEX</span>
             </div>
             <div class="fval" id="fv-fcl" contenteditable="true" oninput="onFieldInput(this)">—</div>
+<span class="fsrc" id="src-fcl"></span>
             <button class="ev-btn" onclick="showEvidence('fcl')" title="Ver origem do dado">🔍</button>
           </div>
           <div id="fcl-formula-line" hidden style="font-size:10px;color:var(--muted);padding:2px 7px 5px 24px;line-height:1.4;">
@@ -1156,6 +1160,7 @@ body {
               <button class="tip-icon" type="button" data-tip="FCO: caixa gerado pelas atividades operacionais — linha final da seção operacional do DFC. Valor anual acumulado (12 meses). Sinal: positivo = operação gera caixa (normal); negativo = operação consome caixa (alerta). Método indireto: FCO = Lucro Líquido + Depreciação/Amortização ± Variação do Capital de Giro − Impostos pagos. Informe o valor total do ano: ex: 'FCO de R$750k'.">?</button>
             </div>
             <div class="fval" id="fv-fco" contenteditable="true" oninput="onFieldInput(this)">—</div>
+<span class="fsrc" id="src-fco"></span>
             <button class="ev-btn" onclick="showEvidence('fco')" title="Ver origem do dado">🔍</button>
           </div>
           <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
@@ -1168,6 +1173,7 @@ body {
               <button class="tip-icon" type="button" data-tip="CAPEX: saída de caixa para compra de máquinas, equipamentos, imóveis e ativos fixos — seção de Investimentos do DFC. Valor anual acumulado. Sempre informe como positivo (ex: R$120k); a fórmula FCL = FCO − CAPEX já faz a subtração. CAPEX alto vs. FCO reduz o FCL e sinaliza negócio capital-intensivo — menos atrativo para M&A.">?</button>
             </div>
             <div class="fval" id="fv-cap" contenteditable="true" oninput="onFieldInput(this)">—</div>
+<span class="fsrc" id="src-cap"></span>
             <button class="ev-btn" onclick="showEvidence('capex')" title="Ver origem do dado">🔍</button>
           </div>
           <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
@@ -1180,6 +1186,7 @@ body {
               <button class="tip-icon" type="button" data-tip="D&A: despesa contábil anual sem saída real de caixa — redução do valor de ativos ao longo do tempo. Sempre positivo. No método indireto, é adicionado de volta ao Lucro Líquido para calcular o FCO: FCO = Lucro Líquido (+) D&A (±) ΔCapital de Giro (−) Impostos pagos. Encontrado na DRE (linha 'Depreciação e Amortização') ou no DFC seção operacional. Ex: 'depreciação de R$180k/ano'.">?</button>
             </div>
             <div class="fval" id="fv-dep" contenteditable="true" oninput="onFieldInput(this)">—</div>
+<span class="fsrc" id="src-dep"></span>
             <button class="ev-btn" onclick="showEvidence('depreciacao')" title="Ver origem do dado">🔍</button>
           </div>
           <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
@@ -1192,6 +1199,7 @@ body {
               <button class="tip-icon" type="button" data-tip="Total anual retirado pelos sócios: pró-labore (mensal × 12) + distribuição de lucros. Sempre positivo. Essencial para normalizar o FCL: se o sócio-operador recebe pró-labore abaixo do mercado, o FCL aparente está inflado — o comprador terá que pagar um gestor. Informe o total anual bruto. Ex: pró-labore R$15k/mês (= R$180k/ano) + distribuição R$120k/ano = Retirada Total R$300k/ano.">?</button>
             </div>
             <div class="fval" id="fv-ret" contenteditable="true" oninput="onFieldInput(this)">—</div>
+<span class="fsrc" id="src-ret"></span>
             <button class="ev-btn" onclick="showEvidence('retirada')" title="Ver origem do dado">🔍</button>
           </div>
           <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
@@ -1204,6 +1212,7 @@ body {
               <button class="tip-icon" type="button" data-tip="Dívida total (empréstimos, financiamentos, debêntures) e caixa disponível. Usados para calcular a dívida líquida (Dívida − Caixa), que ajusta o Enterprise Value para o Equity Value. Dívida líquida positiva reduz o valor para o sócio; caixa maior que dívida aumenta. Extraídos do Balanço Patrimonial — saldo na data-base.">?</button>
             </div>
             <div class="fval" id="fv-div" contenteditable="true" oninput="onFieldInput(this)">—</div>
+<span class="fsrc" id="src-div"></span>
             <button class="ev-btn" onclick="showEvidence('divida')" title="Ver origem do dado">🔍</button>
           </div>
           <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
@@ -1226,6 +1235,7 @@ body {
               <button class="tip-icon" type="button" data-tip="Receita total antes de deduções fiscais (impostos sobre vendas). Representa o faturamento bruto da empresa — ponto de partida da DRE. Informe no texto: ex: 'receita bruta de R$4,1M' ou envie a DRE para extração automática.">?</button>
             </div>
             <div class="fval" id="fv-rec" contenteditable="true" oninput="onFieldInput(this)">—</div>
+<span class="fsrc" id="src-rec"></span>
             <button class="ev-btn" onclick="showEvidence('receita')" title="Ver origem do dado">🔍</button>
           </div>
           <div class="pfield">
@@ -1235,6 +1245,7 @@ body {
               <button class="tip-icon" type="button" data-tip="EBITDA (Lucro Operacional Ajustado): Lucro antes de Juros, Impostos, Depreciação e Amortização — representa a geração de caixa operacional da empresa. É multiplicado pelo índice setorial (múltiplo EV/EBITDA) para calcular o valor pelos comparáveis de mercado. Quando não disponível, o FCO é usado como substituto.">?</button>
             </div>
             <div class="fval" id="fv-ebt" contenteditable="true" oninput="onFieldInput(this)">—</div>
+<span class="fsrc" id="src-ebt"></span>
             <button class="ev-btn" onclick="showEvidence('ebitda')" title="Ver origem do dado">🔍</button>
           </div>
           <div class="pfield">
@@ -1252,6 +1263,7 @@ body {
               <button class="tip-icon" type="button" data-tip="CAGR (Crescimento Anual Acumulado) da receita. Empresas com crescimento acima de 15% ao ano recebem prêmio no índice de valor e na projeção do FCD (Fluxo de Caixa Descontado). Calculado automaticamente a partir de DRE de múltiplos anos.">?</button>
             </div>
             <div class="fval" id="fv-cre" contenteditable="true" oninput="onFieldInput(this)">—</div>
+<span class="fsrc" id="src-cre"></span>
             <button class="ev-btn" onclick="showEvidence('crescimento')" title="Ver origem do dado">🔍</button>
           </div>
           </div><!-- /psec-media-body -->
@@ -1276,6 +1288,7 @@ body {
               <button class="tip-icon" type="button" data-tip="Prazo Médio de Estoque (PME) = Estoque ÷ (Receita Bruta ÷ 365). Mede quantos dias de vendas estão parados em estoque. Referência: até 60 dias = saudável; 61–90 dias = atenção; acima de 90 dias = alerta no due diligence (risco de obsolescência ou baixa rotatividade). Informe o valor em dias ou o saldo do estoque — a ferramenta calcula os dias se ambos estiverem disponíveis.">?</button>
             </div>
             <div class="fval" id="fv-est" contenteditable="true" oninput="onFieldInput(this)">—</div>
+<span class="fsrc" id="src-est"></span>
           </div>
           <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
             PME = Estoque ÷ (Receita ÷ 365) &nbsp;·&nbsp; <span style="color:#24543c;font-weight:600;">≤ 60d</span> saudável &nbsp;·&nbsp; <span style="color:#c47a00;font-weight:600;">61–90d</span> atenção &nbsp;·&nbsp; <span style="color:#c0392b;font-weight:600;">&gt; 90d</span> alerta
@@ -1287,6 +1300,7 @@ body {
               <button class="tip-icon" type="button" data-tip="CGL = Ativo Circulante − Passivo Circulante. Extraído do Balanço Patrimonial. Positivo = empresa tem folga financeira de curto prazo; negativo = passivo circulante supera ativos — risco de liquidez. Componentes: Ativo Circulante = caixa + contas a receber + estoques; Passivo Circulante = fornecedores + salários + impostos + dívidas de curto prazo. Informe o valor absoluto (R$) do ano mais recente.">?</button>
             </div>
             <div class="fval" id="fv-cgl" contenteditable="true" oninput="onFieldInput(this)">—</div>
+<span class="fsrc" id="src-cgl"></span>
             <button class="ev-btn" onclick="showEvidence('capital_giro')" title="Ver origem do dado">🔍</button>
           </div>
           <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
@@ -1299,6 +1313,7 @@ body {
               <button class="tip-icon" type="button" data-tip="ΔCG = CGL(ano atual) − CGL(ano anterior). Positivo = capital de giro cresceu → empresa consumiu mais caixa para financiar operações (reduz FCO); Negativo = capital de giro encolheu → liberou caixa (melhora FCO). Aparece no DFC método indireto. Variações positivas recorrentes e crescentes sinalizam necessidade crescente de capital — ponto de atenção no due diligence.">?</button>
             </div>
             <div class="fval" id="fv-vcg" contenteditable="true" oninput="onFieldInput(this)">—</div>
+<span class="fsrc" id="src-vcg"></span>
           </div>
           <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
             ΔCG = CGL(ano atual) − CGL(anterior) &nbsp;·&nbsp; <span style="color:#c0392b;font-weight:600;">↑ positivo</span> = consumiu caixa &nbsp;·&nbsp; <span style="color:#24543c;font-weight:600;">↓ negativo</span> = liberou caixa
@@ -1310,6 +1325,7 @@ body {
               <button class="tip-icon" type="button" data-tip="PMR = Contas a Receber ÷ (Receita Bruta ÷ 365). Mede em quantos dias, em média, os clientes pagam. Referência: até 30 dias = ótimo; 31–60 dias = normal para B2B; 61–90 dias = atenção; acima de 90 dias = risco de inadimplência ou inadimplência estrutural. PMR alto aumenta a necessidade de capital de giro e reduz o FCO — ponto-chave no due diligence de empresas de serviços e varejo.">?</button>
             </div>
             <div class="fval" id="fv-pmr" contenteditable="true" oninput="onFieldInput(this)">—</div>
+<span class="fsrc" id="src-pmr"></span>
           </div>
           <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
             PMR = CR ÷ (Receita ÷ 365) &nbsp;·&nbsp; <span style="color:#24543c;font-weight:600;">≤ 30d</span> B2C ótimo &nbsp;·&nbsp; <span style="color:#24543c;font-weight:600;">≤ 60d</span> B2B normal &nbsp;·&nbsp; <span style="color:#c0392b;font-weight:600;">&gt; 90d</span> alerta
@@ -1321,6 +1337,7 @@ body {
               <button class="tip-icon" type="button" data-tip="% de contas a receber vencidas há mais de 60 dias sobre o total da carteira. Referência: até 3% = saudável; 3–8% = atenção; acima de 8% = alerta — pode indicar base de clientes fraca, política de crédito frouxa ou deterioração do negócio. Informe o % ou descreva: ex: 'inadimplência de 5%' ou 'R$80k em atraso sobre carteira de R$1,2M'.">?</button>
             </div>
             <div class="fval" id="fv-inad" contenteditable="true" oninput="onFieldInput(this)">—</div>
+<span class="fsrc" id="src-inad"></span>
           </div>
           <div style="font-size:10px;color:var(--muted);padding:1px 7px 5px 24px;line-height:1.45;">
             Recebíveis vencidos &gt; 60 dias &nbsp;·&nbsp; <span style="color:#24543c;font-weight:600;">≤ 3%</span> saudável &nbsp;·&nbsp; <span style="color:#c47a00;font-weight:600;">3–8%</span> atenção &nbsp;·&nbsp; <span style="color:#c0392b;font-weight:600;">&gt; 8%</span> alerta
@@ -3468,7 +3485,7 @@ function extractDocFinancials(doc) {
       formula:'Fluxo líquido das atividades operacionais (DFC)',
       evidence: dfcSection ? dfcSection.substring(0,200) : '' });
   }
-  if (r.capex) {
+  if (r.capex !== undefined && r.capex !== null) {
     setEvidence('capex', { label:'CAPEX', rawValue: r.capex, origin:'extracted',
       state:'validated', period: String(r._docYear||''), scale: r._scale||'',
       formula: r._capexSource || 'Soma de aquisições de ativos (DFC / Balanço / Notas)',
@@ -3903,7 +3920,7 @@ async function parseText() {
   S.recorrencia = docR.recorrencia  || txtR.recorrencia  || null;
   S.fundador    = txtR.fundador || null;
   S.fco         = docR.fco   || txtR.fco   || null;
-  S.capex       = docR.capex || txtR.capex || null;
+  S.capex       = (docR.capex !== undefined && docR.capex !== null) ? docR.capex : (txtR.capex !== undefined && txtR.capex !== null) ? txtR.capex : null;
   // FCL: documentos têm prioridade; texto livre como fallback
   if (docR.fcl) {
     S.fcl = docR.fcl;
@@ -4047,22 +4064,60 @@ function setF(indId, valId, label, ok) {
   }
 }
 
+// v65: exibe arquivo de origem ao lado do valor capturado
+function setSrc(spanId, evKey) {
+  const el = document.getElementById(spanId);
+  if (!el) return;
+  const ev = EVIDENCE && EVIDENCE[evKey];
+  if (!ev || ev.origin === 'not-found') { el.textContent = ''; return; }
+
+  let src = '';
+
+  if (ev.origin === 'calculated') {
+    src = 'FCO − CAPEX';
+  } else if (ev.origin === 'manual') {
+    src = '✏ digitado';
+  } else if (ev.source) {
+    // Remove prefixo "🤖 Claude leu PDF nativamente · "
+    src = ev.source.replace(/^🤖[^·]*·\s*/, '').trim();
+    // Remove hash prefix dos nomes (ex: "be454948-dcf_2025.pdf" → "dcf_2025.pdf")
+    src = src.split(', ').map(n => n.replace(/^[0-9a-f]{6,}-/, '')).join(', ');
+    src = src ? '📄 ' + src : '';
+  } else if (ev.origin === 'extracted') {
+    // Fallback: usa nomes dos arquivos carregados
+    if (typeof _docFiles !== 'undefined' && _docFiles && _docFiles.length) {
+      const names = _docFiles.map(f => f.name.replace(/^[0-9a-f]{6,}-/, '')).join(', ');
+      src = names ? '📄 ' + names : '📄 documento';
+    } else {
+      src = '✏ texto';
+    }
+  } else if (ev.origin === 'text') {
+    src = '✏ texto';
+  }
+
+  el.textContent = src;
+}
+
 function updatePanel() {
   S.sector = document.getElementById('sector').value;
 
   const sn = S.sector && SECTORS[S.sector] ? SECTORS[S.sector].n : null;
   setF('ind-fco','fv-fco', S.fco   ? brl(S.fco,true)   : null, !!S.fco);
+  setSrc('src-fco', 'fco');
   setF('ind-set','fv-set', sn ? sn.split(' ')[0] : null, !!sn);
   // Mostra aviso inline se receita suspeita de ser mensal
   const recLabel = S.receita
     ? (S._receitaSuspeitaMensal ? '⚠ '+brl(S.receita,true)+'/ano?' : brl(S.receita,true))
     : null;
   setF('ind-rec','fv-rec', recLabel, !!S.receita);
+  setSrc('src-rec', 'receita');
   const recEl = document.getElementById('fv-rec');
   if (recEl && S._receitaSuspeitaMensal) recEl.style.color = 'var(--amber)';
   else if (recEl) recEl.style.color = '';
   setF('ind-ebt','fv-ebt', S.ebitda  ? brl(S.ebitda,true)  : null, !!S.ebitda);
+  setSrc('src-ebt', 'ebitda');
   setF('ind-fcl','fv-fcl', S.fcl   ? brl(S.fcl,true)   : null, !!S.fcl);
+  setSrc('src-fcl', 'fcl');
   // v2.0 — FCL calculado: mostrar badge e fórmula
   const fclEv = EVIDENCE && EVIDENCE['fcl'];
   const fclIsCalc = fclEv && fclEv.origin === 'calculated';
@@ -4075,19 +4130,28 @@ function updatePanel() {
   setF('ind-div','fv-div',
     (S.divida||S.caixa) ? [S.divida?'D:'+brl(S.divida,true):null, S.caixa?'C:'+brl(S.caixa,true):null].filter(Boolean).join(' ') : null,
     !!(S.divida||S.caixa));
+  setSrc('src-div', 'divida');
   setF('ind-cre','fv-cre', S.crescimento ? S.crescimento+'%' : null, !!S.crescimento);
-  setF('ind-cap','fv-cap', S.capex  ? brl(S.capex,true)  : null, !!S.capex);
+  setSrc('src-cre', 'crescimento');
+  setF('ind-cap','fv-cap', S.capex  !== undefined ? brl(S.capex,true)  : null, S.capex !== undefined && S.capex !== null);
+  setSrc('src-cap', 'capex');
   setF('ind-dep','fv-dep', S.depreciacao ? brl(S.depreciacao,true) : null, !!S.depreciacao);
+  setSrc('src-dep', 'depreciacao');
   setF('ind-ret','fv-ret', S.retirada ? brl(S.retirada,true) : null, !!S.retirada);
+  setSrc('src-ret', 'retirada');
   setF('ind-fun','fv-fun', S.funcionarios ? S.funcionarios+' func.' : null, !!S.funcionarios);
   setF('ind-rrr','fv-rrr', S.recorrencia ? S.recorrencia+'%' : null, !!S.recorrencia);
   setF('ind-fnd','fv-fnd', S.fundador, !!S.fundador);
   // Due Diligence Operacional
   setF('ind-est','fv-est', S.estoque_dias != null ? S.estoque_dias+' dias' : null, S.estoque_dias != null);
   setF('ind-cgl','fv-cgl', S.capital_giro != null ? brl(S.capital_giro,true) : null, S.capital_giro != null);
+  setSrc('src-cgl', 'capital_giro');
   setF('ind-vcg','fv-vcg', S.variacao_cg  != null ? brl(S.variacao_cg,true)  : null, S.variacao_cg  != null);
+  setSrc('src-vcg', 'variacao_cg');
   setF('ind-pmr','fv-pmr', S.pmr          != null ? S.pmr+' dias'            : null, S.pmr          != null);
+  setSrc('src-pmr', 'pmr');
   setF('ind-inad','fv-inad', S.inadimplencia != null ? S.inadimplencia+'%'   : null, S.inadimplencia!= null);
+  setSrc('src-inad', 'inadimplencia');
 
   // Campos BTB recomendados (pfield-ask)
   const btbFields = [
