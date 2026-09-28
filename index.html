@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Valuation IBGESF v70</title>
+<title>Valuation IBGESF v71</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap">
 
 <!-- Leitura client-side de PDF e Excel/CSV -->
@@ -5166,6 +5166,21 @@ async function exportToExcel() {
         setNum(ws, 'F'+rowNum, mil(fallbackVal));
       }
     }
+    // ── v71: pré-calcula valor cacheado de célula com fórmula PRESERVANDO a fórmula
+    // Best practice Excel: cell.v = valor, cell.f = fórmula → qualquer viewer mostra
+    // valor correto E fórmula continua funcionando se usuário editar inputs.
+    function setNumWithFormula(ws, ref, val, formula) {
+      if (!ws[ref]) ws[ref] = {};
+      ws[ref].t = 'n';
+      ws[ref].v = val;
+      ws[ref].w = val.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+      if (formula) ws[ref].f = formula;
+    }
+    // v71: força fullCalcOnLoad — viewers modernos recalculam ao abrir (proteção extra)
+    if (!wb.Workbook) wb.Workbook = {};
+    if (!wb.Workbook.CalcPr) wb.Workbook.CalcPr = {};
+    wb.Workbook.CalcPr.fullCalcOnLoad = true;
+    wb.Workbook.CalcPr.calcCompleted = false;
 
     // ── 1_DRE (sheet3) ─── R6=receita, R10=CMV, R13=desp.op, R14=pró-labore, R17=outras, R21=D&A ──
     const ws1 = wb.Sheets['1_DRE'];
@@ -5189,6 +5204,43 @@ async function exportToExcel() {
       setNum(ws1, 'F14', S.sde ? mil(S.sde - (S.ebitda||0)) : 0); // pró-labore (só 2025)
       setNum(ws1, 'F17', 0);                                      // outras (0)
       writeMetric(ws1, 21, 'dep_amort',   S.depreciacao);         // D&A
+
+      // ── v71: pré-calcula valores cacheados de fórmulas dependentes ────
+      // Impede que viewers mostrem "0" quando não recalculam ao abrir.
+      // As fórmulas ficam preservadas — se o usuário editar, tudo recalcula.
+      const YRS = Object.keys(series.receita || {}).length
+                    ? Object.keys(series.receita).map(Number).filter(y => YEAR_COLS[y])
+                    : [2025];
+      for (const yr of YRS) {
+        const col = YEAR_COLS[yr];
+        const rec = series.receita?.[yr] ?? (yr === 2025 ? S.receita : 0);
+        const ebi = series.ebitda?.[yr]  ?? (yr === 2025 ? S.ebitda  : 0);
+        const dep = Math.abs(series.dep_amort?.[yr] ?? (yr === 2025 ? (S.depreciacao||0) : 0));
+        const cmv = Math.abs(series.cmv?.[yr] ?? 0);
+        const rBruta = rec ? rec/1000 : 0;
+        const rLiq   = rBruta;                       // deduções=0 no template preenchido
+        const luBru  = rLiq - cmv/1000;
+        const marBru = rLiq > 0 ? luBru / rLiq : 0;
+        // Se EBITDA foi extraído do doc, usa ele (fonte da verdade); despesas = plug
+        const ebiMil = ebi ? ebi/1000 : luBru;      // fallback: sem EBITDA extraído, usa lucro bruto
+        const despPlug = Math.max(0, luBru - ebiMil); // despesas op = plug de fechamento
+        const marEbi = rLiq > 0 ? ebiMil / rLiq : 0;
+        const ebit   = ebiMil - dep/1000;
+
+        // R8 Receita líquida = R6-R7
+        setNumWithFormula(ws1, col+'8',  rLiq,  `${col}6-${col}7`);
+        // R11 Lucro bruto = R8-R10 (SOBRESCREVE R13 despesas antes com plug)
+        if (ebi) setNum(ws1, col+'13', despPlug); // recalcula despesas op como plug para bater com EBITDA extraído
+        setNumWithFormula(ws1, col+'11', luBru, `${col}8-${col}10`);
+        // R12 Margem bruta
+        setNumWithFormula(ws1, col+'12', marBru, `IF(${col}8=0,0,${col}11/${col}8)`);
+        // R19 EBITDA = R11-R13+R17 → valor cacheado ebiMil (do extraído, se houver)
+        setNumWithFormula(ws1, col+'19', ebiMil, `${col}11-${col}13+${col}17`);
+        // R20 Margem EBITDA
+        setNumWithFormula(ws1, col+'20', marEbi, `IF(${col}8=0,0,${col}19/${col}8)`);
+        // R22 EBIT
+        setNumWithFormula(ws1, col+'22', ebit, `${col}19-${col}21`);
+      }
     }
 
     // ── 2_Balanco (sheet4) ─── R6=caixa, R7=CR, R8=estoques, R10=imob, R11=intang, R13=forn, R15=div CP, R16=div LP ──
@@ -5204,6 +5256,27 @@ async function exportToExcel() {
       writeMetric(ws2, 15, 'divida_cp',      S.divida);
       writeMetric(ws2, 16, 'divida_lp',      null);
       // Fallback: se não houver série mas há S.divida, mantém tudo em F15
+
+      // v71: pré-calcula NCG, Dívida bruta, Dívida líquida — evita zeros no viewer
+      const YRS2 = Object.keys(series.caixa || {}).length
+                    ? Object.keys(series.caixa).map(Number).filter(y => YEAR_COLS[y])
+                    : [2025];
+      for (const yr of YRS2) {
+        const col = YEAR_COLS[yr];
+        const cr    = (series.contas_receber?.[yr] || 0) / 1000;
+        const est   = (series.estoques?.[yr] || 0) / 1000;
+        const forn  = (series.fornecedores?.[yr] || 0) / 1000;
+        const outr  = (series.outros_pass_op?.[yr] || 0) / 1000;
+        const dcp   = (series.divida_cp?.[yr] || (yr===2025?S.divida:0)) / 1000;
+        const dlp   = (series.divida_lp?.[yr] || 0) / 1000;
+        const caix  = (series.caixa?.[yr] || (yr===2025?S.caixa:0)) / 1000;
+        const ncg   = cr + est + 0 - forn - outr;
+        const dbr   = dcp + dlp;
+        const dliq  = dbr - caix;
+        setNumWithFormula(ws2, col+'19', ncg,  `${col}7+${col}8+${col}9-${col}13-${col}14`);
+        setNumWithFormula(ws2, col+'21', dbr,  `${col}15+${col}16+${col}17`);
+        setNumWithFormula(ws2, col+'22', dliq, `${col}21-${col}6`);
+      }
     }
 
     // ── 3_DFC (sheet5) ─── R6=FCO, R9=CAPEX ──
@@ -5216,6 +5289,23 @@ async function exportToExcel() {
         capSer.forEach(({col, val}) => setNum(ws3, col+'9', mil(Math.abs(val))));
       } else if (S.capex != null) {
         setNum(ws3, 'F9', mil(Math.abs(S.capex)));
+      }
+
+      // v71: pré-calcula CAPEX total, FCL, conversão de caixa
+      const YRS3 = Object.keys(series.fco || {}).length
+                    ? Object.keys(series.fco).map(Number).filter(y => YEAR_COLS[y])
+                    : [2025];
+      for (const yr of YRS3) {
+        const col = YEAR_COLS[yr];
+        const fco = (series.fco?.[yr] ?? (yr===2025?S.fco:0)) / 1000;
+        const cap = Math.abs(series.capex?.[yr] ?? (yr===2025?S.capex:0)) / 1000;
+        const fcl = fco - cap;
+        setNumWithFormula(ws3, col+'11', cap, `${col}9+${col}10`);   // CAPEX total
+        setNumWithFormula(ws3, col+'13', fcl, `${col}6-${col}11`);   // FCL após juros
+        setNumWithFormula(ws3, col+'14', fcl, `${col}13+${col}7`);   // FCL antes juros (juros=0)
+        const ebiMil = (series.ebitda?.[yr] ?? (yr===2025?S.ebitda:0)) / 1000;
+        const conv = ebiMil > 0 ? fcl / ebiMil : 0;
+        setNumWithFormula(ws3, col+'15', conv, `IF(1_DRE!${col}19=0,0,${col}14/1_DRE!${col}19)`);
       }
     }
 
