@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Valuation IBGESF v69</title>
+<title>Valuation IBGESF v70</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap">
 
 <!-- Leitura client-side de PDF e Excel/CSV -->
@@ -2710,7 +2710,10 @@ function parseNum(s) {
     t = t.replace(/,/g,'.');
   }
   const n = parseFloat(t.match(/[\d.]+/)?.[0]);
-  if (isNaN(n) || n <= 0) return null;
+  // v70: aceita zero como valor válido (CAPEX/D&A/juros podem ser legitimamente 0).
+  // Só rejeita NaN (input vazio ou não numérico) e valores negativos residuais
+  // (o sinal já foi capturado em `neg` acima).
+  if (isNaN(n) || n < 0) return null;
   const result = n * m;
   return neg ? -result : result;
 }
@@ -3704,8 +3707,10 @@ function extractDocFinancials(doc) {
                        /clientes\s+a\s+receber/i,
                        /duplicatas?\s+a\s+receber/i ],
       estoques: [ /\bestoques?\b/i, /mercadorias\s+em\s+estoque/i ],
-      imobilizado:[ /imobilizado\s+l[ií]quido/i, /\bimobilizado\b/i ],
-      intangivel:[ /intang[ií]vel\s+l[ií]quido/i, /\bintang[ií]vel\b/i ],
+      // v70 fix: ancora em início de linha para evitar colisão com
+      // "Aquisição de Ativo Imobilizado" (linha do CAPEX)
+      imobilizado:[ /imobilizado\s+l[ií]quido/i, /^\s*imobilizado(?:\s|$)/mi ],
+      intangivel:[ /intang[ií]vel\s+l[ií]quido/i, /^\s*intang[ií]vel(?:\s|$)/mi ],
       fornecedores:[ /\bfornecedores?\b/i ],
       outros_pass_op:[ /obriga[çc][õo]es\s+(?:tribut[aá]rias|trabalhistas|sociais)/i,
                        /sal[aá]rios?\s+e\s+encargos/i ],
@@ -4171,25 +4176,54 @@ async function parseText() {
     S.ebitda = S.fco; // FCO é o mais confiável para BTB
   }
 
-  // ── v68: MARCA "NÃO LOCALIZADO" para campos ainda vazios com doc carregado ─
-  // Se o usuário carregou documentos mas um campo crítico ficou null após
-  // client-side + IA-1 + IA-verify, marca explicitamente no EVIDENCE para
-  // o painel exibir "⚠ não localizado" em vez de "—" (indistinguível de vazio).
+  // ── v70: POPULA EVIDENCE PARA TODOS OS CAMPOS DO PAINEL ──────────────────
+  // Auditoria v70 detectou: 8 campos do painel tinham setSrc mas nunca
+  // setEvidence — a atribuição de fonte só funcionava para 6 campos.
+  // Agora cobrimos os 14 campos exibidos: registra origem + arquivo para
+  // valores extraídos, e origem 'not-found' para nulos com doc carregado.
   {
     const hadDocs = _docFiles && _docFiles.length > 0;
-    if (hadDocs) {
-      const CRIT_FIELDS = ['receita','ebitda','fco','capex','divida','caixa'];
-      for (const f of CRIT_FIELDS) {
-        if (S[f] == null) {
-          setEvidence(f, {
-            label: f.toUpperCase(),
-            rawValue: null,
-            origin: 'not-found',
-            state: 'not-found',
-            evidence: '⚠ Documento(s) carregado(s) mas ' + f + ' não localizado após 2 passadas de IA. Verifique manualmente ou reformate o documento.',
-            source: '📄 ' + _docFiles.map(f=>f.name.replace(/^[0-9a-f]{6,}-/,'')).join(', ')
-          });
-        }
+    const srcTag = hadDocs ? '📄 ' + _docFiles.map(f=>f.name.replace(/^[0-9a-f]{6,}-/,'')).join(', ') : '';
+    // Todos os campos do painel + de onde vieram
+    const ALL_FIELDS = [
+      { k:'receita',        docV:docR.receita,        txtV:txtR.receita,        label:'Receita Bruta' },
+      { k:'ebitda',         docV:docR.ebitda,         txtV:txtR.ebitda,         label:'EBITDA' },
+      { k:'fco',            docV:docR.fco,            txtV:txtR.fco,            label:'FCO' },
+      { k:'capex',          docV:docR.capex,          txtV:txtR.capex,          label:'CAPEX' },
+      { k:'divida',         docV:docR.divida,         txtV:txtR.divida,         label:'Dívida Total' },
+      { k:'caixa',          docV:docR.caixa,          txtV:txtR.caixa,          label:'Caixa' },
+      { k:'crescimento',    docV:docR.crescimento,    txtV:txtR.crescimento,    label:'Crescimento (CAGR)' },
+      { k:'depreciacao',    docV:docR.depreciacao,    txtV:txtR.depreciacao,    label:'Depreciação' },
+      { k:'retirada',       docV:docR.retirada,       txtV:txtR.retirada,       label:'Retirada Sócio' },
+      { k:'capital_giro',   docV:docR.capital_giro,   txtV:txtR.capital_giro,   label:'Capital Giro Líquido' },
+      { k:'variacao_cg',    docV:docR.variacao_cg,    txtV:txtR.variacao_cg,    label:'Variação Capital Giro' },
+      { k:'pmr',            docV:docR.pmr,            txtV:txtR.pmr,            label:'Prazo Médio Recebimento' },
+      { k:'inadimplencia',  docV:docR.inadimplencia,  txtV:txtR.inadimplencia,  label:'Inadimplência' },
+    ];
+    for (const f of ALL_FIELDS) {
+      // Skip se já foi setado por outro caminho (fcl/dscr/etc)
+      if (EVIDENCE[f.k] && EVIDENCE[f.k].origin !== 'not-found') continue;
+      if (S[f.k] != null) {
+        // Valor existe — registra origem
+        const fromDoc = f.docV != null;
+        setEvidence(f.k, {
+          label: f.label,
+          rawValue: S[f.k],
+          scaledValue: S[f.k],
+          origin: fromDoc ? 'extracted' : 'text',
+          state: 'validated',
+          source: fromDoc ? srcTag : '',
+        });
+      } else if (hadDocs) {
+        // Doc carregado mas valor null — marca não localizado
+        setEvidence(f.k, {
+          label: f.label,
+          rawValue: null,
+          origin: 'not-found',
+          state: 'not-found',
+          evidence: '⚠ Documento carregado, mas ' + f.label + ' não foi localizado após 2 passadas de IA. Verifique manualmente ou reformate o documento.',
+          source: srcTag,
+        });
       }
     }
   }
