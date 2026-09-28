@@ -721,7 +721,33 @@ const CONFIANCA_PESO = { alta: 3, media: 2, baixa: 1, "nao-encontrado": 0 };
 const CHAVES = ["receita_bruta", "receita_liquida", "ebitda", "fco", "capex", "divida_financeira", "caixa"];
 
 // Lista de emails de associados (fallback hardcoded; sobreposto por env.MEMBER_EMAILS se definido)
-const MEMBER_EMAILS_DEFAULT = ["hcayuela@gmail.com","silvana.vallim@hotmail.com","silvana.vallim@ibgovernancaeestrategia.com.br","danielareisregina@gmail.com","sabrinagoncalves.0112@gmail.com","anaritauchoa@gmail.com","dianaalves1923@gmail.com","medinalarabeatriz@gmail.com","ggpolotto@terra.com.br","nataliahackme@hotmail.com","hcayuela@icloud.com","marina@priolligaluppo.com.br","hugocayuela@hotmail.com","camontenegro@gmail.com","vitor.cayuela@hotmail.com","valravanixs@gmail.com","kauerizk@gmail.com","renata.dalmaso@vion.services","renatacorotti@gmail.com","ritasouza.rh@gmail.com","polonioelenice@gmail.com","gs.rigoleto@gmail.com","darlipalmacunha@gmail.com","paulorebello@hotmail.com","adm.damasceno@uol.com.br","elidemendes@yahoo.com.br","k.tomaz1@hotmail.com","paulafmpassos@hotmail.com","luciaperes123@hotmail.com","alexandrinadias@icloud.com","lucianorachman@gmail.com"];
+const MEMBER_EMAILS_DEFAULT = ["hcayuela@gmail.com","silvana.vallim@hotmail.com","silvana.vallim@ibgovernancaeestrategia.com.br","danielareisregina@gmail.com","sabrinagoncalves.0112@gmail.com","anaritauchoa@gmail.com","dianaalves1923@gmail.com","medinalarabeatriz@gmail.com","ggpolotto@terra.com.br","nataliahackme@hotmail.com","hcayuela@icloud.com","marina@priolligaluppo.com.br","hugocayuela@hotmail.com","camontenegro@gmail.com","vitor.cayuela@hotmail.com","valravanixs@gmail.com","kauerizk@gmail.com","renata.dalmaso@vion.services","renatacorotti@gmail.com","ritasouza.rh@gmail.com","polonioeleince@gmail.com","gs.rigoleto@gmail.com","darlipalmacunha@gmail.com","paulorebello@hotmail.com","adm.damasceno@uol.com.br","elidemendes@yahoo.com.br","k.tomaz1@hotmail.com","paulafmpassos@hotmail.com","luciaperes123@hotmail.com","alexandrinadias@icloud.com","lucianorachman@gmail.com"];
+
+// Emails com privilégios de administrador (exportação Excel, dados internos)
+const ADMIN_EMAILS_DEFAULT = [
+  "hugo.cayuela@ibgovernancaeestrategia.com.br",
+  "silvana.vallim@ibgovernancaeestrategia.com.br",
+  "hugo.cayuela@techne.com.br",
+  "hcayuela@gmail.com",
+  "hcayuela@icloud.com",
+];
+
+// Origins confiáveis — requisições de browsers nestes domínios dispensam X-Api-Key.
+// Spoofing de Origin por JS no browser é impossível (CORS); via curl/Postman ainda é possível,
+// mas o IBGESF_API_KEY no env continua válido como segunda camada de defesa.
+const ALLOWED_ORIGINS = [
+  "https://claude.ai",
+  "https://cdn.claude.ai",
+  "http://localhost",      // desenvolvimento local
+];
+
+function isAllowedRequest(req, env) {
+  const origin = (req.headers.get("Origin") || "").toLowerCase();
+  if (ALLOWED_ORIGINS.some(o => origin.startsWith(o))) return true;
+  // Fallback: chave de API explícita (wrangler secret put IBGESF_API_KEY)
+  const key = req.headers.get("X-Api-Key") || req.headers.get("X-API-Key");
+  return key === env.IBGESF_API_KEY;
+}
 
 export default {
   async fetch(req, env) {
@@ -733,8 +759,7 @@ export default {
 
     // ── Endpoint: calcular valuation via planilha ──────────────────────────────
     if (url.pathname === "/calculate-valuation" && req.method === "POST") {
-      const key = req.headers.get("X-Api-Key") || req.headers.get("X-API-Key");
-      if (key !== env.IBGESF_API_KEY) return json({ ok: false, erro: "Unauthorized" }, 401);
+      if (!isAllowedRequest(req, env)) return json({ ok: false, erro: "Unauthorized" }, 401);
       let body;
       try { body = await req.json(); } catch { return json({ ok: false, erro: "JSON inválido" }, 400); }
       try {
@@ -755,13 +780,17 @@ export default {
       const lista = env.MEMBER_EMAILS
         ? env.MEMBER_EMAILS.split(",").map(e => e.trim().toLowerCase())
         : MEMBER_EMAILS_DEFAULT;
-      return json({ ok:true, membro: lista.includes(email) });
+      const adminLista = env.ADMIN_EMAILS
+        ? env.ADMIN_EMAILS.split(",").map(e => e.trim().toLowerCase())
+        : ADMIN_EMAILS_DEFAULT;
+      const membro = lista.includes(email);
+      const admin  = adminLista.includes(email) || email.includes('@ibgovernancaeestrategia.com.br');
+      return json({ ok:true, membro, admin });
     }
 
     // ── Endpoint v4: extração completa para a planilha ─────────────────────────
     if (url.pathname === "/extract-planilha" && req.method === "POST") {
-      const key = req.headers.get("X-Api-Key") || req.headers.get("X-API-Key");
-      if (key !== env.IBGESF_API_KEY) return json({ ok: false, erro: "Unauthorized" }, 401);
+      if (!isAllowedRequest(req, env)) return json({ ok: false, erro: "Unauthorized" }, 401);
       let body;
       try { body = await req.json(); } catch { return json({ ok: false, erro: "JSON inválido no body" }, 400); }
       const r = await extrairPlanilha(body, env);
@@ -773,9 +802,8 @@ export default {
       return new Response("Not found", { status: 404, headers: CORS });
     }
 
-    // Autenticação
-    const apiKey = req.headers.get("X-Api-Key") || req.headers.get("X-API-Key");
-    if (apiKey !== env.IBGESF_API_KEY) {
+    // Autenticação — Origin trusted (claude.ai) ou X-Api-Key explícita
+    if (!isAllowedRequest(req, env)) {
       return json({ ok: false, erro: "Unauthorized" }, 401);
     }
 

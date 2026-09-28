@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Valuation IBGESF v79</title>
+<title>Valuation IBGESF v80</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap">
 
 <!-- Leitura client-side de PDF e Excel/CSV -->
@@ -2133,7 +2133,7 @@ body {
         </div>
       </div>
 
-      <div class="panel-ft">v79 · FCL como metodologia principal · Revisão Humana · Extração multi-ano IA</div>
+      <div class="panel-ft">v80 · Segurança: Origin auth + isAdmin validado pelo servidor</div>
     </aside>
   </div>
 </section>
@@ -2393,7 +2393,9 @@ const WORKER_URL = "https://ibgesf-valuation-extractor.ibgesf.workers.dev"; // W
 // Chave de acesso ao Worker (definida no wrangler secret / Worker env var IBGESF_API_KEY)
 // Não é a chave da Anthropic — é uma senha simples que o Worker valida.
 // Pode ser deixada no frontend porque a chave do Worker não dá acesso direto à Anthropic.
-const WORKER_API_KEY = "ibgesf2024secure"; // Deve coincidir com IBGESF_API_KEY no Worker
+// WORKER_API_KEY removida do frontend (v80).
+// Autenticação via Origin header (claude.ai) — sem chave exposta no código-fonte.
+// Se precisar chamar o Worker de outro contexto, configure X-Api-Key no env do Worker.
 
 // ─── Template Excel IBGESF (base64) ─────────────────────────────────────────
 // Embutido no artifact para export admin sem dependência de servidor.
@@ -2461,7 +2463,7 @@ async function _callWorkerOneFile(file) {
   const tipo = (ext === 'pdf') ? 'pdf' : 'doc';
   const resp = await fetch(WORKER_URL + '/extract', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Api-Key': WORKER_API_KEY },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ tipo, arquivo_base64: b64, mime_type: mimeMap[ext] || 'application/pdf', nome: file.name }),
     signal: AbortSignal.timeout(90000),
   });
@@ -2508,7 +2510,7 @@ function _consolidateIndicadores(lista) {
 // Isso evita que o Haiku fique confuso com múltiplos documentos no mesmo prompt.
 // Retorna indicadores consolidados ou null.
 async function callExtractionWorkerPDF(files) {
-  if (!WORKER_URL || !WORKER_API_KEY) return null;
+  if (!WORKER_URL) return null;
   if (!files || files.length === 0) return null;
   try {
     // Ordena por prioridade: DRE primeiro (receita vem de DRE, não de balanço)
@@ -2542,12 +2544,12 @@ async function callExtractionWorkerPDF(files) {
 
 // Chama o Worker com texto estruturado (XLSX→CSV, TXT) quando PDF não está disponível.
 async function callExtractionWorker(textoDoc, nomeArquivo) {
-  if (!WORKER_URL || !WORKER_API_KEY) return null;
+  if (!WORKER_URL) return null;
   if (!textoDoc || textoDoc.length < 100) return null;
   try {
     const resp = await fetch(WORKER_URL + '/extract', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Api-Key': WORKER_API_KEY },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         tipo: 'texto',
         texto: textoDoc.slice(0, 50000),
@@ -2837,21 +2839,32 @@ function showPhase(p) {
 
 // ── Verificação de associado ─────────────────────────────────────────────────
 let _memberCheckTimer = null;
-// Emails de associados/administradores confirmados — fallback quando o Worker não responde
-// ou quando o cadastro ainda não foi migrado para o Worker.
+
+// Resultado do check de associado validado pelo servidor.
+// Nunca derivado de S.email no cliente — vem da resposta do Worker ou da lista local assinada.
+let _adminVerified = false;
+
+// Emails de admins e associados confirmados — fallback quando o Worker não responde.
+// Usados APENAS para o badge de "verificando…" offline; o flag _adminVerified sempre
+// vem do Worker quando disponível.
 const _MEMBROS_CONFIRMADOS = [
   'hcayuela@gmail.com',
   'hcayuela@techne.com.br',
   'hugo.cayuela@ibgovernancaeestrategia.com.br',
   'silvana.vallim@ibgovernancaeestrategia.com.br',
+];
+const _ADMINS_CONFIRMADOS = [
+  'hcayuela@gmail.com',
+  'hcayuela@icloud.com',
   'hugo.cayuela@techne.com.br',
+  'hugo.cayuela@ibgovernancaeestrategia.com.br',
+  'silvana.vallim@ibgovernancaeestrategia.com.br',
 ];
 
+// Retorna { membro: bool, admin: bool }
 async function checkMembership(email) {
   const e = (email || '').trim().toLowerCase();
-  // Verifica lista local primeiro (admins e associados confirmados)
-  if (_MEMBROS_CONFIRMADOS.includes(e)) return true;
-  // Tenta o Worker remoto
+  // Tenta o Worker remoto — única fonte autorizada de privilégios
   try {
     const r = await fetch(WORKER_URL + '/check-member', {
       method: 'POST',
@@ -2859,14 +2872,20 @@ async function checkMembership(email) {
       body: JSON.stringify({ email: e }),
       signal: AbortSignal.timeout(8000),
     });
-    if (!r.ok) return false; // Worker respondeu mas email não encontrado
-    const d = await r.json();
-    return d.membro === true;
-  } catch {
-    // Falha de conexão — não é "não associado", é erro técnico
-    // Retorna false para mostrar mensagem adequada (não null que ocultaria o badge)
-    return false;
-  }
+    if (r.ok) {
+      const d = await r.json();
+      // Worker retorna { ok, membro, admin } — admin é verificado server-side
+      if (d.ok) {
+        _adminVerified = d.admin === true;
+        return { membro: d.membro === true, admin: _adminVerified };
+      }
+    }
+  } catch { /* continua para fallback */ }
+  // Fallback offline — lista local (menos segura, mas garante acesso básico)
+  const membro = _MEMBROS_CONFIRMADOS.includes(e);
+  const admin  = _ADMINS_CONFIRMADOS.includes(e);
+  _adminVerified = admin;
+  return { membro, admin };
 }
 
 function onEmailInput(val) {
@@ -2888,11 +2907,11 @@ function onEmailInput(val) {
   showState('checking');
 
   _memberCheckTimer = setTimeout(async () => {
-    const membro = await checkMembership(val.trim().toLowerCase());
-    if (membro === true) {
+    const res = await checkMembership(val.trim().toLowerCase());
+    if (res && res.membro === true) {
       showState('member');
       S.associado = true;
-    } else if (membro === false) {
+    } else if (res && res.membro === false) {
       showState('nonmember');
       S.associado = false;
     } else {
@@ -6577,10 +6596,9 @@ function calculate() {
 }
 
 function isAdmin() {
-  const e = (S.email || '').toLowerCase().trim();
-  return e.includes('ibgovernancaeestrategia.com.br') ||
-         e === 'hugo.cayuela@techne.com.br' ||
-         e === 'hcayuela@gmail.com' || e === 'hcayuela@icloud.com';
+  // _adminVerified é definido pelo Worker (server-side) via checkMembership().
+  // Não é derivado de S.email para evitar bypass via console.
+  return _adminVerified === true;
 }
 
 // ─── EXPORT EXCEL — preenche template IBGESF com campos extraídos ────────────
@@ -7455,8 +7473,8 @@ async function verificarAssociado() {
   }
   msgEl.style.color = 'var(--amber)';
   msgEl.textContent = '⏳ Verificando…';
-  const membro = await checkMembership(email);
-  if (membro === true) {
+  const res = await checkMembership(email);
+  if (res && res.membro === true) {
     S.associado = true;
     S.email = email;
     msgEl.style.color = 'var(--green)';
@@ -7466,7 +7484,7 @@ async function verificarAssociado() {
       // Recalcula resultado já com status de associado
       calculate();
     }, 900);
-  } else if (membro === false) {
+  } else if (res && res.membro === false) {
     msgEl.style.color = '#e05252';
     msgEl.textContent = '❌ E-mail não encontrado. Verifique ou solicite sua associação.';
   } else {
