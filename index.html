@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Valuation IBGESF v77</title>
+<title>Valuation IBGESF v78</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap">
 
 <!-- Leitura client-side de PDF e Excel/CSV -->
@@ -1051,6 +1051,101 @@ body {
   box-shadow: 0 2px 10px rgba(227,181,5,.25);
 }
 .mode-btn .mode-icon { font-size: 16px; display: block; margin-bottom: 2px; }
+.mode-btn .mode-name { display: block; font-size: 12.5px; font-weight: 600; margin-top: 2px; }
+.mode-btn .mode-desc { display: block; font-size: 10.5px; color: var(--faint); margin-top: 2px; font-weight: 400; line-height: 1.3; }
+.mode-btn.active .mode-desc { color: rgba(255,255,255,.65); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .mode-btn.active .mode-desc { color: rgba(10,29,44,.65); }
+}
+:root[data-theme="dark"] .mode-btn.active .mode-desc { color: rgba(10,29,44,.65); }
+
+/* Seção de modo (abaixo do upload) */
+.mode-section {
+  width: 100%;
+}
+.mode-section-lbl {
+  font-size: 10.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 7px;
+}
+
+/* Stepper de documentos no overlay de revisão */
+.rv-stepper {
+  background: #050f18;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  padding: 8px 18px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: none;
+  min-height: 44px;
+}
+.rv-stepper::-webkit-scrollbar { display: none; }
+.rv-step-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 6px;
+  transition: background .15s;
+}
+.rv-step-item:hover { background: rgba(255,255,255,.06); }
+.rv-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255,255,255,.1);
+  color: #777;
+  flex-shrink: 0;
+  transition: all .2s;
+}
+.rv-step-num.sv-active { background: var(--amber); color: var(--navy); box-shadow: 0 2px 8px rgba(227,181,5,.4); }
+.rv-step-num.sv-done { background: rgba(36,84,60,.7); color: #6de3a4; }
+.rv-step-name {
+  font-size: 10.5px;
+  color: #666;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color .15s;
+}
+.rv-step-name.sv-active { color: var(--amber); font-weight: 600; }
+.rv-step-name.sv-done   { color: #6de3a4; }
+.rv-step-conn {
+  width: 18px;
+  height: 1px;
+  background: rgba(255,255,255,.12);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+.rv-step-conn.sv-done { background: rgba(36,84,60,.5); }
+
+/* Progress bar geral */
+.rv-prog-bar-wrap {
+  position: relative;
+  height: 3px;
+  background: rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+.rv-prog-bar-fill {
+  height: 100%;
+  background: var(--amber);
+  transition: width .4s ease;
+}
 
 /* ── Overlay de revisão (fullscreen) ── */
 #rv-overlay {
@@ -1554,15 +1649,6 @@ body {
       <p class="ta-hint">Inclua: receita dos últimos 3 anos · EBITDA (Lucro Operacional Ajustado) · FCO (Fluxo de Caixa Operacional) e CAPEX · dívidas e caixa · crescimento anual · % de receita recorrente. <strong>Envie DRE (Demonstração do Resultado), Balanço Patrimonial e DFC (Demonstrativo de Fluxo de Caixa)</strong> para extração automática máxima.</p>
 
       <div class="upload-block">
-        <!-- ─── Modo de extração ─── -->
-        <div class="mode-toggle" id="mode-toggle" role="group" aria-label="Modo de extração">
-          <button class="mode-btn active" id="mode-auto-btn" onclick="setExtractMode('auto')" type="button">
-            <span class="mode-icon">🤖</span>100% Automático
-          </button>
-          <button class="mode-btn" id="mode-rv-btn" onclick="setExtractMode('review')" type="button">
-            <span class="mode-icon">👁</span>Revisão Humana
-          </button>
-        </div>
 
         <label for="fi" class="upload-zone" id="upload-zone">
           <div class="upload-zone-icon">⬆</div>
@@ -1571,6 +1657,23 @@ body {
           <div class="upload-zone-formats">PDF · Excel · Word · RTF · CSV · TXT</div>
         </label>
         <input type="file" id="fi" accept=".pdf,.xlsx,.xls,.csv,.rtf,.doc,.docx,.txt,.ods,.odt" multiple style="display:none" onchange="handleFiles(this)">
+
+        <!-- ─── Modo de extração (abaixo do upload) ─── -->
+        <div class="mode-section">
+          <div class="mode-section-lbl">Como processar os documentos?</div>
+          <div class="mode-toggle" id="mode-toggle" role="group" aria-label="Modo de extração">
+            <button class="mode-btn active" id="mode-auto-btn" onclick="setExtractMode('auto')" type="button">
+              <span class="mode-icon">🤖</span>
+              <span class="mode-name">100% Automático</span>
+              <span class="mode-desc">IA extrai tudo sem intervenção</span>
+            </button>
+            <button class="mode-btn" id="mode-rv-btn" onclick="setExtractMode('review')" type="button">
+              <span class="mode-icon">👁</span>
+              <span class="mode-name">Revisão Humana</span>
+              <span class="mode-desc">Confirme campo a campo</span>
+            </button>
+          </div>
+        </div>
         <div id="file-list" style="width:100%"></div>
         <!-- Badge de setor detectado automaticamente (aparece quando setor é identificado) -->
         <div id="sector-detected-badge" hidden style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(227,181,5,.12);border:1px solid rgba(227,181,5,.3);border-radius:var(--r);margin-bottom:4px;font-size:13px;color:var(--text);">
@@ -2030,7 +2133,7 @@ body {
         </div>
       </div>
 
-      <div class="panel-ft">v77 · FCL como metodologia principal · Revisão Humana · Extração multi-ano IA</div>
+      <div class="panel-ft">v78 · FCL como metodologia principal · Revisão Humana · Extração multi-ano IA</div>
     </aside>
   </div>
 </section>
@@ -3281,6 +3384,7 @@ let _rvScale      = 1.0;
 let _rvPage       = 1;
 let _rvTotalPages = 1;
 let _rvConfirmed  = {};      // {fieldKey: value} — valores confirmados pelo usuário
+let _rvConfirmedDocs = new Set();
 let _rvLearnData  = [];      // [{docType, field, original, corrected}] — p/ aprendizado
 
 /* ── Chave localStorage para aprendizado ── */
@@ -3291,6 +3395,62 @@ function rvLoadLearning() {
 }
 function rvSaveLearning(arr) {
   try { localStorage.setItem(RV_LEARN_KEY, JSON.stringify(arr.slice(-200))); } catch {}
+}
+
+/* ── Stepper de documentos no overlay ── */
+function rvBuildStepper() {
+  const container = document.getElementById('rv-stepper');
+  if (!container || !_rvDocs) return;
+  container.innerHTML = '';
+  _rvDocs.forEach((doc, i) => {
+    if (i > 0) {
+      const conn = document.createElement('div');
+      conn.className = 'rv-step-conn';
+      conn.id = 'rv-conn-' + i;
+      container.appendChild(conn);
+    }
+    const item = document.createElement('div');
+    item.className = 'rv-step-item';
+    item.title = doc.file.name;
+    item.onclick = () => rvShowDoc(i);
+    const num = document.createElement('div');
+    num.className = 'rv-step-num';
+    num.id = 'rv-stepnum-' + i;
+    num.textContent = i + 1;
+    const name = document.createElement('div');
+    name.className = 'rv-step-name';
+    name.id = 'rv-stepname-' + i;
+    const fname = doc.file.name.replace(/\.[^.]+$/, '');
+    name.textContent = fname.length > 16 ? fname.slice(0, 14) + '…' : fname;
+    item.appendChild(num);
+    item.appendChild(name);
+    container.appendChild(item);
+  });
+}
+
+function rvUpdateStepper(currentIdx, confirmedSet) {
+  if (!_rvDocs) return;
+  _rvDocs.forEach((_, i) => {
+    const num  = document.getElementById('rv-stepnum-' + i);
+    const name = document.getElementById('rv-stepname-' + i);
+    const conn = document.getElementById('rv-conn-' + i);
+    if (!num) return;
+    const isDone   = confirmedSet && confirmedSet.has(i);
+    const isActive = i === currentIdx;
+    num.className  = 'rv-step-num' + (isActive ? ' sv-active' : isDone ? ' sv-done' : '');
+    num.textContent = isDone ? '✓' : (i + 1);
+    if (name) name.className = 'rv-step-name' + (isActive ? ' sv-active' : isDone ? ' sv-done' : '');
+    if (conn) conn.className = 'rv-step-conn' + (isDone ? ' sv-done' : '');
+  });
+  // Progress bar
+  const bar = document.getElementById('rv-prog-bar');
+  if (bar && _rvDocs.length > 0) {
+    const done = confirmedSet ? confirmedSet.size : 0;
+    bar.style.width = Math.round((done / _rvDocs.length) * 100) + '%';
+  }
+  // Scroll stepper to show current
+  const activeEl = document.getElementById('rv-stepnum-' + currentIdx);
+  if (activeEl) activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
 }
 
 /* ── Toggle de modo ── */
@@ -3713,6 +3873,8 @@ async function rvShowDoc(idx) {
 
   // Painel de campos
   rvBuildFields(doc.docR || {}, doc.docType, S._series || doc.docR?._series);
+  rvBuildStepper();
+  rvUpdateStepper(_rvIdx, _rvConfirmedDocs);
 
   // Mostra indicador de IA se este doc ainda não foi processado
   if (!doc._aiDone && _isFinancialDoc(doc.file) && doc.text && doc.text.length > 80) {
@@ -3793,6 +3955,7 @@ function rvApplyToS(collected, yearData) {
 
 /* ── Confirmar documento atual e avançar ── */
 function rvConfirmDoc() {
+  _rvConfirmedDocs.add(_rvIdx);
   const doc = _rvDocs[_rvIdx];
   if (!doc) return;
 
@@ -3886,6 +4049,7 @@ async function handleFilesReview(files) {
 
   // ✅ Mostra o primeiro documento IMEDIATAMENTE (sem esperar IA)
   if (_rvDocs.length > 0) {
+    _rvConfirmedDocs = new Set();
     rvShowDoc(0);
   } else {
     fl.textContent = 'Nenhum arquivo para revisar.';
@@ -7504,6 +7668,12 @@ function closeAnalysisOverlay() {
       <button class="rv-btn rv-btn-confirm" id="rv-confirm-btn" onclick="rvConfirmDoc()">Confirmar e continuar →</button>
     </div>
   </div>
+
+  <!-- Stepper de documentos -->
+  <div class="rv-stepper" id="rv-stepper"></div>
+
+  <!-- Progress bar -->
+  <div class="rv-prog-bar-wrap"><div class="rv-prog-bar-fill" id="rv-prog-bar" style="width:0%"></div></div>
 
   <!-- Corpo dividido -->
   <div class="rv-split">
