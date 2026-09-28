@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Valuation IBGESF v75</title>
+<title>Valuation IBGESF v76</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap">
 
 <!-- Leitura client-side de PDF e Excel/CSV -->
@@ -1341,6 +1341,34 @@ body {
   line-height: 1.45;
   font-style: italic;
 }
+.rv-field-hint {
+  font-size: 11px;
+  color: var(--faint);
+  margin-top: 5px;
+  padding: 5px 8px;
+  background: rgba(255,255,255,.04);
+  border-left: 2px solid rgba(227,181,5,.35);
+  border-radius: 0 4px 4px 0;
+  line-height: 1.5;
+}
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.rv-ai-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: rgba(99,102,241,.1);
+  border: 1px solid rgba(99,102,241,.25);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: #a5b4fc;
+}
+.rv-ai-spinner {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
 /* Seção de anos */
 .rv-years-section {
   margin-top: 4px;
@@ -1985,7 +2013,7 @@ body {
         </div>
       </div>
 
-      <div class="panel-ft">v75 · FCL como metodologia principal · Revisão Humana · Extração multi-ano IA</div>
+      <div class="panel-ft">v76 · FCL como metodologia principal · Revisão Humana · Extração multi-ano IA</div>
     </aside>
   </div>
 </section>
@@ -3311,27 +3339,42 @@ function rvSortDocs(docs) {
 /* ── Campos a exibir no painel de revisão, por tipo de doc ── */
 const RV_FIELDS_BY_TYPE = {
   DRE: [
-    { key:'receita',     label:'Receita Bruta',               seriesKey:'receita_bruta', fmt:'brl' },
-    { key:'ebitda',      label:'EBITDA / Lucro Operacional',  seriesKey:'ebitda',        fmt:'brl' },
-    { key:'depreciacao', label:'Depreciação e Amortização',   seriesKey:'dep_amort',     fmt:'brl' },
-    { key:'crescimento', label:'Crescimento Anual (CAGR)',    seriesKey:null,            fmt:'pct' },
+    { key:'receita',     label:'Receita Bruta',               seriesKey:'receita_bruta', fmt:'brl',
+      hint:'Primeira linha da DRE — "Receita Operacional Bruta" ou "Faturamento Bruto". Valor antes de deduções e impostos.' },
+    { key:'ebitda',      label:'EBITDA / Lucro Operacional',  seriesKey:'ebitda',        fmt:'brl',
+      hint:'Resultado antes de juros, impostos, depreciação e amortização. Pode aparecer como "LAJIDA", "Resultado Operacional" ou "Lucro antes do resultado financeiro".' },
+    { key:'depreciacao', label:'Depreciação e Amortização',   seriesKey:'dep_amort',     fmt:'brl',
+      hint:'Custo não-caixa na DRE ou DFC. Linhas: "Depreciação", "Amortização" — some os dois se estiverem separados. Valor positivo.' },
+    { key:'crescimento', label:'Crescimento Anual (CAGR)',    seriesKey:null,            fmt:'pct',
+      hint:'Crescimento médio anual da receita. Calculado automaticamente quando há série histórica (2022–2024). Ou informe manualmente: ex. 15%.' },
   ],
   DFC: [
-    { key:'fco',   label:'FCO — Fluxo de Caixa Operacional', seriesKey:'fco',   fmt:'brl' },
-    { key:'capex', label:'CAPEX — Investimento em Ativos',    seriesKey:'capex', fmt:'brl' },
-    { key:'fcl',   label:'FCL — Fluxo de Caixa Livre',       seriesKey:null,    fmt:'brl' },
-    { key:'caixa', label:'Caixa e Equivalentes',              seriesKey:'caixa', fmt:'brl' },
+    { key:'fco',   label:'FCO — Fluxo de Caixa Operacional', seriesKey:'fco',   fmt:'brl',
+      hint:'Total das atividades operacionais no DFC. Linha: "Caixa líquido gerado nas atividades operacionais". Pode ser negativo em empresas em crescimento.' },
+    { key:'capex', label:'CAPEX — Investimento em Ativos',    seriesKey:'capex', fmt:'brl',
+      hint:'Aquisição de imobilizado e intangível. No DFC (atividades de investimento): "Compra de ativo fixo", "Aquisição de imobilizado", "Adições ao ativo imobilizado". Informe como valor positivo.' },
+    { key:'fcl',   label:'FCL — Fluxo de Caixa Livre',       seriesKey:null,    fmt:'brl',
+      hint:'FCL = FCO − CAPEX. Calculado automaticamente se os dois campos acima estiverem preenchidos. É o principal indicador para o valuation por FCD.' },
+    { key:'caixa', label:'Caixa e Equivalentes',              seriesKey:'caixa', fmt:'brl',
+      hint:'Saldo final no DFC: "Caixa e equivalentes no final do período". Ou no Balanço: Ativo Circulante → "Caixa e equivalentes de caixa".' },
   ],
   BP: [
-    { key:'divida', label:'Dívida Financeira Total', seriesKey:'divida_total', fmt:'brl' },
-    { key:'caixa',  label:'Caixa e Equivalentes',   seriesKey:'caixa',        fmt:'brl' },
+    { key:'divida', label:'Dívida Financeira Total', seriesKey:'divida_total', fmt:'brl',
+      hint:'Soma de empréstimos e financiamentos — Passivo Circulante + Passivo Não Circulante. Não inclui fornecedores, impostos a pagar ou provisões operacionais.' },
+    { key:'caixa',  label:'Caixa e Equivalentes',   seriesKey:'caixa',        fmt:'brl',
+      hint:'Ativo Circulante: "Caixa e equivalentes de caixa" + "Aplicações financeiras de curto prazo". Usado para calcular a Dívida Líquida.' },
   ],
   outro: [
-    { key:'receita', label:'Receita Bruta',  seriesKey:'receita_bruta', fmt:'brl' },
-    { key:'ebitda',  label:'EBITDA',         seriesKey:'ebitda',        fmt:'brl' },
-    { key:'fco',     label:'FCO',            seriesKey:'fco',           fmt:'brl' },
-    { key:'divida',  label:'Dívida Total',   seriesKey:'divida_total',  fmt:'brl' },
-    { key:'caixa',   label:'Caixa',          seriesKey:'caixa',         fmt:'brl' },
+    { key:'receita', label:'Receita Bruta',  seriesKey:'receita_bruta', fmt:'brl',
+      hint:'Faturamento total antes de deduções e impostos.' },
+    { key:'ebitda',  label:'EBITDA',         seriesKey:'ebitda',        fmt:'brl',
+      hint:'Resultado operacional ajustado, também chamado LAJIDA em português.' },
+    { key:'fco',     label:'FCO',            seriesKey:'fco',           fmt:'brl',
+      hint:'Fluxo de caixa gerado pelas atividades operacionais (DFC).' },
+    { key:'divida',  label:'Dívida Total',   seriesKey:'divida_total',  fmt:'brl',
+      hint:'Total de empréstimos e financiamentos (curto + longo prazo).' },
+    { key:'caixa',   label:'Caixa',          seriesKey:'caixa',         fmt:'brl',
+      hint:'Caixa e equivalentes de caixa no final do período.' },
   ],
 };
 
@@ -3380,7 +3423,7 @@ function rvBuildFields(docR, docType, seriesAll) {
 
   const learningArr = rvLoadLearning();
 
-  fields.forEach(({ key, label, seriesKey, fmt }) => {
+  fields.forEach(({ key, label, seriesKey, fmt, hint }) => {
     const rawVal  = docR[key];
     const ev      = EVIDENCE[key];
     const conf    = (docR[`_conf_${key}`] || (ev && ev.state === 'validated' ? 'alta' : ev ? 'media' : null));
@@ -3438,6 +3481,7 @@ function rvBuildFields(docR, docType, seriesAll) {
       </div>
       ${ev && ev.evidence ? `<div class="rv-field-evidence">📎 ${String(ev.evidence).slice(0,90)}</div>` : ''}
       ${lastLearnt && notFound ? `<div class="rv-field-evidence" style="color:var(--amber)">🧠 Correção anterior para ${lastLearnt.docType}: ${rvFmtVal(lastLearnt.corrected, fmt)}</div>` : ''}
+      ${hint ? `<div class="rv-field-hint">💡 ${hint}</div>` : ''}
       ${seriesHTML}
     `;
 
@@ -3476,24 +3520,31 @@ function rvUpdateConfirmedCount() {
 }
 
 /* ── Renderiza página PDF no canvas ── */
+let _rvRenderToken = 0; // evita renders concorrentes
 async function rvRenderPage() {
   if (!_rvPdfDoc) return;
+  const token = ++_rvRenderToken;
   const canvas  = document.getElementById('rv-canvas');
-  const wrap    = document.getElementById('rv-canvas-wrap');
   const loading = document.getElementById('rv-loading-msg');
   try {
     const page  = await _rvPdfDoc.getPage(_rvPage);
-    const vp    = page.getViewport({ scale: _rvScale });
+    if (token !== _rvRenderToken) return; // render cancelado por zoom mais recente
+    // Força rotation:0 para garantir que o documento apareça sempre na posição correta
+    const vp = page.getViewport({ scale: _rvScale, rotation: 0 });
     canvas.width  = vp.width;
     canvas.height = vp.height;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // limpa canvas antes de renderizar
     canvas.style.display = 'block';
     loading.style.display = 'none';
-    await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+    if (token !== _rvRenderToken) return; // descarta se foi substituído
     document.getElementById('rv-page-info').textContent = `Pág ${_rvPage}/${_rvTotalPages}`;
     document.getElementById('rv-zoom-pct').textContent  = Math.round(_rvScale * 100) + '%';
     document.getElementById('rv-prev-pg').disabled = _rvPage <= 1;
     document.getElementById('rv-next-pg').disabled = _rvPage >= _rvTotalPages;
   } catch(e) {
+    if (token !== _rvRenderToken) return;
     console.error('[rv] renderPage erro:', e);
     loading.textContent = '⚠ Erro ao renderizar página: ' + (e.message || e);
   }
@@ -3508,7 +3559,7 @@ function rvFit() {
   const wrap = document.getElementById('rv-canvas-wrap');
   if (!_rvPdfDoc || !wrap) return;
   _rvPdfDoc.getPage(_rvPage).then(page => {
-    const vp = page.getViewport({ scale: 1.0 });
+    const vp = page.getViewport({ scale: 1.0, rotation: 0 });
     _rvScale = Math.min((wrap.clientWidth - 40) / vp.width, (wrap.clientHeight - 40) / vp.height);
     _rvScale = Math.max(0.3, _rvScale);
     rvRenderPage();
@@ -3600,10 +3651,10 @@ async function rvShowDoc(idx) {
       const loadLib = window.pdfjsLib || pdfjsLib || window['pdfjs-dist/build/pdf'];
       _rvPdfDoc = await (loadLib || window.pdfjsLib).getDocument({ data: ab }).promise;
       _rvTotalPages = _rvPdfDoc.numPages;
-      // Ajusta escala para caber na tela
+      // Ajusta escala para caber na tela (rotation:0 para consistência)
       const wrap = document.getElementById('rv-canvas-wrap');
       const firstPage = await _rvPdfDoc.getPage(1);
-      const vp0 = firstPage.getViewport({ scale: 1.0 });
+      const vp0 = firstPage.getViewport({ scale: 1.0, rotation: 0 });
       _rvScale  = Math.min((wrap.clientWidth - 40) / vp0.width, 1.5);
       _rvScale  = Math.max(0.4, _rvScale);
       await rvRenderPage();
@@ -3645,6 +3696,13 @@ async function rvShowDoc(idx) {
 
   // Painel de campos
   rvBuildFields(doc.docR || {}, doc.docType, S._series || doc.docR?._series);
+
+  // Mostra indicador de IA se este doc ainda não foi processado
+  if (!doc._aiDone && _isFinancialDoc(doc.file) && doc.text && doc.text.length > 80) {
+    rvSetAiIndicator(true);
+  } else {
+    rvSetAiIndicator(false);
+  }
 
   // Badge aprendizado
   const learningArr = rvLoadLearning();
@@ -3787,7 +3845,7 @@ async function handleFilesReview(files) {
   fl.textContent = '⏳ Lendo e classificando ' + files.length + ' arquivo(s)…';
 
   // Lê todos os arquivos em paralelo
-  await Promise.all(files.map(async (f, i) => {
+  await Promise.all(files.map(async (f) => {
     const ext = f.name.split('.').pop().toLowerCase();
     let txt = '';
     try {
@@ -3800,47 +3858,74 @@ async function handleFilesReview(files) {
     } catch { txt = ''; }
     if (txt && typeof txt === 'object') txt = txt.text || txt.content || '';
     const { docType, year } = rvClassifyDoc(f.name, txt);
-    _rvDocs.push({ file: f, text: txt, docType, year, docR: {} });
+    // Pré-preenchimento rápido com regex (sem IA — para exibição imediata)
+    const docR = _isFinancialDoc(f) ? extractDocFinancials(txt) : {};
+    _rvDocs.push({ file: f, text: txt, docType, year, docR, _aiDone: false });
   }));
 
   // Ordena por tipo e ano
   _rvDocs = rvSortDocs(_rvDocs);
-  fl.textContent = `✓ ${files.length} arquivo(s) carregados — iniciando revisão…`;
+  fl.textContent = `✓ ${files.length} arquivo(s) carregados — revisão iniciada.`;
 
-  // Extrai dados de todos os documentos com IA (background, para pré-preencher campos)
-  // Faz de forma sequencial p/ não sobrecarregar
-  for (let i = 0; i < _rvDocs.length; i++) {
-    const doc = _rvDocs[i];
-    if (_isFinancialDoc(doc.file)) {
-      try {
-        _docText = doc.text;
-        let docR = extractDocFinancials(doc.text);
-        const aiR = doc.text.length > 80 ? await sampleExtract(doc.text, doc.file.name) : null;
-        if (aiR) docR = mergeWorkerResult(docR, aiR, doc.file.name, true);
-        doc.docR = docR;
-        // Propaga _series para o S global progressivamente
-        if (docR._series) {
-          if (!S._series) S._series = {};
-          Object.entries(docR._series).forEach(([sk, ym]) => {
-            S._series[sk] = { ...(S._series[sk] || {}), ...(ym || {}) };
-          });
-        }
-      } catch(e) { console.warn('[rv] extração IA falhou para', doc.file.name, e); }
-    }
-  }
-
-  // Restaura _docText com todos os documentos financeiros
-  _docText = _rvDocs
-    .filter(d => _isFinancialDoc(d.file))
-    .map(d => d.text)
-    .join('\n');
-
-  // Inicia revisão pelo primeiro documento
+  // ✅ Mostra o primeiro documento IMEDIATAMENTE (sem esperar IA)
   if (_rvDocs.length > 0) {
     rvShowDoc(0);
   } else {
     fl.textContent = 'Nenhum arquivo para revisar.';
+    return;
   }
+
+  // 🤖 Extrai com IA em background — não bloqueia a UI
+  rvExtractAllBackground();
+}
+
+/* ── Extração IA em background, doc a doc, atualiza painel se usuário está no doc atual ── */
+async function rvExtractAllBackground() {
+  for (let i = 0; i < _rvDocs.length; i++) {
+    const doc = _rvDocs[i];
+    if (doc._aiDone || !_isFinancialDoc(doc.file) || !doc.text || doc.text.length <= 80) {
+      doc._aiDone = true;
+      continue;
+    }
+    // Se é o doc que o usuário está vendo agora, mostra indicador
+    if (i === _rvIdx) rvSetAiIndicator(true);
+    try {
+      _docText = doc.text;
+      const aiR = await sampleExtract(doc.text, doc.file.name);
+      if (aiR) {
+        doc.docR = mergeWorkerResult(doc.docR || {}, aiR, doc.file.name, true);
+        if (doc.docR._series) {
+          if (!S._series) S._series = {};
+          Object.entries(doc.docR._series).forEach(([sk, ym]) => {
+            S._series[sk] = { ...(S._series[sk] || {}), ...(ym || {}) };
+          });
+        }
+      }
+    } catch(e) { console.warn('[rv] extração IA falhou para', doc.file.name, e); }
+    doc._aiDone = true;
+    // Se o usuário ainda está neste doc, atualiza o painel com os dados da IA
+    if (i === _rvIdx) {
+      rvSetAiIndicator(false);
+      rvBuildFields(doc.docR || {}, doc.docType, S._series || doc.docR?._series);
+    }
+  }
+  // Consolida _docText com todos os documentos financeiros
+  _docText = _rvDocs.filter(d => _isFinancialDoc(d.file)).map(d => d.text).join('\n');
+}
+
+/* ── Indicador visual de IA processando ── */
+function rvSetAiIndicator(show) {
+  const container = document.getElementById('rv-fields');
+  if (!container) return;
+  let ind = document.getElementById('rv-ai-indicator');
+  if (!ind && show) {
+    ind = document.createElement('div');
+    ind.id = 'rv-ai-indicator';
+    ind.className = 'rv-ai-indicator';
+    ind.innerHTML = '<span class="rv-ai-spinner">⏳</span> Extraindo dados com IA — campos serão atualizados em instantes…';
+    container.prepend(ind);
+  }
+  if (ind) ind.style.display = show ? 'flex' : 'none';
 }
 
 // ─── PARSER DE NÚMEROS (formato brasileiro + internacional) ─────────────────
