@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Valuation IBGESF v63</title>
+<title>Valuation IBGESF v64</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap">
 
 <!-- Leitura client-side de PDF e Excel/CSV -->
@@ -1870,6 +1870,7 @@ function mergeWorkerResult(docR, workerR, _docName, forceOverride) {
     receita_bruta:    'receita',
     receita_liquida:  '_receitaLiquida',
     ebitda:           'ebitda',
+    fcl:              'fcl',
     fco:              'fco',
     capex:            'capex',
     divida_financeira:'divida',
@@ -2638,10 +2639,12 @@ function firstNum(slice) {
   // Formato contábil brasileiro: "8.412.662,66 C" ou "(1.441.505,58 D)" — sufixo C/D é PARTE do número
   // A regex captura o número completo incluindo sufixo para parseNum interpretar corretamente
   // Ordem: tenta com sufixo C/D primeiro (formato ERP: Domínio, Alterdata, Questor, Totvs)
-  const mCD = slice.match(/(-?\(?\s*[\d]{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?\s*\)?)\s+([CD])(?=[\s\n\r,;|]|$)/i);
+  // IMPORTANTE: [^\S\n]* em vez de \s* dentro do parêntese — evita capturar "(\n354.388,05)"
+  // como número negativo (padrão de pdftotext quando ( e ) ficam em linhas separadas no PDF)
+  const mCD = slice.match(/(-?\(?[^\S\n]*[\d]{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?[^\S\n]*\)?)\s+([CD])(?=[\s\n\r,;|]|$)/i);
   if (mCD) return parseNum(mCD[1] + ' ' + mCD[2]); // passa "8.412.662,66 C" para parseNum
   // Sem sufixo: número padrão com parênteses (negativo) ou sinal de menos
-  const m = slice.match(/(-?\(?\s*[\d]{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?\s*\)?|\(?\s*\d[\d.,]*\s*\)?)\s*(?:mil(?:hões?)?|milh|M|B|bilh)?/i);
+  const m = slice.match(/(-?\(?[^\S\n]*[\d]{1,3}(?:[.,]\d{3})*(?:[.,]\d{1,2})?[^\S\n]*\)?|\(?[^\S\n]*\d[\d.,]*[^\S\n]*\)?)\s*(?:mil(?:hões?)?|milh|M|B|bilh)?/i);
   return m ? parseNum(m[0]) : null;
 }
 
@@ -4956,8 +4959,29 @@ async function sampleExtractImages(imageBlobEntries, fileNameHint) {
   }
 
   const maxCount = limits.images.maxCount || 10;
-  const blobs = imageBlobEntries.slice(0, maxCount).map(e => e.blob);
-  const names = [...new Set(imageBlobEntries.slice(0, maxCount).map(e => e.fileName))].join(', ');
+
+  // ── Priorização e deduplicação ──
+  // Promise.all pode adicionar blobs em ordem não-determinística.
+  // Priorizar DRE (tem Receita Bruta) > DFC > Balanço > outros.
+  // Desduplicar por nome de arquivo (usuários frequentemente enviam duplicatas).
+  const seenFiles = new Set();
+  const uniqueEntries = imageBlobEntries.filter(e => {
+    const fn = (e.fileName || '').toLowerCase();
+    if (seenFiles.has(fn)) return false;
+    seenFiles.add(fn);
+    return true;
+  });
+  const filePrio = fn => {
+    fn = (fn || '').toLowerCase();
+    if (/\bdre\b|demonstr.*result/.test(fn)) return 0;  // DRE primeiro: tem receita
+    if (/\bdfc\b|fluxo.*caixa/.test(fn)) return 1;       // DFC segundo: tem FCO
+    if (/balan[cç]|patrimon/.test(fn)) return 2;          // Balanço depois
+    return 3;
+  };
+  const sortedEntries = [...uniqueEntries].sort((a, b) => filePrio(a.fileName) - filePrio(b.fileName));
+  const blobs = sortedEntries.slice(0, maxCount).map(e => e.blob);
+  const names = [...new Set(sortedEntries.slice(0, maxCount).map(e => e.fileName))].join(', ');
+  console.log('[IA sample IMG] Prioridade de envio:', sortedEntries.slice(0, maxCount).map(e => e.fileName).join(', '));
 
   const prompt = `Você é um extrator de dados financeiros brasileiros para valuation de PME.
 Analise as imagens de documentos financeiros abaixo e extraia APENAS os campos que aparecem explicitamente.
