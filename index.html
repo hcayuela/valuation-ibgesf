@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Valuation IBGESF v66</title>
+<title>Valuation IBGESF v67</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap">
 
 <!-- Leitura client-side de PDF e Excel/CSV -->
@@ -3609,6 +3609,103 @@ function extractDocFinancials(doc) {
   }
 
   r.sectorHint = detectSector(t);
+
+  // ── v67: Extração multi-ano para popular colunas D/E/F do Excel ─────────
+  // Detecta cabeçalhos "2023 2024 2025" e coleta N valores após cada label.
+  // Cada linha do Excel corresponde a um label + série de valores por ano.
+  (function extractYearSeries() {
+    const series = { receita:{}, ebitda:{}, fco:{}, capex:{}, caixa:{}, divida_cp:{}, divida_lp:{}, contas_receber:{}, estoques:{}, imobilizado:{}, intangivel:{}, fornecedores:{}, outros_pass_op:{}, dep_amort:{}, cmv:{}, despesas_op:{} };
+
+    // Rótulos por métrica (regex, sem flag global; usados para busca em janela)
+    const LABELS = {
+      receita: [
+        /receita\s+(?:operacional\s+)?bruta\s+de\s+(?:vendas?\s+e\s+servi[çc]os?|vendas?|servi[çc]os?)/i,
+        /receita\s+(?:operacional\s+)?bruta\b/i,
+        /faturamento\s+bruto/i,
+      ],
+      ebitda:   [ /\bEBITDA\b/i, /LAJIDA/i, /lucro\s+antes\s+dos\s+juros/i ],
+      fco:      [ /caixa\s+l[ií]quido\s+(?:gerado|utilizado|proveniente)\s+(?:das|nas)\s+atividades?\s+operacion/i,
+                  /fluxo\s+de\s+caixa\s+(?:das\s+)?(?:atividades\s+)?operacion/i,
+                  /\bFCO\b/i ],
+      capex:    [ /aquisi[çc][ãa]o\s+de\s+(?:ativo\s+)?imobilizado/i,
+                  /investimentos?\s+em\s+imobilizado/i,
+                  /\bCAPEX\b/i ],
+      caixa:    [ /caixa\s+e\s+equivalentes\s+de\s+caixa/i,
+                  /disponibilidades/i,
+                  /caixa\s+e\s+bancos/i ],
+      divida_cp:[ /empr[eé]stimos\s+e\s+financiamentos?\s+(?:-\s+)?curto\s+prazo/i,
+                  /(?:passivo\s+)?circulante[\s\S]{0,30}empr[eé]stimos/i ],
+      divida_lp:[ /empr[eé]stimos\s+e\s+financiamentos?\s+(?:-\s+)?longo\s+prazo/i,
+                  /(?:passivo\s+)?n[aã]o\s+circulante[\s\S]{0,30}empr[eé]stimos/i ],
+      contas_receber:[ /contas?\s+a\s+receber\s+(?:de\s+)?clientes/i,
+                       /clientes\s+a\s+receber/i,
+                       /duplicatas?\s+a\s+receber/i ],
+      estoques: [ /\bestoques?\b/i, /mercadorias\s+em\s+estoque/i ],
+      imobilizado:[ /imobilizado\s+l[ií]quido/i, /\bimobilizado\b/i ],
+      intangivel:[ /intang[ií]vel\s+l[ií]quido/i, /\bintang[ií]vel\b/i ],
+      fornecedores:[ /\bfornecedores?\b/i ],
+      outros_pass_op:[ /obriga[çc][õo]es\s+(?:tribut[aá]rias|trabalhistas|sociais)/i,
+                       /sal[aá]rios?\s+e\s+encargos/i ],
+      dep_amort:[ /deprecia[çc][ãa]o\s+e\s+amortiza[çc][ãa]o/i, /\bD&A\b/i ],
+      cmv:      [ /custo\s+d[oa]s?\s+(?:produtos?|servi[çc]os?|mercadorias)\s+(?:vendid[oa]s?|prestados?)/i,
+                  /\bCMV\b/i, /\bCPV\b/i, /\bCSP\b/i ],
+      despesas_op:[ /despesas?\s+operacionais?/i,
+                    /despesas?\s+com\s+vendas/i,
+                    /despesas?\s+gerais\s+e\s+administrativas/i ],
+    };
+
+    // Detecta cabeçalho de anos (2 ou 3 anos)
+    const hdrRx = /\b(20(?:1[89]|2[0-9]))\b[\s\t]+(20(?:1[89]|2[0-9]))\b(?:[\s\t]+(20(?:1[89]|2[0-9]))\b)?/g;
+    let hm;
+    while ((hm = hdrRx.exec(t)) !== null) {
+      const hYears = [parseInt(hm[1]), parseInt(hm[2])];
+      if (hm[3]) hYears.push(parseInt(hm[3]));
+      const years = [...new Set(hYears)].sort((a, b) => a - b);
+      const winStart = Math.max(0, hm.index - 500);
+      const win = t.slice(winStart, hm.index + 8000); // janela grande para cobrir DRE inteira
+
+      // Para cada métrica, tenta encontrar seu label na janela e coletar N valores após ele
+      for (const metric in LABELS) {
+        for (const labRx of LABELS[metric]) {
+          const rm = win.match(labRx);
+          if (!rm) continue;
+          const afterLabel = win.slice(rm.index + rm[0].length, rm.index + rm[0].length + 800);
+          const numRx = /(-?\(?\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{1,2})?\)?|-?\(?\d{4,}(?:[.,]\d{1,2})?\)?|\b0[,.]0{1,2}\b|\b0\b)/g;
+          const nums = [];
+          let nm;
+          while ((nm = numRx.exec(afterLabel)) !== null) {
+            let raw = nm[1].trim();
+            let neg = false;
+            if (raw.startsWith('(') && raw.endsWith(')')) { neg = true; raw = raw.slice(1,-1); }
+            if (raw.startsWith('-')) { neg = true; raw = raw.slice(1); }
+            const v = parseNum(raw);
+            if (isNaN(v)) continue;
+            nums.push(neg ? -v : v);
+            if (nums.length >= years.length) break;
+          }
+          if (nums.length >= years.length) {
+            const scale = (typeof _receitaScale === 'number' && _receitaScale) ? _receitaScale : 1;
+            years.forEach((yr, i) => {
+              const val = nums[i] * scale;
+              // Preserva o maior valor absoluto (evita capturar sub-linhas)
+              if (series[metric][yr] === undefined || Math.abs(val) > Math.abs(series[metric][yr])) {
+                series[metric][yr] = val;
+              }
+            });
+            break; // achou label — próxima métrica
+          }
+        }
+      }
+    }
+
+    // Só anexa se coletou algo para pelo menos uma métrica com 2+ anos
+    let hasMulti = false;
+    for (const k in series) {
+      if (Object.keys(series[k]).length >= 2) { hasMulti = true; break; }
+    }
+    if (hasMulti) r._series = series;
+  })();
+
   return r;
 }
 
@@ -3911,6 +4008,8 @@ async function parseText() {
     } catch(_e) { console.warn('[IA sample texto]', _e.message); }
   }
 
+  // v67: séries multi-ano para popular colunas 2023/2024/2025 do Excel
+  S._series = docR._series || null;
   S.receita     = docR.receita      || txtR.receita      || null;
   S.ebitda      = docR.ebitda       || txtR.ebitda       || null;
   S.divida      = docR.divida       || txtR.divida       || null;
@@ -4879,35 +4978,77 @@ async function exportToExcel() {
       delete ws[ref].f; // remove fórmula se houver (células azuis não têm)
     }
 
-    // ── 1_DRE (sheet3) ─── F6=receita bruta, F13=desp.op, F14=pró-labore, F21=D&A ──
+    // ── v67: helper que escolhe coluna(s) por ano quando há série ────────
+    // Colunas do template: D=2023, E=2024, F=2025 (2_Balanco tem C=2022 também)
+    const YEAR_COLS = { 2022:'C', 2023:'D', 2024:'E', 2025:'F' };
+    const series = S._series || {};
+    function seriesForMetric(m) {
+      const s = series[m];
+      if (!s) return null;
+      const yrs = Object.keys(s).map(Number).filter(y => YEAR_COLS[y]);
+      if (!yrs.length) return null;
+      return yrs.map(y => ({ col: YEAR_COLS[y], val: s[y], year: y }));
+    }
+    // Escreve série multi-ano OU cai para valor único em F (2025)
+    function writeMetric(ws, rowNum, metric, fallbackVal) {
+      const s = seriesForMetric(metric);
+      if (s) {
+        s.forEach(({col, val}) => setNum(ws, col+rowNum, mil(val)));
+      } else if (fallbackVal != null) {
+        setNum(ws, 'F'+rowNum, mil(fallbackVal));
+      }
+    }
+
+    // ── 1_DRE (sheet3) ─── R6=receita, R10=CMV, R13=desp.op, R14=pró-labore, R17=outras, R21=D&A ──
     const ws1 = wb.Sheets['1_DRE'];
     if (ws1) {
-      setNum(ws1, 'F6',  mil(S.receita));                          // receita bruta
-      setNum(ws1, 'F7',  0);                                       // deduções (0)
-      setNum(ws1, 'F10', 0);                                       // CMV (0)
-      setNum(ws1, 'F14', S.sde ? mil(S.sde - (S.ebitda||0)) : 0); // pró-labore
-      setNum(ws1, 'F17', 0);                                       // D&A (não temos)
-      setNum(ws1, 'F21', 0);                                       // depreciação
-      // F13=despesas: EBITDA = receita - CMV - despesas + D&A
-      // despesas = receita - EBITDA (simplificado)
-      const despEst = S.receita && S.ebitda ? mil(S.receita - S.ebitda) : 0;
-      setNum(ws1, 'F13', Math.max(0, despEst));
+      writeMetric(ws1, 6,  'receita',     S.receita);           // receita bruta
+      setNum(ws1, 'F7',  0);                                     // deduções (0)
+      writeMetric(ws1, 10, 'cmv',         0);                    // CMV
+      // Despesas op: se temos série EBITDA+receita, calcula por ano
+      const rSer = series.receita, eSer = series.ebitda;
+      if (rSer && eSer) {
+        Object.keys(rSer).forEach(yr => {
+          if (YEAR_COLS[yr] && eSer[yr] != null) {
+            const desp = rSer[yr] - eSer[yr];
+            setNum(ws1, YEAR_COLS[yr]+'13', Math.max(0, mil(desp)));
+          }
+        });
+      } else {
+        const despEst = S.receita && S.ebitda ? mil(S.receita - S.ebitda) : 0;
+        setNum(ws1, 'F13', Math.max(0, despEst));
+      }
+      setNum(ws1, 'F14', S.sde ? mil(S.sde - (S.ebitda||0)) : 0); // pró-labore (só 2025)
+      setNum(ws1, 'F17', 0);                                      // outras (0)
+      writeMetric(ws1, 21, 'dep_amort',   S.depreciacao);         // D&A
     }
 
-    // ── 2_Balanco (sheet4) ─── F6=caixa, F15=dívida CP ──
+    // ── 2_Balanco (sheet4) ─── R6=caixa, R7=CR, R8=estoques, R10=imob, R11=intang, R13=forn, R15=div CP, R16=div LP ──
     const ws2 = wb.Sheets['2_Balanco'];
     if (ws2) {
-      setNum(ws2, 'F6',  mil(S.caixa  || 0));  // caixa/disponibilidades
-      setNum(ws2, 'F15', mil(S.divida || 0));  // dívida total (CP)
-      setNum(ws2, 'F16', 0);                   // dívida LP
-      setNum(ws2, 'F17', 0);                   // outros passivos
+      writeMetric(ws2, 6,  'caixa',         S.caixa);
+      writeMetric(ws2, 7,  'contas_receber', null);
+      writeMetric(ws2, 8,  'estoques',       null);
+      writeMetric(ws2, 10, 'imobilizado',    null);
+      writeMetric(ws2, 11, 'intangivel',     null);
+      writeMetric(ws2, 13, 'fornecedores',   null);
+      writeMetric(ws2, 14, 'outros_pass_op', null);
+      writeMetric(ws2, 15, 'divida_cp',      S.divida);
+      writeMetric(ws2, 16, 'divida_lp',      null);
+      // Fallback: se não houver série mas há S.divida, mantém tudo em F15
     }
 
-    // ── 3_DFC (sheet5) ─── F6=FCO, F9=CAPEX ──
+    // ── 3_DFC (sheet5) ─── R6=FCO, R9=CAPEX ──
     const ws3 = wb.Sheets['3_DFC'];
     if (ws3) {
-      setNum(ws3, 'F6', mil(S.fco  || 0));    // FCO
-      setNum(ws3, 'F9', mil(S.capex || 0));    // CAPEX
+      writeMetric(ws3, 6, 'fco',   S.fco);
+      // CAPEX: DFC costuma reportar como negativo; padroniza positivo
+      const capSer = seriesForMetric('capex');
+      if (capSer) {
+        capSer.forEach(({col, val}) => setNum(ws3, col+'9', mil(Math.abs(val))));
+      } else if (S.capex != null) {
+        setNum(ws3, 'F9', mil(Math.abs(S.capex)));
+      }
     }
 
     // ── 4_Normalizacao (sheet6) ─── F15=gestor substituto ──
