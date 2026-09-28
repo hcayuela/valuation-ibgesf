@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Valuation IBGESF v62</title>
+<title>Valuation IBGESF v63</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600&display=swap">
 
 <!-- Leitura client-side de PDF e Excel/CSV -->
@@ -2061,6 +2061,7 @@ let S = { name:'', email:'', associado:null,
 let _docText = '';       // texto acumulado de todos os documentos
 let _docFileName = '';   // nome do último arquivo processado (para Worker e evidências)
 let _docFiles = [];      // arquivos File originais (para envio base64 ao Worker)
+let _pdfImageBlobs = []; // PNG blobs de PDFs baseados em imagem (sem texto extraível)
 let _loadingFiles = false; // impede que updatePanel() sobrescreva a barra durante leitura
 let _lastDocR = {};      // último resultado bruto da extração de documentos (para overlay)
 
@@ -2266,6 +2267,34 @@ async function extractPDF(file) {
       const content = await pg.getTextContent();
       txt += content.items.map(it => it.str).join(' ') + '\n';
     }
+
+    // ── PDF baseado em imagem: sem texto extraível ──
+    // Renderiza cada página como PNG e retorna os blobs para extração via Claude Vision
+    if (txt.trim().length < 50) {
+      console.log('[extractPDF] PDF baseado em imagem detectado —', file.name, '— renderizando para canvas...');
+      const imageBlobs = [];
+      const MAX_IMG_PAGES = 6; // limite para não exceder quota do sample
+      const scale = 1.5; // resolução suficiente para OCR
+      for (let i = 1; i <= Math.min(pdf.numPages, MAX_IMG_PAGES); i++) {
+        try {
+          const pg = await pdf.getPage(i);
+          const viewport = pg.getViewport({ scale });
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          const ctx = canvas.getContext('2d');
+          await pg.render({ canvasContext: ctx, viewport }).promise;
+          const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+          if (blob) imageBlobs.push(blob);
+        } catch(pageErr) {
+          console.warn('[extractPDF] Erro ao renderizar página', i, pageErr);
+        }
+      }
+      if (imageBlobs.length > 0) {
+        console.log('[extractPDF] Renderizou', imageBlobs.length, 'páginas como imagem de', file.name);
+        return { text: '', images: imageBlobs, fileName: file.name };
+      }
+    }
     return txt;
   } catch(e) {
     console.error('[extractPDF]', e);
@@ -2394,6 +2423,7 @@ function handleFiles(inp) {
   resetS();
   _docText = '';
   _lastDocR = {};
+  _pdfImageBlobs = [];
   _docFiles = files; // guarda referência para envio base64 ao Worker
 
   const fl      = document.getElementById('file-list');
@@ -2505,6 +2535,12 @@ function handleFiles(inp) {
         setEvidence('readFailure_' + f.name.replace(/\W/g,'_'), {
           origin:'read-failure', state:'read-failure', evidence: txt.error
         });
+        txt = '';
+      }
+      // PDF baseado em imagem: blobs PNG para extração via Claude Vision
+      if (txt && typeof txt === 'object' && txt.images) {
+        console.log('[handleFiles] PDF imagem:', txt.fileName, '—', txt.images.length, 'páginas');
+        _pdfImageBlobs.push(...txt.images.map(blob => ({ blob, fileName: txt.fileName || f.name })));
         txt = '';
       }
       return onFileLoaded(i, txt, f.name);
@@ -3727,25 +3763,48 @@ async function parseText() {
 
   // ── IA via sample capability (substitui Worker — CSP impede fetch externo) ──
   // A capability 'sample' do claude.ai é nativa, sem restrição de CSP.
-  // Para PDFs: o texto já foi extraído via pdf.js em _docText — enviamos ao Claude AI.
+  // Para PDFs texto: o texto já foi extraído via pdf.js em _docText — enviamos ao Claude AI.
+  // Para PDFs imagem: blobs PNG renderizados em _pdfImageBlobs — enviados via Claude Vision.
   // Para XLSX/CSV: também usa _docText convertido.
   {
     const hasDocs = _docFiles && _docFiles.length > 0;
-    const needsAI = hasDocs && _docText && _docText.length > 100;
-    if (needsAI) {
+    const hasText = _docText && _docText.length > 100;
+    const hasImages = _pdfImageBlobs && _pdfImageBlobs.length > 0;
+
+    // 1. PDFs com texto: extração via sample texto
+    if (hasDocs && hasText) {
       try {
         const nomes = (_docFiles || []).map(f => f.name).join(', ');
-        console.log('[IA sample PDF] Extraindo documentos via Claude AI:', nomes);
+        console.log('[IA sample PDF texto] Extraindo via Claude AI:', nomes);
         const aiR = await sampleExtract(_docText, nomes);
         if (aiR) {
-          console.log('[IA sample PDF] Resultado:', JSON.stringify(aiR).slice(0, 200));
-          docR = mergeWorkerResult(docR, aiR, nomes, true); // forceOverride: IA vence client-side
-          console.log('[IA sample PDF] docR.receita após merge:', docR.receita);
+          console.log('[IA sample PDF texto] Resultado:', JSON.stringify(aiR).slice(0, 200));
+          docR = mergeWorkerResult(docR, aiR, nomes, true);
+          console.log('[IA sample PDF texto] docR.receita após merge:', docR.receita);
         } else {
-          console.warn('[IA sample PDF] Retornou null — usando apenas client-side.');
+          console.warn('[IA sample PDF texto] Retornou null — usando apenas client-side.');
         }
       } catch(e) {
-        console.warn('[IA sample PDF] Erro:', e.message);
+        console.warn('[IA sample PDF texto] Erro:', e.message);
+      }
+    }
+
+    // 2. PDFs baseados em imagem: extração via Claude Vision (imagens PNG)
+    if (hasDocs && hasImages) {
+      try {
+        const nomesImg = [...new Set(_pdfImageBlobs.map(e => e.fileName))].join(', ');
+        console.log('[IA sample IMG] PDFs de imagem detectados:', nomesImg, '—', _pdfImageBlobs.length, 'páginas');
+        const aiImgR = await sampleExtractImages(_pdfImageBlobs, nomesImg);
+        if (aiImgR) {
+          console.log('[IA sample IMG] Resultado:', JSON.stringify(aiImgR).slice(0, 300));
+          // Mescla resultado de imagem — valores de texto têm prioridade se já extraídos
+          docR = mergeWorkerResult(docR, aiImgR, nomesImg, false); // não forçar override do texto
+          console.log('[IA sample IMG] docR.receita após merge:', docR.receita);
+        } else {
+          console.warn('[IA sample IMG] Retornou null.');
+        }
+      } catch(e) {
+        console.warn('[IA sample IMG] Erro:', e.message);
       }
     }
   }
@@ -4868,6 +4927,84 @@ ${textTrimmed}`;
   } catch(e) {
     console.warn('[IA sample] Erro na extração:', e.message);
     // Tenta parse manual se retornou como string
+    if (e.text) {
+      try {
+        const m = e.text.match(/\{[\s\S]+\}/);
+        if (m) return JSON.parse(m[0]);
+      } catch(_) {}
+    }
+    return null;
+  }
+}
+
+// ─── EXTRAÇÃO DE PDFs BASEADOS EM IMAGEM via Claude Vision ──────────────────
+// Chamado quando pdf.js não encontra texto (PDF escaneado).
+// Envia as páginas renderizadas como PNG ao Claude via sample capability.
+async function sampleExtractImages(imageBlobEntries, fileNameHint) {
+  const sam = await initSample();
+  if (!sam) {
+    console.warn('[IA sample IMG] Sem capability — PDFs de imagem não podem ser lidos');
+    return null;
+  }
+
+  // Verifica suporte a imagens
+  let limits;
+  try { limits = await sam.limits(); } catch(e) { limits = {}; }
+  if (!limits.images) {
+    console.warn('[IA sample IMG] Capability não suporta imagens nesta sessão');
+    return null;
+  }
+
+  const maxCount = limits.images.maxCount || 10;
+  const blobs = imageBlobEntries.slice(0, maxCount).map(e => e.blob);
+  const names = [...new Set(imageBlobEntries.slice(0, maxCount).map(e => e.fileName))].join(', ');
+
+  const prompt = `Você é um extrator de dados financeiros brasileiros para valuation de PME.
+Analise as imagens de documentos financeiros abaixo e extraia APENAS os campos que aparecem explicitamente.
+Retorne SOMENTE um objeto JSON sem texto adicional, nenhum markdown, sem código.
+
+Campos esperados (valores em R$ inteiro, sem centavos):
+{
+  "receita_bruta": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."},
+  "ebitda": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."},
+  "fcl": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."},
+  "fco": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."},
+  "capex": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."},
+  "divida_financeira": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."},
+  "caixa": {"valor_normalizado": número_em_R$ ou null, "confianca": "alta"|"média"|"baixa", "linha_evidencia": "..."},
+  "empresa_principal": "razão social da empresa analisada ou null"
+}
+
+Regras críticas:
+- C=Crédito=positivo, D=Débito=negativo (padrão ERP brasileiro tipo Domínio/Alterdata)
+- Se valores em R$ mil: multiplique por 1000
+- Receita = faturamento total / receita bruta / vendas líquidas (use o MAIOR valor de receita encontrado)
+- EBITDA = resultado operacional antes de D&A (LAJIDA ou Lucro operacional + depreciação)
+- FCO = fluxo de caixa operacional (da DFC)
+- FCL = FCO − CAPEX (calcule se ambos estiverem disponíveis)
+- Dívida = total de empréstimos + financiamentos (curto + longo prazo)
+- Use apenas o período mais recente (ano fiscal mais recente ou últimos 12 meses)
+- NUNCA invente valores — retorne null se não encontrar
+- Documento: ${names}`;
+
+  try {
+    console.log('[IA sample IMG] Enviando', blobs.length, 'páginas PNG ao Claude Vision...');
+    const result = await sam.json(prompt, { images: blobs, modelTier: 'default' });
+    if (result && typeof result === 'object') {
+      // Calcula FCL se FCO e CAPEX foram extraídos mas FCL não
+      if (!result.fcl?.valor_normalizado && result.fco?.valor_normalizado && result.capex?.valor_normalizado) {
+        result.fcl = {
+          valor_normalizado: result.fco.valor_normalizado - result.capex.valor_normalizado,
+          confianca: 'média',
+          linha_evidencia: 'Calculado: FCO − CAPEX'
+        };
+      }
+      console.log('[IA sample IMG] Extraído:', JSON.stringify(result, null, 2));
+      return result;
+    }
+    return null;
+  } catch(e) {
+    console.warn('[IA sample IMG] Erro na extração:', e.message);
     if (e.text) {
       try {
         const m = e.text.match(/\{[\s\S]+\}/);
